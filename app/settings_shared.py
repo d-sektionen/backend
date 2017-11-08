@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'cas',
     'kronos',
     'account',
+    'rest_framework',
+    'voting',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,14 @@ SA_COL_NAME = 'Namn'
 SA_COL_LIU_ID = 'Liu-Id'
 SA_COL_UTSKOTT = 'Utskott'
 SA_COL_TITLE = 'Post utskott'
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+}

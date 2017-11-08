@@ -5,7 +5,7 @@ from account import views
 import cas.views
 
 urlpatterns = [
-    url(r'^$', views.index),
+    url(r'^token$', views.generate_token),
 
     # CAS
     url(r'^login/$', cas.views.login, name='login'),

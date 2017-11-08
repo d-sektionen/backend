@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 import account.urls
+import voting.urls
 
 urlpatterns = [
     # Admin pages
@@ -24,4 +25,7 @@ urlpatterns = [
 
     # Account
     url(r'^accounts/', include(account.urls)),
+
+    # Voting
+    url(r'^voting/', include(voting.urls)),
 ]
