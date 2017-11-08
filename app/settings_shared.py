@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cas',
+    'kronos',
+    'account',
 ]
 
 MIDDLEWARE = [
@@ -121,10 +123,10 @@ ADMINS = [
 ]
 
 # User configuration sheet
-MEMBER_SHEET_CREDENTIALS_FILE = 'credentials.json'
-MEMBER_SHEET_ID = '1qWJiXnr1L2yGXgb578IpsoaNyJ_UXbWD8Dhv_DD8_Pg'
+SA_CREDENTIALS_FILE = 'credentials.json'
+SA_FILE_ID = '1vgN5ds5LMUZ0V3lG_sHcjxCRD3NmaOTc6uVamSOxEOQ'
 
-MEMBER_SHEET_COL_NAME = 'Namn'
-MEMBER_SHEET_COL_LIU_ID = 'LiU-ID'
-MEMBER_SHEET_COL_UTSKOTT = 'Utskott'
-MEMBER_SHEET_COL_TITLE = 'Post'
+SA_COL_NAME = 'Namn'
+SA_COL_LIU_ID = 'Liu-Id'
+SA_COL_UTSKOTT = 'Utskott'
+SA_COL_TITLE = 'Post utskott'

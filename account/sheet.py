@@ -1,26 +1,37 @@
 import pygsheets
 from django.conf import settings
 
-COL_NAME = settings.MEMBER_SHEET_COL_NAME
-COL_LIU_ID = settings.MEMBER_SHEET_COL_LIU_ID
-COL_UTSKOTT = settings.MEMBER_SHEET_COL_UTSKOTT
-COL_TITLE = settings.MEMBER_SHEET_COL_TITLE
+NAME = settings.SA_COL_NAME
+LIU_ID = settings.SA_COL_LIU_ID
+UTSKOTT = settings.SA_COL_UTSKOTT
+TITLE = settings.SA_COL_TITLE
 
 
 class Sheet:
     def __init__(self):
-        self.worksheet = self.open()
-        self.column_map = self.map_columns()
+        self.worksheet = self._open()
+        self.column_map = self._map_columns()
 
+    def read_data(self):
+        all_rows = self.worksheet.get_all_values()
+        all_data = []
 
+        for row in all_rows[1:]:
+            data = {}
+            for column, index in self.column_map.items():
+                data[column] = row[index]
 
-    @staticmethod
-    def open():
-        google_client = pygsheets.authorize(service_file='credentials.json')
-        spreadsheet = google_client.open_by_key('1qWJiXnr1L2yGXgb578IpsoaNyJ_UXbWD8Dhv_DD8_Pg')
-        return spreadsheet[0]
+            all_data.append(data)
 
-    def map_columns(self):
+        return all_data
+
+    def _map_columns(self):
         row = self.worksheet.get_row(1, 'cells')
 
-        return {row[i].value: i for i in range(len(row))}
+        return {row[i].value: i for i in range(len(row)) if row[i].value}
+
+    @staticmethod
+    def _open():
+        google_client = pygsheets.authorize(service_file=settings.SA_CREDENTIALS_FILE)
+        spreadsheet = google_client.open_by_key(settings.SA_FILE_ID)
+        return spreadsheet[0]
