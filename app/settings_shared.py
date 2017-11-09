@@ -114,6 +114,7 @@ CAS_PROVIDE_URL_TO_LOGOUT = True
 CAS_RESPONSE_CALLBACKS = (
     'account.callbacks.normalize_username',
     'account.callbacks.apply_admin_permissions',
+    'account.callbacks.add_to_section_groups',
 )
 
 # User roles
@@ -143,3 +144,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
+
+STUDENT_PORTAL_SERVICE_KEY = os.getenv('STUDENT_PORTAL_SERVICE_KEY')

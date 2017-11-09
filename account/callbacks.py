@@ -8,7 +8,10 @@ accessed at tree[0][0].text.
 
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+
+from account.section_membership import check_membership
+from voting.models import Section
 
 
 def normalize_username(tree):
@@ -33,6 +36,21 @@ def apply_admin_permissions(tree):
         user.is_staff = True
         user.is_superuser = True
         user.save()
+
+
+def add_to_section_groups(tree):
+    """
+    Checks program membership and adds the user to the section groups in which
+    they belong.
+    """
+
+    user, user_created = _get_or_create_user(tree)
+    sections = Section.objects.all()
+    for section in sections:
+        is_member = check_membership(user.username, section)
+        if is_member:
+            group, created = Group.objects.get_or_create(name=section.name)
+            user.groups.add(group)
 
 
 def _get_or_create_user(tree):
