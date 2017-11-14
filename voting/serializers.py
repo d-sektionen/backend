@@ -10,8 +10,6 @@ class SectionSerializer(serializers.ModelSerializer):
 
 
 class MeetingSerializer(serializers.ModelSerializer):
-    section = SectionSerializer()
-
     class Meta:
         model = Meeting
         fields = ('name', 'current_vote', 'section', 'archived')

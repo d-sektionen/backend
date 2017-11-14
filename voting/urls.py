@@ -4,7 +4,7 @@ from rest_framework import routers
 from voting import views
 
 router = routers.DefaultRouter()
-router.register(r'meeting', views.MeetingViewSet)
+router.register(r'meetings', views.MeetingViewSet)
 router.register(r'scanners', views.ScannerViewSet)
 router.register(r'attendants', views.AttendantViewSet)
 router.register(r'votes', views.VoteViewSet)

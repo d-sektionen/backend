@@ -1,14 +1,50 @@
+import json
+
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase
+from rest_framework.test import APIClient
+
+from voting.models import Section
+
+num_users = 0
+
+
+def create_section(name):
+    return Section.objects.create(name=name)
+
+
+def create_user(add_to_sections=None):
+    user = User.objects.create_user(username=_next_username(), password='Password123')
+    if add_to_sections:
+        for section in add_to_sections:
+            user.groups.add(section.get_user_group())
+
+    client = APIClient()
+    client.login(username=user.username, password='Password123')
+
+    token_response = client.get('/account/token')
+    token_data = json.loads(token_response.content)
+
+    client.logout()
+    client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['token'])
+
+    return user, client
+
+
+def create_admin(add_to_sections):
+    user, client = create_user(add_to_sections)
+    for section in add_to_sections:
+        user.groups.add(section.get_admin_group())
+
+    return user, client
+
+
+def _next_username():
+    global num_users
+    num_users += 1
+    return 'User' + str(num_users)
 
 
 class AuthenticatedTestCase(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.username = 'testuser'
-        cls.password = 'Password123'
-        cls.user = User.objects.create_user(username=cls.username, password=cls.password)
-
     def setUp(self):
-        self.client = Client()
-        self.client.login(username=self.username, password=self.password)
+        self.user, self.client = create_user()

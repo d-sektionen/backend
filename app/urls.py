@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # Account
-    url(r'^accounts/', include(account.urls)),
+    url(r'^account/', include(account.urls)),
 
     # Voting
     url(r'^voting/', include(voting.urls)),
