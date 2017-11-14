@@ -7,8 +7,8 @@ from django.db import models
 class Section(models.Model):
     name = models.TextField()
     program_codes = models.TextField()
-    user_group = models.ForeignKey(Group, null=True, related_name='+')
-    admin_group = models.ForeignKey(Group, null=True, related_name='+')
+    user_group = models.ForeignKey(Group, blank=True, null=True, related_name='+')
+    admin_group = models.ForeignKey(Group, blank=True, null=True, related_name='+')
 
     def get_program_codes(self):
         items = re.split('[, \n]', self.program_codes)  # Split
@@ -20,7 +20,7 @@ class Section(models.Model):
 
 class Meeting(models.Model):
     name = models.CharField(max_length=64)
-    current_vote = models.ForeignKey('Vote', null=True, related_name='+')
+    current_vote = models.ForeignKey('Vote', blank=True, null=True, related_name='+')
     section = models.ForeignKey(Section, null=False)
     archived = models.BooleanField(default=False)
 
