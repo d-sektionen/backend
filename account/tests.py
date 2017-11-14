@@ -23,7 +23,7 @@ def create_user(add_to_sections=None):
     client.login(username=user.username, password='Password123')
 
     token_response = client.get('/account/token')
-    token_data = json.loads(token_response.content)
+    token_data = json.loads(token_response.content.decode('utf-8'))
 
     client.logout()
     client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['token'])
