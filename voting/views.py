@@ -4,6 +4,8 @@ from voting.models import Section
 from voting.serializers import SectionSerializer
 
 
-class SectionViewSet(viewsets.ModelViewSet):
+class SectionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
+    permission_classes = []
+
