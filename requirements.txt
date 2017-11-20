@@ -6,3 +6,4 @@ djangorestframework
 djangorestframework-jwt
 requests
 beautifulsoup4
+drf-writable-nested

@@ -1,3 +1,4 @@
+from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 
 from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, Alternative
@@ -39,12 +40,12 @@ class PrivateAlternativeSerializer(serializers.ModelSerializer):
         fields = ('text', 'num_votes')
 
 
-class VoteListSerializer(serializers.ModelSerializer):
+class VoteListSerializer(WritableNestedModelSerializer):
     alternatives = PublicAlternativeSerializer(source='alternative_set', many=True)
 
     class Meta:
         model = Vote
-        fields = ('question', 'open', 'alternatives')
+        fields = ('question', 'open', 'alternatives', 'meeting')
 
 
 class VoteDetailsSerializer(serializers.ModelSerializer):

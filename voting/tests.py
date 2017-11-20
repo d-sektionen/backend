@@ -54,7 +54,16 @@ class VoteTest(AuthenticatedTestCase):
         self.assertFalse('num_votes' in data[0]['alternatives'][0])
 
     def test_creation(self):
-        response = self.client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': self.section.id})
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        alternatives = [
+            {
+                'text': 'Alternative 1'
+            },
+            {
+                'text': 'Alternative 2'
+            }
+        ]
+        response = self.client.post('/voting/votes/', {'question': 'Question 1', 'meeting': meeting.id, 'alternatives': alternatives}, format='json')
 
         self.assertEqual(response.status_code, 201)
 
