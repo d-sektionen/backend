@@ -203,28 +203,37 @@ class PerfectMeeeting(TestCase):
             self.assertEqual(attendant_res.status_code, 201)
 
         # Create vote
-        vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'open': True, 'alternatives': ['D', 'Y']})
-        #alternative_ids = [alt['id'] for alt in json.loads(vote_res.content.decode('utf-8'))['alternatives']]
-        #print(json.loads(vote_res.content.decode('utf-8')))
-        #print(alternative_ids)
+        alternatives = [
+            {
+                'text': 'D'
+            },   
+            {
+                'text': 'Y'
+            }
+        ]
+
+        vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
         self.assertEqual(vote_res.status_code, 201)
 
+        vote_json = json.loads(vote_res.content.decode('utf-8'))
+        alternatives = [alt['id'] for alt in vote_json['alternatives']]
 
+        # One user votes for Y 
+        uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[1]})
+        self.assertEqual(uservote_res.status_code, 204)
+               
+        # The rest votes for the obvoius choice D 
+        for user in self.users[1:]:
+            uservote_res =  user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+            self.assertEqual(uservote_res.status_code, 204)
+                
 
-        #users[0][1].post('/voting/made_vote/', {'user': user[0].id, 'vote': ''})
+        close_res = self.admin[1].patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
+        self.assertEqual(close_res.status_code, 200)
 
-        #for user in self.users[1:]:
-        #    user[1].post('')
+        asdfasdf = self.admin[1].get('/voting/votes/'+str(vote_json['id'])+'/')
 
-        # Test if the /voting/meetings/ works correctly
-        #list_response = self.admin.get('/voting/meetings/').json()
-        #self.assertContains(list_response, meeting_name)
-
-        # Test if the /voting/meetings/id
-        #meeting_response = self.admin.get('/voting/meetings/' + create_response.id).json()
-        #self.assertEqual(meeting_response, create_response)
-
-
+        print(json.loads(asdfasdf.content.decode('utf-8')))
 
 """class BreakBeforeVote(TestCase):
     @classmethod
