@@ -54,7 +54,16 @@ class VoteTest(AuthenticatedTestCase):
         self.assertFalse('num_votes' in data[0]['alternatives'][0])
 
     def test_creation(self):
-        response = self.client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': self.section.id})
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        alternatives = [
+            {
+                'text': 'Alternative 1'
+            },
+            {
+                'text': 'Alternative 2'
+            }
+        ]
+        response = self.client.post('/voting/votes/', {'question': 'Question 1', 'meeting': meeting.id, 'alternatives': alternatives}, format='json')
 
         self.assertEqual(response.status_code, 201)
 
@@ -78,6 +87,47 @@ class VoteTest(AuthenticatedTestCase):
         Alternative.objects.create(text='Alternative 2', vote=vote)
 
         return vote
+
+class VotingTest(AuthenticatedTestCase):
+    def setUp(self):
+        self.section = create_section('Section')
+        self.admin, self.client = create_admin([self.section])
+
+        self._create_vote(self.section)
+
+    def test_voting(self):
+        response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(self.alternative1.num_votes, 1)
+
+    def test_double_voting(self):
+        response1 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response1.status_code, 204)
+        self.assertEqual(self.alternative1.num_votes, 1)
+
+        response2 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response2.status_code, 403)
+        self.assertEqual(self.alternative1.num_votes, 1)
+
+    def test_invalid_voting_request(self):
+        response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id + 1, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.alternative1.num_votes, 0)
+
+    def _create_vote(self, section):
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        self.vote = Vote.objects.create(question='Question?', meeting=meeting)
+        self.alternative1 = Alternative.objects.create(text='Alternative 1', vote=self.vote)
+        self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
+
 
 class VotingTest(AuthenticatedTestCase):
     def setUp(self):
