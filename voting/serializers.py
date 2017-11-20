@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section
+from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, Alternative
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -27,10 +27,32 @@ class AttendantSerializer(serializers.ModelSerializer):
         fields = ('user', 'meeting')
 
 
-class VoteSerializer(serializers.ModelSerializer):
+class PublicAlternativeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alternative
+        fields = ('text',)
+
+
+class PrivateAlternativeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alternative
+        fields = ('text', 'num_votes')
+
+
+class VoteListSerializer(serializers.ModelSerializer):
+    alternatives = PublicAlternativeSerializer(source='alternative_set', many=True)
+
     class Meta:
         model = Vote
-        fields = ('question', 'open', 'meeting')
+        fields = ('question', 'open', 'alternatives')
+
+
+class VoteDetailsSerializer(serializers.ModelSerializer):
+    alternatives = PrivateAlternativeSerializer(source='alternative_set', many=True)
+
+    class Meta:
+        model = Vote
+        fields = ('question', 'open', 'alternatives')
 
 
 class MadeVoteSerializer(serializers.ModelSerializer):

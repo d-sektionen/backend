@@ -20,12 +20,14 @@ class Section(models.Model):
     def get_user_group(self):
         if not self.user_group:
             self.user_group = Group.objects.create(name=self.name)
+            self.save(update_fields=['user_group'])
 
         return self.user_group
 
     def get_admin_group(self):
         if not self.admin_group:
             self.admin_group = Group.objects.create(name='Admin for ' + self.name)
+            self.save(update_fields=['admin_group'])
 
         return self.admin_group
 
