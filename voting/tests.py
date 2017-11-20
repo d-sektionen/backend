@@ -79,6 +79,46 @@ class VoteTest(AuthenticatedTestCase):
 
         return vote
 
+class VotingTest(AuthenticatedTestCase):
+    def setUp(self):
+        self.section = create_section('Section')
+        self.admin, self.client = create_admin([self.section])
+
+        self._create_vote(self.section)
+
+    def test_voting(self):
+        response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(self.alternative1.num_votes, 1)
+
+    def test_double_voting(self):
+        response1 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response1.status_code, 204)
+        self.assertEqual(self.alternative1.num_votes, 1)
+
+        response2 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response2.status_code, 403)
+        self.assertEqual(self.alternative1.num_votes, 1)
+
+    def test_invalid_voting_request(self):
+        response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id + 1, 'alternative_id': self.alternative1.id})
+
+        self.alternative1.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.alternative1.num_votes, 0)
+
+    def _create_vote(self, section):
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        self.vote = Vote.objects.create(question='Question?', meeting=meeting)
+        self.alternative1 = Alternative.objects.create(text='Alternative 1', vote=self.vote)
+        self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
+
 
 class PerfectMeeeting(TestCase):
     @classmethod
@@ -114,8 +154,17 @@ class PerfectMeeeting(TestCase):
 
         # Create vote
         vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'open': True, 'alternatives': ['D', 'Y']})
-        print(json.loads())        
+        #alternative_ids = [alt['id'] for alt in json.loads(vote_res.content.decode('utf-8'))['alternatives']]
+        #print(json.loads(vote_res.content.decode('utf-8')))
+        #print(alternative_ids)
         self.assertEqual(vote_res.status_code, 201)
+
+
+
+        #users[0][1].post('/voting/made_vote/', {'user': user[0].id, 'vote': ''})
+
+        #for user in self.users[1:]:
+        #    user[1].post('')
 
         # Test if the /voting/meetings/ works correctly
         #list_response = self.admin.get('/voting/meetings/').json()

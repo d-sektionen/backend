@@ -12,7 +12,7 @@ class SectionSerializer(serializers.ModelSerializer):
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
-        fields = ('name', 'current_vote', 'section', 'archived')
+        fields = ('id', 'name', 'current_vote', 'section', 'archived')
 
 
 class ScannerSerializer(serializers.ModelSerializer):
