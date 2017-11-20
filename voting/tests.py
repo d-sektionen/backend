@@ -1,6 +1,6 @@
 import json
 
-from django.test import TestCase, Client
+from django.test import TestCase
 
 from account.tests import AuthenticatedTestCase, create_section, create_admin
 from voting.models import Section, Meeting, Vote, Alternative
@@ -24,6 +24,8 @@ class MeetingTest(AuthenticatedTestCase):
         self.assertEqual(data[0]['name'], 'Meeting 1')
         self.assertEqual(data[1]['name'], 'Meeting 3')
 
+
+class BasicTest(AuthenticatedTestCase):
     def test_creation(self):
         section = create_section('Section')
         admin, client = create_admin([section])
@@ -76,3 +78,72 @@ class VoteTest(AuthenticatedTestCase):
         Alternative.objects.create(text='Alternative 2', vote=vote)
 
         return vote
+
+
+class PerfectMeeeting(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        #cls.section = Section.objects.create(name='D-sektionen')
+        #cls.users = [CreateUser(), CreateUser(), CreateUser(), CreateUser(), CreateUser()]
+        #cls.admin = CreateAdmin()
+        pass
+        
+    def test_create_meeting(self):
+        # admin Skapar möte
+        # Existerar mötet som just skapades
+        # Tillhör den rätt sektion?
+        pass
+
+    def add_scanners(self):
+        # admin lägger till två Scanners
+        # finns användarna i rätt möte?
+        pass
+    
+    def scanning_users(self):
+        # scanner ska lägga till user som Attendants
+        # Är users attendendats?
+        pass
+
+    def create_vote(self, name, alternatives):
+        # Admin skapar omrötstning
+        # Är vote i current_vote
+        # Stämmer mötet överrens?
+        # Stämmer svars-alternativen överens?
+        pass
+
+    def user_vote(self):
+        # Varje attendent röstar på ett alternativ för current_vote
+        # Läggs dom till i madeVote?
+        # Stämmer number of votes för varje alternativ?
+        pass
+    
+    def check_voting_results(self):
+        # Admin stänger omröstning
+        # Är current_vote closed?
+        # Stämmer number of votes överens?
+        pass
+    
+    # Call create_vote igen
+    # Call user_vote
+    # Call check voting results
+
+    def close_meeting(self):
+        # Admin closes meeting
+        # Kolla om archived true
+        pass
+
+
+class BreakBeforeVote(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.section = Section.objects.create(name='D-sektionen')
+        cls.users = [CreateUser(), CreateUser(), CreateUser(), CreateUser(), CreateUser()]
+        cls.admin = CreateAdmin()
+
+
+class BreateAfterVote(TestCase):
+    pass
+
+
+class ForgotLiUCard(TestCase):
+    pass
