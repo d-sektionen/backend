@@ -178,7 +178,12 @@ class PerfectMeeeting(TestCase):
         cls.users = [create_user([cls.section]) for _ in range(5)]
         cls.scanners = [create_user([cls.section]) for _ in range(2)]
         cls.admin = create_admin([cls.section])
-    
+        
+
+    def parse(self, response):
+        return json.loads(response.content.decode('utf-8'))
+
+
     def test_creation(self):
         section = create_section('Section')
         admin, client = create_admin([section])
@@ -186,56 +191,63 @@ class PerfectMeeeting(TestCase):
         response = client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(section.id)})
         self.assertEqual(response.status_code, 201)
 
-    def test_perfect_meeting(self):
-        meeting_name = 'Meeting 1'
-        create_response = self.admin[1].post('/voting/meetings/', {'name': meeting_name, 'section': self.section.id})        
-        self.assertEqual(create_response.status_code, 201)
 
-        meeting_id = json.loads(create_response.content.decode('utf-8'))['id']
+    def test_perfect_meeting(self):       
+        create_res = self.admin[1].post('/voting/meetings/', {'name': 'Meeting 1', 'section': self.section.id})        
+        self.assertEqual(create_res.status_code, 201)
+
+        meeting_id = self.parse(create_res)['id']
         
+        # Add scanners
         for scanner in self.scanners:
             scanner_res = self.admin[1].post('/voting/scanners/', {'user': scanner[0].id, 'meeting': meeting_id})
             self.assertEqual(scanner_res.status_code, 201)
     
-        # Scan in all users
+        # Scanners scan all users
         for user in self.users:
             attendant_res = self.scanners[1][1].post('/voting/attendants/', {'user': user[0].id, 'meeting': meeting_id})
             self.assertEqual(attendant_res.status_code, 201)
 
-        # Create vote
-        alternatives = [
-            {
-                'text': 'D'
-            },   
-            {
-                'text': 'Y'
-            }
-        ]
+        # Do two votes for some reason
+        for _ in range(2):
+            # Create vote
+            alternatives = [{'text': 'D'}, {'text': 'Y'}]
+            vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+            self.assertEqual(vote_res.status_code, 201)
 
-        vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
-        self.assertEqual(vote_res.status_code, 201)
+            vote_json = self.parse(vote_res)
+            alternatives = [alt['id'] for alt in vote_json['alternatives']]
 
-        vote_json = json.loads(vote_res.content.decode('utf-8'))
-        alternatives = [alt['id'] for alt in vote_json['alternatives']]
-
-        # One user votes for Y 
-        uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[1]})
-        self.assertEqual(uservote_res.status_code, 204)
-               
-        # The rest votes for the obvoius choice D 
-        for user in self.users[1:]:
-            uservote_res =  user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+            # One user votes for Y 
+            uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[1]})
             self.assertEqual(uservote_res.status_code, 204)
                 
+            # The rest votes for the obvoius choice: D 
+            for user in self.users[1:]:
+                uservote_res =  user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+                self.assertEqual(uservote_res.status_code, 204)
+                    
+            # Close the vote
+            close_res = self.admin[1].patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
+            self.assertEqual(close_res.status_code, 200)
+            self.assertEqual(self.parse(close_res)['open'], False)
 
-        close_res = self.admin[1].patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
-        self.assertEqual(close_res.status_code, 200)
+            # Count the votes
+            result_res = self.admin[1].get('/voting/votes/'+str(vote_json['id'])+'/')
+            self.assertEqual(result_res.status_code, 200)
+            
+            for result in self.parse(result_res)['alternatives']:
+                if result['text'] == 'D':
+                    self.assertEqual(result['num_votes'], 4) # WOHO WE WON!!!
+                else:
+                    self.assertEqual(result['num_votes'], 1)
 
-        asdfasdf = self.admin[1].get('/voting/votes/'+str(vote_json['id'])+'/')
+        # delet this
+        delete_res = self.admin[1].delete('/voting/meetings/{}/'.format(meeting_id))
+        self.assertEqual(delete_res.status_code, 204)
 
-        print(json.loads(asdfasdf.content.decode('utf-8')))
-
-"""class BreakBeforeVote(TestCase):
+"""
+class PissBreakBeforeVote(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.section = Section.objects.create(name='D-sektionen')
