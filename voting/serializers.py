@@ -7,7 +7,7 @@ from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, 
 class SectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Section
-        fields = ('name',)
+        fields = ('id', 'name',)
 
 
 class MeetingSerializer(serializers.ModelSerializer):
@@ -19,25 +19,25 @@ class MeetingSerializer(serializers.ModelSerializer):
 class ScannerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scanner
-        fields = ('user', 'meeting')
+        fields = ('id', 'user', 'meeting')
 
 
 class AttendantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendant
-        fields = ('user', 'meeting')
+        fields = ('id', 'user', 'meeting')
 
 
 class PublicAlternativeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alternative
-        fields = ('text',)
+        fields = ('id', 'text',)
 
 
 class PrivateAlternativeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alternative
-        fields = ('text', 'num_votes')
+        fields = ('id', 'text', 'num_votes')
 
 
 class VoteListSerializer(WritableNestedModelSerializer):
@@ -45,7 +45,7 @@ class VoteListSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ('question', 'open', 'alternatives', 'meeting')
+        fields = ('id', 'question', 'open', 'alternatives', 'meeting')
 
 
 class VoteDetailsSerializer(serializers.ModelSerializer):
@@ -53,10 +53,10 @@ class VoteDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ('question', 'open', 'alternatives')
+        fields = ('id', 'question', 'open', 'alternatives')
 
 
 class MadeVoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = MadeVote
-        fields = ('user', 'vote')
+        fields = ('id', 'user', 'vote')
