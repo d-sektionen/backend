@@ -2,7 +2,7 @@ import json
 
 from django.test import TestCase
 
-from account.tests import AuthenticatedTestCase, create_section, create_admin
+from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
 from voting.models import Section, Meeting, Vote, Alternative
 
 
@@ -83,57 +83,51 @@ class VoteTest(AuthenticatedTestCase):
 class PerfectMeeeting(TestCase):
     @classmethod
     def setUpTestData(cls):
-        #cls.section = Section.objects.create(name='D-sektionen')
-        #cls.users = [CreateUser(), CreateUser(), CreateUser(), CreateUser(), CreateUser()]
-        #cls.admin = CreateAdmin()
-        pass
+        section = 'D-sektionen'
+        cls.section = create_section(name=section)
+        cls.users = [create_user([cls.section]) for _ in range(5)]
+        cls.scanners = [create_user([cls.section]) for _ in range(2)]
+        cls.admin = create_admin([cls.section])
+    
+    def test_creation(self):
+        section = create_section('Section')
+        admin, client = create_admin([section])
+
+        response = client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(section.id)})
+        self.assertEqual(response.status_code, 201)
+
+    def test_perfect_meeting(self):
+        meeting_name = 'Meeting 1'
+        create_response = self.admin[1].post('/voting/meetings/', {'name': meeting_name, 'section': self.section.id})        
+        self.assertEqual(create_response.status_code, 201)
+
+        meeting_id = json.loads(create_response.content.decode('utf-8'))['id']
         
-    def test_create_meeting(self):
-        # admin Skapar möte
-        # Existerar mötet som just skapades
-        # Tillhör den rätt sektion?
-        pass
-
-    def add_scanners(self):
-        # admin lägger till två Scanners
-        # finns användarna i rätt möte?
-        pass
+        for scanner in self.scanners:
+            scanner_res = self.admin[1].post('/voting/scanners/', {'user': scanner[0].id, 'meeting': meeting_id})
+            self.assertEqual(scanner_res.status_code, 201)
     
-    def scanning_users(self):
-        # scanner ska lägga till user som Attendants
-        # Är users attendendats?
-        pass
+        # Scan in all users
+        for user in self.users:
+            attendant_res = self.scanners[1][1].post('/voting/attendants/', {'user': user[0].id, 'meeting': meeting_id})
+            self.assertEqual(attendant_res.status_code, 201)
 
-    def create_vote(self, name, alternatives):
-        # Admin skapar omrötstning
-        # Är vote i current_vote
-        # Stämmer mötet överrens?
-        # Stämmer svars-alternativen överens?
-        pass
+        # Create vote
+        vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'open': True, 'alternatives': ['D', 'Y']})
+        print(json.loads())        
+        self.assertEqual(vote_res.status_code, 201)
 
-    def user_vote(self):
-        # Varje attendent röstar på ett alternativ för current_vote
-        # Läggs dom till i madeVote?
-        # Stämmer number of votes för varje alternativ?
-        pass
-    
-    def check_voting_results(self):
-        # Admin stänger omröstning
-        # Är current_vote closed?
-        # Stämmer number of votes överens?
-        pass
-    
-    # Call create_vote igen
-    # Call user_vote
-    # Call check voting results
+        # Test if the /voting/meetings/ works correctly
+        #list_response = self.admin.get('/voting/meetings/').json()
+        #self.assertContains(list_response, meeting_name)
 
-    def close_meeting(self):
-        # Admin closes meeting
-        # Kolla om archived true
-        pass
+        # Test if the /voting/meetings/id
+        #meeting_response = self.admin.get('/voting/meetings/' + create_response.id).json()
+        #self.assertEqual(meeting_response, create_response)
 
 
-class BreakBeforeVote(TestCase):
+
+"""class BreakBeforeVote(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.section = Section.objects.create(name='D-sektionen')
@@ -147,3 +141,4 @@ class BreateAfterVote(TestCase):
 
 class ForgotLiUCard(TestCase):
     pass
+"""
