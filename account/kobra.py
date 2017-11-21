@@ -1,0 +1,27 @@
+import logging
+
+import requests
+from django.conf import settings
+
+BASE_URL = 'https://kobra.karservice.se'
+QUERY_URL = BASE_URL + '/api/v1/students/{}'
+
+token = settings.KOBRA_TOKEN
+logger = logging.getLogger(__name__)
+
+
+def liu_id_from_card(card_id):
+    """
+    Takes the id that is on the liu cards and gets the liu id from Kobra.
+    :param card_id: (int) The identification number that can be acquired from the liu card via a RFID card reader.
+    :return: (string) The liu id of the user with the card id card_id.
+    """
+    if token is None:
+        logger.warning('Unable to authenticate with Kobra (have you set KOBRA_TOKEN?)')
+        return None
+
+    r = requests.get(QUERY_URL.format(card_id), headers={'Authorization': 'Token ' + token})
+    if r.status_code == 200:
+        return r.json().get('liu_id')
+    else:
+        return None

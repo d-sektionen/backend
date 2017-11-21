@@ -1,8 +1,10 @@
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import F
 from rest_framework import viewsets, views, status
 from rest_framework.response import Response
 
+from account import kobra
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, MadeVoteSerializer, VoteDetailsSerializer
 
@@ -21,6 +23,26 @@ class MeetingViewSet(viewsets.ModelViewSet):
 class AttendantViewSet(viewsets.ModelViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
+
+    def create(self, request, *args, **kwargs):
+        meeting_id = request.data['meeting']
+        meeting = Meeting.objects.get(id=meeting_id)
+
+        if 'card_id' in request.data:
+            card_id = request.data['card_id']
+            username = kobra.liu_id_from_card(card_id)
+        elif 'username' in request.data:
+            username = request.data['username'].strip().lower()
+        else:
+            return Response({'error': 'Missing required parameter username or card_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if username is None:
+            return Response({'error': 'Unable to find student'}, status=status.HTTP_404_NOT_FOUND)
+
+        user, created = User.objects.get_or_create(username=username)
+        attendant = Attendant.objects.create(user=user, meeting=meeting)
+
+        return Response(AttendantSerializer(attendant).data, status=status.HTTP_201_CREATED)
 
 
 class ScannerViewSet(viewsets.ModelViewSet):

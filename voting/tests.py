@@ -205,7 +205,7 @@ class PerfectMeeeting(TestCase):
     
         # Scanners scan all users
         for user in self.users:
-            attendant_res = self.scanners[1][1].post('/voting/attendants/', {'user': user[0].id, 'meeting': meeting_id})
+            attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
             self.assertEqual(attendant_res.status_code, 201)
 
         # Do two votes for some reason
