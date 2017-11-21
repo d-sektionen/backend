@@ -3,7 +3,7 @@ import json
 from django.test import TestCase
 
 from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
-from voting.models import Section, Meeting, Vote, Alternative
+from voting.models import Section, Meeting, Vote, Alternative, Scanner, Attendant
 
 
 class MeetingTest(AuthenticatedTestCase):
@@ -87,47 +87,6 @@ class VoteTest(AuthenticatedTestCase):
         Alternative.objects.create(text='Alternative 2', vote=vote)
 
         return vote
-
-class VotingTest(AuthenticatedTestCase):
-    def setUp(self):
-        self.section = create_section('Section')
-        self.admin, self.client = create_admin([self.section])
-
-        self._create_vote(self.section)
-
-    def test_voting(self):
-        response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
-
-        self.alternative1.refresh_from_db()
-        self.assertEqual(response.status_code, 204)
-        self.assertEqual(self.alternative1.num_votes, 1)
-
-    def test_double_voting(self):
-        response1 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
-
-        self.alternative1.refresh_from_db()
-        self.assertEqual(response1.status_code, 204)
-        self.assertEqual(self.alternative1.num_votes, 1)
-
-        response2 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
-
-        self.alternative1.refresh_from_db()
-        self.assertEqual(response2.status_code, 403)
-        self.assertEqual(self.alternative1.num_votes, 1)
-
-    def test_invalid_voting_request(self):
-        response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id + 1, 'alternative_id': self.alternative1.id})
-
-        self.alternative1.refresh_from_db()
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(self.alternative1.num_votes, 0)
-
-    def _create_vote(self, section):
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        self.vote = Vote.objects.create(question='Question?', meeting=meeting)
-        self.alternative1 = Alternative.objects.create(text='Alternative 1', vote=self.vote)
-        self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
-
 
 class VotingTest(AuthenticatedTestCase):
     def setUp(self):
@@ -274,3 +233,28 @@ class BreateAfterVote(TestCase):
 
 class ForgotLiUCard(TestCase):
     pass
+
+
+class NoDuplicates(AuthenticatedTestCase):
+    def setUp(self):
+        self.section = create_section('Section')
+        self.meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        self.user, self.user_client = create_user([self.section])
+        self.admin, self.client = create_admin([self.section])
+
+    def test_duplicate_scanner(self):
+        scanner_res = self.client.post('/voting/scanners/', {'user': self.user.id, 'meeting': self.meeting.id})
+        self.assertEqual(scanner_res.status_code, 201)
+
+        scanner_res = self.client.post('/voting/scanners/', {'user': self.user.id, 'meeting': self.meeting.id})
+        self.assertEqual(scanner_res.status_code, 400)
+
+    def test_duplicate_attendant(self):
+        Scanner.objects.create(user=self.user, meeting=self.meeting)
+
+        attendant, attendant_client = create_user([self.section])
+        attendant_res = self.user_client.post('/voting/attendants/', {'username': attendant.username, 'meeting': self.meeting.id})
+        self.assertEqual(attendant_res.status_code, 201)
+
+        attendant_res = self.user_client.post('/voting/attendants/', {'username': attendant.username, 'meeting': self.meeting.id})
+        self.assertEqual(attendant_res.status_code, 400)

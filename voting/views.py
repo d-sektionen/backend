@@ -40,9 +40,12 @@ class AttendantViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Unable to find student'}, status=status.HTTP_404_NOT_FOUND)
 
         user, created = User.objects.get_or_create(username=username)
-        attendant = Attendant.objects.create(user=user, meeting=meeting)
+        attendant, created = Attendant.objects.get_or_create(user=user, meeting=meeting)
 
-        return Response(AttendantSerializer(attendant).data, status=status.HTTP_201_CREATED)
+        if created:
+            return Response(AttendantSerializer(attendant).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': 'Attendant already exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ScannerViewSet(viewsets.ModelViewSet):

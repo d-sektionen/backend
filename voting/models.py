@@ -43,10 +43,16 @@ class Scanner(models.Model):
     user = models.ForeignKey(User, null=False)
     meeting = models.ForeignKey(Meeting, null=False)
 
+    class Meta:
+        unique_together = ('user', 'meeting')
+
 
 class Attendant(models.Model):
     user = models.ForeignKey(User, null=False)
     meeting = models.ForeignKey(Meeting, null=False)
+
+    class Meta:
+        unique_together = ('user', 'meeting')
 
 
 class Vote(models.Model):
