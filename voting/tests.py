@@ -208,6 +208,7 @@ class PerfectMeeeting(TestCase):
             attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
             self.assertEqual(attendant_res.status_code, 201)
 
+			
         # Do two votes for some reason
         for _ in range(2):
             # Create vote
@@ -246,14 +247,26 @@ class PerfectMeeeting(TestCase):
         delete_res = self.admin[1].delete('/voting/meetings/{}/'.format(meeting_id))
         self.assertEqual(delete_res.status_code, 204)
 
-"""
+
 class PissBreakBeforeVote(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.section = Section.objects.create(name='D-sektionen')
-        cls.users = [CreateUser(), CreateUser(), CreateUser(), CreateUser(), CreateUser()]
-        cls.admin = CreateAdmin()
+        section = 'D-sektionen'
+        cls.section = create_section(name=section)
+        cls.users = [create_user([cls.section]) for _ in range(2)]
+        cls.scanners = [create_user([cls.section])]
+        cls.superadmin = create_admin([cls.section])
+        cls.admin = cls.superadmin[0]
+        cls.adm_client = cls.superadmin[1]
 
+    def parse(self, response):
+        return json.loads(response.content.decode('utf-8'))
+
+    def test_leave(self):
+        meeting_res = self.adm_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        meeting_id = self.parse(meeting_res)['id']
+        #elf.adm_client.post('/voting/attendants/', {'user': self.users[0][0].id, 'meeting': meeting_id})
+        #self.adm_client.post('/voting/attendants/', {'user': self.users[0][1].id, 'meeting': meeting_id})
 
 class BreateAfterVote(TestCase):
     pass
@@ -261,4 +274,3 @@ class BreateAfterVote(TestCase):
 
 class ForgotLiUCard(TestCase):
     pass
-"""
