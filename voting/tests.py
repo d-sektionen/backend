@@ -213,19 +213,25 @@ class PissBreakBeforeVote(TestCase):
         section = 'D-sektionen'
         cls.section = create_section(name=section)
         cls.users = [create_user([cls.section]) for _ in range(2)]
-        cls.scanners = [create_user([cls.section])]
-        cls.superadmin = create_admin([cls.section])
-        cls.admin = cls.superadmin[0]
-        cls.adm_client = cls.superadmin[1]
+        cls.scanner = create_user([cls.section])
+        cls.admin, cls.admin_client = create_admin([cls.section])
 
     def parse(self, response):
         return json.loads(response.content.decode('utf-8'))
 
     def test_leave(self):
-        meeting_res = self.adm_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = self.parse(meeting_res)['id']
-        #elf.adm_client.post('/voting/attendants/', {'user': self.users[0][0].id, 'meeting': meeting_id})
-        #self.adm_client.post('/voting/attendants/', {'user': self.users[0][1].id, 'meeting': meeting_id})
+        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        meeting_id = self.parse(meeting_response)['id']
+
+        alternatives = [{'text': 'D'}, {'text': 'Y'}]
+        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        self.admin_client.post('/voting/attendants/', {'username': self.users[0][0].username, 'meeting': meeting_id})
+        attendant_response = self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
+        self.assertEqual(attendant_response.status_code, 201)
+
+        #user_drop_response = self.admin_client.delete('/voting/attendants/'.format(self.users[1][0].username))
+        #print(self.parse(user_drop_response))
+        #self.assertEqual(user_drop_response.status_code, 204)
 
 class BreateAfterVote(TestCase):
     pass
