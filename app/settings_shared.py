@@ -168,3 +168,5 @@ CORS_ORIGIN_ALLOW_ALL = True
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(weeks=1),
 }
+
+LOGIN_URL = '/account/login/'
