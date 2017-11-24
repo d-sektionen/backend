@@ -7,6 +7,7 @@ djangorestframework-jwt==1.11.0
 requests==2.18.4
 beautifulsoup4==4.6.0
 drf-writable-nested==0.3.2
+django-cors-headers==2.1.0
 
 # Heroku
 gunicorn==19.7.1
