@@ -49,7 +49,7 @@ def add_to_section_groups(tree):
     for section in sections:
         is_member = check_membership(user.username, section)
         if is_member:
-            group, created = Group.objects.get_or_create(name=section.name)
+            group = section.get_user_group()
             user.groups.add(group)
 
 
