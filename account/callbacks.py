@@ -32,7 +32,7 @@ def apply_admin_permissions(tree):
 
     user, user_created = _get_or_create_user(tree)
 
-    if user.username in settings.ADMINS:
+    if user.username in settings.SYSTEM_ADMINS:
         user.is_staff = True
         user.is_superuser = True
         user.save()

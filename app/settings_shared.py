@@ -111,7 +111,7 @@ CAS_RESPONSE_CALLBACKS = (
 )
 
 # User roles
-ADMINS = [
+SYSTEM_ADMINS = [
     'patsl736',
     'samjo788',
     'anglo547',
