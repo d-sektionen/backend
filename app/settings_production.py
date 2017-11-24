@@ -1,4 +1,5 @@
 from app.settings_shared import *
+import dj_database_url
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'INSECURE_SECRET_KEY')
 DEBUG = False
@@ -13,15 +14,8 @@ ADMINS = (
 
 ALLOWED_HOSTS = ['*']
 
-# TODO: Configure
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': '127.0.0.1',
-        'USER': 'api',
-        'PASSWORD': os.getenv('DB_PASS'),
-        'NAME': 'api'
-    }
+    'default': dj_database_url.config(conn_max_age=500)
 }
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
