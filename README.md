@@ -17,7 +17,7 @@ virtual environment using `source .venv/bin/activate` in your terminal.**
 
 Then install the needed Python dependencies:
 ```sh
-pip install -r requirements.txt
+pip install -r development.txt
 ```
 
 Every time you make a modification to the database structure, run this:
