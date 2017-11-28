@@ -225,6 +225,7 @@ class PissBreakBeforeVote(TestCase):
 
         alternatives = [{'text': 'D'}, {'text': 'Y'}]
         vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        vote_json = self.parse(vote_res)
         self.admin_client.post('/voting/attendants/', {'username': self.users[0][0].username, 'meeting': meeting_id})
         attendant_response = self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
         self.assertEqual(attendant_response.status_code, 201)
@@ -232,10 +233,44 @@ class PissBreakBeforeVote(TestCase):
         #user_drop_response = self.admin_client.delete('/voting/attendants/'.format(self.users[1][0].username))
         #print(self.parse(user_drop_response))
         #self.assertEqual(user_drop_response.status_code, 204)
+        #self.users[1][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        #uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        #self.assertEqual(uservote_res.status_code, 204)
+class BreakAfterVote(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        section = 'D-sektionen'
+        cls.section = create_section(name=section)
+        cls.user, cls.user_client = create_user([cls.section])
+        cls.scanner, cls.scanner_client  = create_user([cls.section])
+        cls.admin, cls.admin_client = create_admin([cls.section])
 
-class BreateAfterVote(TestCase):
-    pass
+    def parse(self, response):
+        return json.loads(response.content.decode('utf-8'))
 
+    def test_leave(self):
+        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        meeting_id = self.parse(meeting_response)['id']
+        
+        alternatives = [{'text': 'D'}, {'text': 'Y'}]
+        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        self.admin_client.post('/voting/scanners/', {'user': self.scanner.id, 'meeting': meeting_id})
+        
+        vote_json = self.parse(vote_res)
+        alternatives = [alt['id'] for alt in vote_json['alternatives']]
+        
+        self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+        uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        self.assertEqual(uservote_res.status_code, 204)
+
+
+        user_drop_response = self.scanner_client.delete('/voting/attendants/'.format(self.user.username))
+        #self.assertEqual(user_drop_response.status_code, 204)
+        print(self.parse(user_drop_response))
+
+        self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+        uservote_fail_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        self.assertEqual(uservote_fail_res.status_code, 403)
 
 class ForgotLiUCard(TestCase):
     pass
@@ -264,3 +299,4 @@ class NoDuplicates(AuthenticatedTestCase):
 
         attendant_res = self.user_client.post('/voting/attendants/', {'username': attendant.username, 'meeting': self.meeting.id})
         self.assertEqual(attendant_res.status_code, 400)
+
