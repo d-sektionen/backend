@@ -47,6 +47,28 @@ class AttendantViewSet(viewsets.ModelViewSet):
         else:
             return Response({'error': 'Attendant already exist'}, status=status.HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, *args, **kwargs):
+        meeting_id = request.data['meeting']
+        meeting = Meeting.objects.get(id=meeting_id)
+
+        if 'card_id' in request.data:
+            card_id = request.data['card_id']
+            username = kobra.liu_id_from_card(card_id)
+        elif 'username' in request.data:
+            username = request.data['username'].strip().lower()
+        else:
+            return Response({'error': 'Missing required parameter username or card_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if username is None:
+            return Response({'error': 'Unable to find student'}, status=status.HTTP_404_NOT_FOUND)
+
+        attendant = Attendant.objects.filter(user__username=username, meeting=meeting).first()
+        if attendant is not None:
+            attendant.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'Attendant does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ScannerViewSet(viewsets.ModelViewSet):
     queryset = Scanner.objects.all()
@@ -63,7 +85,6 @@ class VoteViewSet(viewsets.ModelViewSet):
 
 
 class MadeVoteViewSet(viewsets.ViewSet):
-
     @transaction.atomic  # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it.
     def create(self, request):
         vote_id = request.data['vote_id']
