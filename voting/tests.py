@@ -263,10 +263,8 @@ class BreakAfterVote(TestCase):
         uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
         self.assertEqual(uservote_res.status_code, 204)
 
-
-        user_drop_response = self.scanner_client.delete('/voting/attendants/'.format(self.user.username))
-        #self.assertEqual(user_drop_response.status_code, 204)
-        print(self.parse(user_drop_response))
+        user_drop_response = self.scanner_client.delete('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+        self.assertEqual(user_drop_response.status_code, 204)
 
         self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
         uservote_fail_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})

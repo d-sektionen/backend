@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import F
 from rest_framework import viewsets, views, status
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from account import kobra
@@ -47,7 +48,8 @@ class AttendantViewSet(viewsets.ModelViewSet):
         else:
             return Response({'error': 'Attendant already exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, *args, **kwargs):
+    @list_route(methods=['delete'], url_path='')
+    def delete(self, request):
         meeting_id = request.data['meeting']
         meeting = Meeting.objects.get(id=meeting_id)
 
