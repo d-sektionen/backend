@@ -325,8 +325,39 @@ class BreakAfterVote(TestCase):
         self.assertEqual(uservote_fail_res.status_code, 403)
 
 class ForgotLiUCard(TestCase):
-    pass
+    @classmethod
+    def setUpTestData(cls):
+        section = 'D-sektionen'
+        cls.section = create_section(name=section)
+        cls.user, cls.user_client = create_user([cls.section])
+        cls.admin, cls.admin_client = create_admin([cls.section])
 
+    def parse(self, response):
+        return json.loads(response.content.decode('utf-8'))
+
+    def test_leave(self):
+        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        meeting_id = self.parse(meeting_response)['id']
+        
+        self.admin_client.post('/voting/attendants/', {'id': self.user.id, 'meeting': meeting_id})
+
+        alternatives = [{'text': 'D'}, {'text': 'TBI'}]
+        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        
+        vote_json = self.parse(vote_res)
+        alternatives = [alt['id'] for alt in vote_json['alternatives']]
+        
+        uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        self.assertEqual(uservote_res.status_code, 204)
+       
+        result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
+        self.assertEqual(result_res.status_code, 200)
+        
+        for result in self.parse(result_res)['alternatives']:
+            if result['text'] == 'D':
+                self.assertEqual(result['num_votes'], 1) # WOHO WE WON!!!
+            else:
+                self.assertEqual(result['num_votes'], 0)
 
 class NoDuplicates(AuthenticatedTestCase):
     def setUp(self):
