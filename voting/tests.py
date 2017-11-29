@@ -207,7 +207,7 @@ class PerfectMeeeting(TestCase):
         self.assertEqual(delete_res.status_code, 204)
 
 
-class PissBreakBeforeVote(TestCase):
+class BreakBeforeVote(TestCase):
     @classmethod
     def setUpTestData(cls):
         section = 'D-sektionen'
@@ -230,12 +230,14 @@ class PissBreakBeforeVote(TestCase):
         attendant_response = self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
         self.assertEqual(attendant_response.status_code, 201)
 
-        #user_drop_response = self.admin_client.delete('/voting/attendants/'.format(self.users[1][0].username))
-        #print(self.parse(user_drop_response))
-        #self.assertEqual(user_drop_response.status_code, 204)
-        #self.users[1][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        #uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        #self.assertEqual(uservote_res.status_code, 204)
+        alternatives = [alt['id'] for alt in vote_json['alternatives']]
+
+        user_drop_response = self.admin_client.delete('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
+        self.assertEqual(user_drop_response.status_code, 204)
+        self.users[1][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+        self.assertEqual(uservote_res.status_code, 204)
+        
 class BreakAfterVote(TestCase):
     @classmethod
     def setUpTestData(cls):
