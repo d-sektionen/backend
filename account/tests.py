@@ -42,7 +42,7 @@ def create_admin(add_to_sections):
 def _next_username():
     global num_users
     num_users += 1
-    return 'User' + str(num_users)
+    return 'user' + str(num_users)
 
 
 class AuthenticatedTestCase(TestCase):

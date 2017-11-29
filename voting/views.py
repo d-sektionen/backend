@@ -6,6 +6,7 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from account import kobra
+from voting.decorators import extract_user, extract_username
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, MadeVoteSerializer, VoteDetailsSerializer
 
@@ -21,58 +22,44 @@ class MeetingViewSet(viewsets.ModelViewSet):
         return meetings
 
 
-class AttendantViewSet(viewsets.ModelViewSet):
-    queryset = Attendant.objects.all()
-    serializer_class = AttendantSerializer
+class UserIdentifiableViewSet(viewsets.ModelViewSet):
+    def get_model(self):
+        return self.serializer_class.Meta.model
 
+    @extract_user
     def create(self, request, *args, **kwargs):
         meeting_id = request.data['meeting']
         meeting = Meeting.objects.get(id=meeting_id)
+        user = kwargs['user']
 
-        if 'card_id' in request.data:
-            card_id = request.data['card_id']
-            username = kobra.liu_id_from_card(card_id)
-        elif 'username' in request.data:
-            username = request.data['username'].strip().lower()
-        else:
-            return Response({'error': 'Missing required parameter username or card_id'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if username is None:
-            return Response({'error': 'Unable to find student'}, status=status.HTTP_404_NOT_FOUND)
-
-        user, created = User.objects.get_or_create(username=username)
-        attendant, created = Attendant.objects.get_or_create(user=user, meeting=meeting)
+        attendant, created = self.get_model().objects.get_or_create(user=user, meeting=meeting)
 
         if created:
-            return Response(AttendantSerializer(attendant).data, status=status.HTTP_201_CREATED)
+            return Response(self.serializer_class(attendant).data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'error': 'Attendant already exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': self.get_model().__name__ + ' already exist'}, status=status.HTTP_400_BAD_REQUEST)
 
     @list_route(methods=['delete'], url_path='')
-    def delete(self, request):
+    @extract_username
+    def delete(self, request, *args, **kwargs):
         meeting_id = request.data['meeting']
         meeting = Meeting.objects.get(id=meeting_id)
+        username = kwargs['username']
 
-        if 'card_id' in request.data:
-            card_id = request.data['card_id']
-            username = kobra.liu_id_from_card(card_id)
-        elif 'username' in request.data:
-            username = request.data['username'].strip().lower()
-        else:
-            return Response({'error': 'Missing required parameter username or card_id'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if username is None:
-            return Response({'error': 'Unable to find student'}, status=status.HTTP_404_NOT_FOUND)
-
-        attendant = Attendant.objects.filter(user__username=username, meeting=meeting).first()
+        attendant = self.get_model().objects.filter(user__username=username, meeting=meeting).first()
         if attendant is not None:
             attendant.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({'error': 'Attendant does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': self.get_model().__name__ + ' does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ScannerViewSet(viewsets.ModelViewSet):
+class AttendantViewSet(UserIdentifiableViewSet):
+    queryset = Attendant.objects.all()
+    serializer_class = AttendantSerializer
+
+
+class ScannerViewSet(UserIdentifiableViewSet):
     queryset = Scanner.objects.all()
     serializer_class = ScannerSerializer
 

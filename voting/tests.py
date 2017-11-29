@@ -24,15 +24,38 @@ class MeetingTest(AuthenticatedTestCase):
         self.assertEqual(data[0]['name'], 'Meeting 1')
         self.assertEqual(data[1]['name'], 'Meeting 3')
 
-
-class BasicTest(AuthenticatedTestCase):
-    def test_creation(self):
+    def test_create(self):
         section = create_section('Section')
         admin, client = create_admin([section])
 
         response = client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(section.id)})
-
         self.assertEqual(response.status_code, 201)
+
+    def test_show(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        admin, client = create_admin([section])
+
+        response = client.get('/voting/meetings/' + str(meeting.id) + '/')
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['name'], 'Meeting 1')
+        self.assertEqual(data['current_vote'], None)
+        self.assertEqual(data['section'], section.id)
+        self.assertEqual(data['archived'], False)
+
+    def test_update(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        admin, client = create_admin([section])
+
+        response = client.patch('/voting/meetings/' + str(meeting.id) + '/', {'name': 'New meeting name', 'archived': True})
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['name'], 'New meeting name')
+        self.assertEqual(data['archived'], True)
 
 
 class VoteTest(AuthenticatedTestCase):
@@ -88,6 +111,7 @@ class VoteTest(AuthenticatedTestCase):
 
         return vote
 
+
 class VotingTest(AuthenticatedTestCase):
     def setUp(self):
         self.section = create_section('Section')
@@ -129,6 +153,34 @@ class VotingTest(AuthenticatedTestCase):
         self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
 
 
+class ScannerTest(AuthenticatedTestCase):
+    def test_list(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, user_client = create_user([section])
+        Scanner.objects.create(user=user, meeting=meeting)
+
+        response = self.client.get('/voting/scanners/')
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['user'], user.id)
+        self.assertEqual(data[0]['meeting'], meeting.id)
+
+    def test_create(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, user_client = create_user([section])
+
+        response = self.client.post('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(data['user'], user.id)
+        self.assertEqual(data['meeting'], meeting.id)
+
+
 class PerfectMeeeting(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -159,7 +211,7 @@ class PerfectMeeeting(TestCase):
         
         # Add scanners
         for scanner in self.scanners:
-            scanner_res = self.admin[1].post('/voting/scanners/', {'user': scanner[0].id, 'meeting': meeting_id})
+            scanner_res = self.admin[1].post('/voting/scanners/', {'username': scanner[0].username, 'meeting': meeting_id})
             self.assertEqual(scanner_res.status_code, 201)
     
         # Scanners scan all users
@@ -282,10 +334,10 @@ class NoDuplicates(AuthenticatedTestCase):
         self.admin, self.client = create_admin([self.section])
 
     def test_duplicate_scanner(self):
-        scanner_res = self.client.post('/voting/scanners/', {'user': self.user.id, 'meeting': self.meeting.id})
+        scanner_res = self.client.post('/voting/scanners/', {'username': self.user.username, 'meeting': self.meeting.id})
         self.assertEqual(scanner_res.status_code, 201)
 
-        scanner_res = self.client.post('/voting/scanners/', {'user': self.user.id, 'meeting': self.meeting.id})
+        scanner_res = self.client.post('/voting/scanners/', {'username': self.user.username, 'meeting': self.meeting.id})
         self.assertEqual(scanner_res.status_code, 400)
 
     def test_duplicate_attendant(self):
