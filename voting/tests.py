@@ -254,7 +254,7 @@ class PerfectMeeeting(TestCase):
                 else:
                     self.assertEqual(result['num_votes'], 1)
 
-        # delet this
+        # delete this
         delete_res = self.admin[1].delete('/voting/meetings/{}/'.format(meeting_id))
         self.assertEqual(delete_res.status_code, 204)
 
@@ -356,6 +356,112 @@ class ForgotLiUCard(TestCase):
         for result in self.parse(result_res)['alternatives']:
             if result['text'] == 'D':
                 self.assertEqual(result['num_votes'], 1) # WOHO WE WON!!!
+            else:
+                self.assertEqual(result['num_votes'], 0)
+
+class WrongSection(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        section = 'D-sektionen'
+        cls.section = create_section(name=section)
+        cls.section2 = create_section(name="Test-sektionen")
+        cls.scanner, cls.scanner_client = create_user([cls.section2])
+        cls.user, cls.user_client = create_user([cls.section])
+        cls.admin, cls.admin_client = create_admin([cls.section])
+
+    def parse(self, response):
+        return json.loads(response.content.decode('utf-8'))
+
+    def test_wrong_section(self):
+        # Create meeting
+        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        meeting_id = self.parse(meeting_response)['id']
+        
+        # Make Scanner
+        scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
+        self.assertEqual(scanner_res.status_code, 201)
+
+        # Add legitimate user (for dev.check only, remove once this test is working)
+        add_user_response = self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+        self.assertEqual(add_user_response.status_code, 201)
+
+        #Scanner adds himself, should fail since scanner is member of the wrong section
+        add_user_fail_response = self.scanner_client.post('/voting/attendants/', {'username': self.scanner.username, 'meeting': meeting_id})
+        
+        self.assertEqual(add_user_fail_response.status_code, 403)
+        attendants_response = self.admin_client.get('/voting/attendants/', {'meeting': meeting_id})
+        
+        #for attendant in self.parse(attendants_response):
+            #print(attendant)
+
+class PizzaBreak(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        section = 'D-sektionen'
+        cls.section = create_section(name=section)
+        cls.scanner, cls.scanner_client = create_user([cls.section])
+        cls.users = [create_user([cls.section]) for _ in range(50)]
+        cls.admin, cls.admin_client = create_admin([cls.section])
+
+    def parse(self, response):
+        return json.loads(response.content.decode('utf-8'))
+
+    def test_pizza_break(self):
+        # Create meeting
+        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        meeting_id = self.parse(meeting_response)['id']
+      
+        # Make Scanner
+        scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
+        self.assertEqual(scanner_res.status_code, 201)
+
+        # Create first vote
+        alternatives = [{'text': 'D'}, {'text': 'Ling'}]
+        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        
+        vote_json = self.parse(vote_res)
+        alternatives = [alt['id'] for alt in vote_json['alternatives']]
+
+        # Add attendants, attendant votes on first vote immediately
+        for user in self.users:
+            self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+            user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
+
+        # Close first vote
+        self.admin_client.patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
+
+        # Check result of first vote
+        result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
+        for result in self.parse(result_res)['alternatives']:
+            if result['text'] == 'D':
+                self.assertEqual(result['num_votes'], 50) # WOHO WE WON!!!
+            else:
+                self.assertEqual(result['num_votes'], 0)
+
+        # Remove all users from the meeting
+        for user in self.users:
+            self.scanner_client.delete('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+        
+        # Create second vote
+        alternatives = [{'text': 'Två maskinare'}, {'text': 'En IT:are'}]
+        vote_res = self.admin_client.post('/voting/votes/', {'question': 'En maskinare, en maskinare. Finns det nånting finare? Finns det nånting finare så är det', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        
+        vote_json = self.parse(vote_res)
+        alternatives = [alt['id'] for alt in vote_json['alternatives']]
+        
+        # Add the second half of users to the meeting and vote on second vote
+        for user in self.users[25:]:
+            self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+            user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[1]})
+
+        # Close second vote
+        self.admin_client.patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
+   
+        # Check result of second vote
+        result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
+        for result in self.parse(result_res)['alternatives']:
+            if result['text'] == 'En IT:are':
+                self.assertEqual(result['num_votes'], 25) # WOHO WE WON!!!
             else:
                 self.assertEqual(result['num_votes'], 0)
 
