@@ -59,6 +59,15 @@ class AttendantViewSet(UserIdentifiableViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
 
+    def get_queryset(self):
+        if 'meeting' not in self.request.query_params:
+            raise ValidationError(detail='Missing required parameter "meeting"')
+
+        meeting_id = self.request.query_params['meeting']
+        meeting = Meeting.objects.get(id=meeting_id)
+
+        return meeting.attendant_set
+
 
 class ScannerViewSet(UserIdentifiableViewSet):
     queryset = Scanner.objects.all()

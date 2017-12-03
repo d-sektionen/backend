@@ -229,6 +229,44 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(meeting.scanner_set.count(), 0)
 
 
+class AttendantTest(AuthenticatedTestCase):
+    def test_list(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, user_client = create_user([section])
+        Attendant.objects.create(user=user, meeting=meeting)
+
+        response = self.client.get('/voting/attendants/?meeting=' + str(meeting.id))
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['user'], user.id)
+        self.assertEqual(data[0]['meeting'], meeting.id)
+
+    def test_create(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, user_client = create_user([section])
+
+        response = self.client.post('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(data['user'], user.id)
+        self.assertEqual(data['meeting'], meeting.id)
+
+    def test_destroy(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, user_client = create_user([section])
+        Attendant.objects.create(user=user, meeting=meeting)
+
+        response = self.client.delete('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(meeting.attendant_set.count(), 0)
+
+
 class PerfectMeeeting(TestCase):
     @classmethod
     def setUpTestData(cls):
