@@ -195,8 +195,10 @@ class ScannerTest(AuthenticatedTestCase):
     def test_list(self):
         section = create_section('Section')
         meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        other_meeting = Meeting.objects.create(name='Meeting 1', section=section)
         user, user_client = create_user([section])
         Scanner.objects.create(user=user, meeting=meeting)
+        Scanner.objects.create(user=user, meeting=other_meeting)
 
         response = self.client.get('/voting/scanners/?meeting=' + str(meeting.id))
         data = json.loads(response.content.decode('utf-8'))
@@ -233,8 +235,10 @@ class AttendantTest(AuthenticatedTestCase):
     def test_list(self):
         section = create_section('Section')
         meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        other_meeting = Meeting.objects.create(name='Meeting 1', section=section)
         user, user_client = create_user([section])
         Attendant.objects.create(user=user, meeting=meeting)
+        Attendant.objects.create(user=user, meeting=other_meeting)
 
         response = self.client.get('/voting/attendants/?meeting=' + str(meeting.id))
         data = json.loads(response.content.decode('utf-8'))
