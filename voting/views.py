@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import F
 from rest_framework import viewsets, views, status
 from rest_framework.decorators import list_route
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from account import kobra
@@ -62,6 +63,15 @@ class AttendantViewSet(UserIdentifiableViewSet):
 class ScannerViewSet(UserIdentifiableViewSet):
     queryset = Scanner.objects.all()
     serializer_class = ScannerSerializer
+
+    def get_queryset(self):
+        if 'meeting' not in self.request.query_params:
+            raise ValidationError(detail='Missing required parameter "meeting"')
+
+        meeting_id = self.request.query_params['meeting']
+        meeting = Meeting.objects.get(id=meeting_id)
+
+        return meeting.scanner_set
 
 
 class VoteViewSet(viewsets.ModelViewSet):

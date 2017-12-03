@@ -198,7 +198,7 @@ class ScannerTest(AuthenticatedTestCase):
         user, user_client = create_user([section])
         Scanner.objects.create(user=user, meeting=meeting)
 
-        response = self.client.get('/voting/scanners/')
+        response = self.client.get('/voting/scanners/?meeting=' + str(meeting.id))
         data = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
@@ -218,7 +218,15 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(data['user'], user.id)
         self.assertEqual(data['meeting'], meeting.id)
 
+    def test_destroy(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, user_client = create_user([section])
+        Scanner.objects.create(user=user, meeting=meeting)
 
+        response = self.client.delete('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(meeting.scanner_set.count(), 0)
 
 
 class PerfectMeeeting(TestCase):
