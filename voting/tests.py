@@ -102,6 +102,44 @@ class VoteTest(AuthenticatedTestCase):
         self.assertEqual(len(data['alternatives']), 2)
         self.assertTrue('num_votes' in data['alternatives'][0])
 
+    def test_update(self):
+        vote = self._create_vote(self.section)
+
+        # Ensure that the number of votes persist
+        alternatives = vote.alternative_set.all()
+        first_alternative = alternatives[0]
+        first_alternative.num_votes = 15
+        first_alternative.save()
+        second_alternative = alternatives[1]
+        second_alternative.num_votes = 7
+        second_alternative.save()
+
+        patch_data = {
+            'question': 'New question',
+            'alternatives': [
+                {
+                    'id': first_alternative.id,
+                    'text': 'New alternative 1'
+                },
+                {
+                    'id': second_alternative.id
+                }
+            ]
+        }
+        response = self.client.patch('/voting/votes/' + str(vote.id) + '/', patch_data, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get('/voting/votes/' + str(vote.id) + '/')
+        data = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual(data['question'], 'New question')
+        self.assertEqual(data['open'], True)
+        self.assertEqual(len(data['alternatives']), 2)
+        self.assertEqual(data['alternatives'][0]['text'], 'New alternative 1')
+        self.assertEqual(data['alternatives'][1]['text'], 'Alternative 2')
+        self.assertEqual(data['alternatives'][0]['num_votes'], 15)
+        self.assertEqual(data['alternatives'][1]['num_votes'], 7)
+
     @staticmethod
     def _create_vote(section):
         meeting = Meeting.objects.create(name='Meeting 1', section=section)
@@ -179,6 +217,8 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(data['user'], user.id)
         self.assertEqual(data['meeting'], meeting.id)
+
+
 
 
 class PerfectMeeeting(TestCase):
