@@ -208,7 +208,7 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['user'], user.id)
-        self.assertEqual(data[0]['meeting'], meeting.id)
+        self.assertEqual(data[0]['meeting']['id'], meeting.id)
 
     def test_create(self):
         section = create_section('Section')
@@ -220,7 +220,7 @@ class ScannerTest(AuthenticatedTestCase):
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(data['user'], user.id)
-        self.assertEqual(data['meeting'], meeting.id)
+        self.assertEqual(data['meeting']['id'], meeting.id)
 
     def test_destroy(self):
         section = create_section('Section')

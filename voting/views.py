@@ -74,13 +74,13 @@ class ScannerViewSet(UserIdentifiableViewSet):
     serializer_class = ScannerSerializer
 
     def get_queryset(self):
-        if 'meeting' not in self.request.query_params:
-            raise ValidationError(detail='Missing required parameter "meeting"')
+        if 'meeting' in self.request.query_params:
+            meeting_id = self.request.query_params['meeting']
+            meeting = Meeting.objects.get(id=meeting_id)
 
-        meeting_id = self.request.query_params['meeting']
-        meeting = Meeting.objects.get(id=meeting_id)
-
-        return meeting.scanner_set
+            return meeting.scanner_set
+        else:
+            return Scanner.objects.filter(user=self.request.user)
 
 
 class VoteViewSet(viewsets.ModelViewSet):
