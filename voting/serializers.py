@@ -17,6 +17,8 @@ class MeetingSerializer(serializers.ModelSerializer):
 
 
 class ScannerSerializer(serializers.ModelSerializer):
+    meeting = MeetingSerializer()
+
     class Meta:
         model = Scanner
         fields = ('id', 'user', 'meeting')
