@@ -5,6 +5,8 @@ from django.test import TestCase
 from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
 from voting.models import Section, Meeting, Vote, Alternative, Scanner, Attendant, MadeVote
 
+def parse(response):
+        return json.loads(response.content.decode('utf-8'))
 
 class MeetingTest(AuthenticatedTestCase):
     def test_list(self):
@@ -281,11 +283,6 @@ class PerfectMeeeting(TestCase):
         cls.users = [create_user([cls.section]) for _ in range(5)]
         cls.scanners = [create_user([cls.section]) for _ in range(2)]
         cls.admin = create_admin([cls.section])
-        
-
-    def parse(self, response):
-        return json.loads(response.content.decode('utf-8'))
-
 
     def test_creation(self):
         section = create_section('Section')
@@ -299,7 +296,7 @@ class PerfectMeeeting(TestCase):
         create_res = self.admin[1].post('/voting/meetings/', {'name': 'Meeting 1', 'section': self.section.id})        
         self.assertEqual(create_res.status_code, 201)
 
-        meeting_id = self.parse(create_res)['id']
+        meeting_id = parse(create_res)['id']
         
         # Add scanners
         for scanner in self.scanners:
@@ -319,7 +316,7 @@ class PerfectMeeeting(TestCase):
             vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
             self.assertEqual(vote_res.status_code, 201)
 
-            vote_json = self.parse(vote_res)
+            vote_json = parse(vote_res)
             alternatives = [alt['id'] for alt in vote_json['alternatives']]
 
             # One user votes for Y 
@@ -334,13 +331,13 @@ class PerfectMeeeting(TestCase):
             # Close the vote
             close_res = self.admin[1].patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
             self.assertEqual(close_res.status_code, 200)
-            self.assertEqual(self.parse(close_res)['open'], False)
+            self.assertEqual(parse(close_res)['open'], False)
 
             # Count the votes
             result_res = self.admin[1].get('/voting/votes/'+str(vote_json['id'])+'/')
             self.assertEqual(result_res.status_code, 200)
             
-            for result in self.parse(result_res)['alternatives']:
+            for result in parse(result_res)['alternatives']:
                 if result['text'] == 'D':
                     self.assertEqual(result['num_votes'], 4) # WOHO WE WON!!!
                 else:
@@ -360,16 +357,13 @@ class BreakBeforeVote(TestCase):
         cls.scanner = create_user([cls.section])
         cls.admin, cls.admin_client = create_admin([cls.section])
 
-    def parse(self, response):
-        return json.loads(response.content.decode('utf-8'))
-
     def test_leave(self):
         meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = self.parse(meeting_response)['id']
+        meeting_id = parse(meeting_response)['id']
 
         alternatives = [{'text': 'D'}, {'text': 'Y'}]
         vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
-        vote_json = self.parse(vote_res)
+        vote_json = parse(vote_res)
         self.admin_client.post('/voting/attendants/', {'username': self.users[0][0].username, 'meeting': meeting_id})
         attendant_response = self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
         self.assertEqual(attendant_response.status_code, 201)
@@ -391,18 +385,15 @@ class BreakAfterVote(TestCase):
         cls.scanner, cls.scanner_client  = create_user([cls.section])
         cls.admin, cls.admin_client = create_admin([cls.section])
 
-    def parse(self, response):
-        return json.loads(response.content.decode('utf-8'))
-
     def test_leave(self):
         meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = self.parse(meeting_response)['id']
+        meeting_id = parse(meeting_response)['id']
         
         alternatives = [{'text': 'D'}, {'text': 'Y'}]
         vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
         self.admin_client.post('/voting/scanners/', {'user': self.scanner.id, 'meeting': meeting_id})
         
-        vote_json = self.parse(vote_res)
+        vote_json = parse(vote_res)
         alternatives = [alt['id'] for alt in vote_json['alternatives']]
         
         self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
@@ -424,19 +415,16 @@ class ForgotLiUCard(TestCase):
         cls.user, cls.user_client = create_user([cls.section])
         cls.admin, cls.admin_client = create_admin([cls.section])
 
-    def parse(self, response):
-        return json.loads(response.content.decode('utf-8'))
-
     def test_leave(self):
         meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = self.parse(meeting_response)['id']
+        meeting_id = parse(meeting_response)['id']
         
         self.admin_client.post('/voting/attendants/', {'id': self.user.id, 'meeting': meeting_id})
 
         alternatives = [{'text': 'D'}, {'text': 'TBI'}]
         vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
         
-        vote_json = self.parse(vote_res)
+        vote_json = parse(vote_res)
         alternatives = [alt['id'] for alt in vote_json['alternatives']]
         
         uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
@@ -445,7 +433,7 @@ class ForgotLiUCard(TestCase):
         result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
         self.assertEqual(result_res.status_code, 200)
         
-        for result in self.parse(result_res)['alternatives']:
+        for result in parse(result_res)['alternatives']:
             if result['text'] == 'D':
                 self.assertEqual(result['num_votes'], 1) # WOHO WE WON!!!
             else:
@@ -461,13 +449,10 @@ class WrongSection(TestCase):
         cls.user, cls.user_client = create_user([cls.section])
         cls.admin, cls.admin_client = create_admin([cls.section])
 
-    def parse(self, response):
-        return json.loads(response.content.decode('utf-8'))
-
     def test_wrong_section(self):
         # Create meeting
         meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = self.parse(meeting_response)['id']
+        meeting_id = parse(meeting_response)['id']
         
         # Make Scanner
         scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
@@ -483,7 +468,7 @@ class WrongSection(TestCase):
         self.assertEqual(add_user_fail_response.status_code, 403)
         attendants_response = self.admin_client.get('/voting/attendants/', {'meeting': meeting_id})
         
-        #for attendant in self.parse(attendants_response):
+        #for attendant in parse(attendants_response):
             #print(attendant)
 
 class PizzaBreak(TestCase):
@@ -495,13 +480,10 @@ class PizzaBreak(TestCase):
         cls.users = [create_user([cls.section]) for _ in range(50)]
         cls.admin, cls.admin_client = create_admin([cls.section])
 
-    def parse(self, response):
-        return json.loads(response.content.decode('utf-8'))
-
     def test_pizza_break(self):
         # Create meeting
         meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = self.parse(meeting_response)['id']
+        meeting_id = parse(meeting_response)['id']
       
         # Make Scanner
         scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
@@ -511,7 +493,7 @@ class PizzaBreak(TestCase):
         alternatives = [{'text': 'D'}, {'text': 'Ling'}]
         vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
         
-        vote_json = self.parse(vote_res)
+        vote_json = parse(vote_res)
         alternatives = [alt['id'] for alt in vote_json['alternatives']]
 
         # Add attendants, attendant votes on first vote immediately
@@ -524,7 +506,7 @@ class PizzaBreak(TestCase):
 
         # Check result of first vote
         result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
-        for result in self.parse(result_res)['alternatives']:
+        for result in parse(result_res)['alternatives']:
             if result['text'] == 'D':
                 self.assertEqual(result['num_votes'], 50) # WOHO WE WON!!!
             else:
@@ -538,7 +520,7 @@ class PizzaBreak(TestCase):
         alternatives = [{'text': 'Två maskinare'}, {'text': 'En IT:are'}]
         vote_res = self.admin_client.post('/voting/votes/', {'question': 'En maskinare, en maskinare. Finns det nånting finare? Finns det nånting finare så är det', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
         
-        vote_json = self.parse(vote_res)
+        vote_json = parse(vote_res)
         alternatives = [alt['id'] for alt in vote_json['alternatives']]
         
         # Add the second half of users to the meeting and vote on second vote
@@ -551,7 +533,7 @@ class PizzaBreak(TestCase):
    
         # Check result of second vote
         result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
-        for result in self.parse(result_res)['alternatives']:
+        for result in parse(result_res)['alternatives']:
             if result['text'] == 'En IT:are':
                 self.assertEqual(result['num_votes'], 25) # WOHO WE WON!!!
             else:
