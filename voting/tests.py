@@ -3,7 +3,7 @@ import json
 from django.test import TestCase
 
 from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
-from voting.models import Section, Meeting, Vote, Alternative, Scanner, Attendant
+from voting.models import Section, Meeting, Vote, Alternative, Scanner, Attendant, MadeVote
 
 
 class MeetingTest(AuthenticatedTestCase):
@@ -61,10 +61,12 @@ class MeetingTest(AuthenticatedTestCase):
 class VoteTest(AuthenticatedTestCase):
     def setUp(self):
         self.section = create_section('Section')
+        self.other_section = create_section('Other section')
         self.admin, self.client = create_admin([self.section])
 
     def test_list(self):
         self._create_vote(self.section)
+        self._create_vote(self.other_section)
 
         response = self.client.get('/voting/votes/')
         data = json.loads(response.content.decode('utf-8'))
@@ -579,3 +581,134 @@ class NoDuplicates(AuthenticatedTestCase):
         attendant_res = self.user_client.post('/voting/attendants/', {'username': attendant.username, 'meeting': self.meeting.id})
         self.assertEqual(attendant_res.status_code, 400)
 
+
+ADMIN = 'Own admin'
+USER = 'Own user'
+SCANNER = 'Own scanner'
+OLD_SCANNER = 'Old scanner'
+ATTENDANT = 'Own attendant'
+OTHER_ADMIN = 'Other admin'
+OTHER_USER = 'Other user'
+OTHER_SCANNER = 'Other scanner'
+OTHER_ATTENDANT = 'Other attendant'
+
+LIST = 'GET'
+CREATE = 'POST'
+SHOW = 'GET'
+UPDATE = 'PATCH'
+DESTROY = 'DELETE'
+
+
+class PermissionTests(TestCase):
+    def setUp(self):
+        self.own_section = create_section('My section')
+        self.other_section = create_section('Other section')
+        self.users = {
+            ADMIN: create_admin([self.own_section]),
+            USER: create_user([self.own_section]),
+            SCANNER: create_user([self.own_section]),
+            OLD_SCANNER: create_user([self.own_section]),
+            ATTENDANT: create_user([self.own_section]),
+            OTHER_ADMIN: create_admin([self.other_section]),
+            OTHER_USER: create_user([self.other_section]),
+            OTHER_SCANNER: create_user([self.other_section]),
+            OTHER_ATTENDANT: create_user([self.other_section]),
+        }
+
+        self.own_meeting = Meeting.objects.create(name='Own meeting', section=self.own_section)
+        self.old_meeting = Meeting.objects.create(name='Old meeting', section=self.own_section)
+        self.other_meeting = Meeting.objects.create(name='Other meeting', section=self.other_section)
+
+        Scanner.objects.create(meeting=self.own_meeting, user=self.users[SCANNER][0])
+        Scanner.objects.create(meeting=self.old_meeting, user=self.users[OLD_SCANNER][0])
+        Scanner.objects.create(meeting=self.other_meeting, user=self.users[OTHER_SCANNER][0])
+
+        Attendant.objects.create(meeting=self.own_meeting, user=self.users[ATTENDANT][0])
+        Attendant.objects.create(meeting=self.other_meeting, user=self.users[OTHER_ATTENDANT][0])
+
+        self.own_vote = Vote.objects.create(question='When', meeting=self.own_meeting)
+        self.own_alternative = Alternative.objects.create(text='Alternative 1', vote=self.own_vote)
+        self.made_vote = MadeVote.objects.create(user=create_user([self.own_section])[0], vote=self.own_vote)
+
+        self.issues = []
+
+    def test_meeting_permissions(self):
+        self.performTest([ADMIN], LIST, '/voting/meetings/')
+        self.performTest([ADMIN], CREATE, '/voting/meetings/', {'name': 'Name', 'section': self.own_section.id})
+        self.performTest([ADMIN], SHOW, '/voting/meetings/%d/' % self.own_meeting.id)
+        self.performTest([ADMIN], UPDATE, '/voting/meetings/%d/' % self.own_meeting.id, {'name': 'Test'})
+        self.performTest([], DESTROY, '/voting/meetings/%d/' % self.own_meeting.id)
+
+        self.assertNoIssues()
+
+    def test_scanner_permissions(self):
+        self.performTest([ADMIN], LIST, '/voting/scanners/?meeting=%d' % self.own_meeting.id)
+        self.performTest([ADMIN], CREATE, '/voting/scanners/', {'meeting': self.own_meeting.id, 'username': self.users[USER][0].username})
+        self.performTest([], SHOW, '/voting/scanners/%d/' % self.users[SCANNER][0].id)
+        self.performTest([], UPDATE, '/voting/scanners/%d/' % self.users[SCANNER][0].id)
+        self.performTest([ADMIN], DESTROY, '/voting/scanners/', {'meeting': self.own_meeting.id, 'username': self.users[USER][0].username})
+
+        self.assertNoIssues()
+
+    def test_attendant_permissions(self):
+        self.performTest([ADMIN], LIST, '/voting/attendants/?meeting=%d' % self.own_meeting.id)
+        self.performTest([ADMIN, SCANNER], CREATE, '/voting/attendants/', {'meeting': self.own_meeting.id, 'username': self.users[USER][0].username})
+        self.performTest([], SHOW, '/voting/attendants/%d/' % self.users[ATTENDANT][0].id)
+        self.performTest([], UPDATE, '/voting/attendants/%d/' % self.users[ATTENDANT][0].id)
+        self.performTest([ADMIN, SCANNER], DESTROY, '/voting/attendants/', {'meeting': self.own_meeting.id, 'username': self.users[ATTENDANT][0].username})
+
+        self.assertNoIssues()
+
+    def test_vote_permissions(self):
+        # Note: Listing votes is allowed by all, but VoteTest.test_list
+        # ensures that this is limited to the current section.
+
+        self.performTest(self.users.keys(), LIST, '/voting/votes/')
+        self.performTest([ADMIN], CREATE, '/voting/votes/', {'meeting': self.own_meeting.id, 'question': 'What?', 'alternatives': [{'text': 'Yes'}, {'text': 'No'}]})
+        self.performTest([ADMIN], SHOW, '/voting/votes/%d/' % self.own_vote.id)
+        self.performTest([ADMIN], UPDATE, '/voting/votes/%d/' % self.own_vote.id)
+        self.performTest([], DESTROY, '/voting/votes/%d/' % self.own_vote.id)
+
+        self.assertNoIssues()
+
+    def test_voting_permissions(self):
+        self.performTest([], LIST, '/voting/made_votes/')
+        self.performTest([ATTENDANT], CREATE, '/voting/made_votes/', {'vote_id': self.own_vote.id, 'alternative_id': self.own_alternative.id})
+        self.performTest([], SHOW, '/voting/made_votes/%d/' % self.made_vote.id)
+        self.performTest([], UPDATE, '/voting/made_votes/%d/' % self.made_vote.id)
+        self.performTest([], DESTROY, '/voting/made_votes/%d/' % self.made_vote.id)
+
+        self.assertNoIssues()
+
+    def performTest(self, allowed_users, method, path, data=None):
+        for identifier, (user, client) in self.users.items():
+            db_state = self._enter_atomics()
+            if data is not None:
+                kwargs = {
+                    'data': client._encode_data(data, format='json')[0],
+                    'content_type': 'application/json'
+                }
+            else:
+                kwargs = {}
+
+            response = client.generic(method, path, **kwargs)
+            if identifier in allowed_users:
+                self.verifySuccess(response.status_code, identifier + ' could not execute ' + method + ' on ' + path)
+            else:
+                self.verifyFailure(response.status_code, identifier + ' could incorrectly execute ' + method + ' on ' + path)
+
+            print(response.content)
+            self._rollback_atomics(db_state)
+
+    def assertNoIssues(self):
+        self.assertEqual(0, len(self.issues), 'One or more issues were found!')
+
+    def verifyFailure(self, status_code, msg):
+        if status_code not in [403, 404, 405]:
+            self.issues += [msg]
+            print('FOUND ISSUE:', msg)
+
+    def verifySuccess(self, status_code, msg):
+        if status_code in [403, 404, 405]:
+            self.issues += [msg]
+            print('FOUND ISSUE:', msg)
