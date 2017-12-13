@@ -553,11 +553,11 @@ class PizzaBreak(TestCase):
             meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
             for user in self.users[25:]:
                 self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
-                
+
         # Second half of users vote
         def attendants_vote_half(self):
             for user in self.users[25:]:    
-                attendant_votes(self, 1, 0, user[1])
+                attendant_votes(self, 1, 1, user[1])
    
         # Check result of second vote
         def admin_check_result2(self):
@@ -571,16 +571,16 @@ class PizzaBreak(TestCase):
 
         admin_create_meeting(self, self.admin_client, self.section.id)
         admin_add_scanners(self)
-        alternatives = [{'text': 'D'}, {'text': 'Ling'}]
         question = 'Vilken är den bästa sektionen här?'
+        alternatives = [{'text': 'D'}, {'text': 'Ling'}]
         admin_create_vote(self, question, alternatives)
         scanner_add_attendants(self)
         attendants_vote(self)
         admin_close_vote(self, 0)
         admin_check_result1(self)
         scanner_remove_all(self)
-        alternatives = [{'text': 'Två maskinare'}, {'text': 'En IT:are'}]
         question = 'En maskinare, en maskinare. Finns det nånting finare? Finns det nånting finare så är det'
+        alternatives = [{'text': 'Två maskinare'}, {'text': 'En IT:are'}]
         admin_create_vote(self, question, alternatives)
         scanner_add_half(self)
         attendants_vote_half(self)
