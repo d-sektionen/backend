@@ -5,9 +5,27 @@ from django.test import TestCase
 from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
 from voting.models import Section, Meeting, Vote, Alternative, Scanner, Attendant, MadeVote
 
+
+# --- Reoccurring operations ---
 def parse(response):
         return json.loads(response.content.decode('utf-8'))
 
+def admin_create_meeting(self, admin_client, section_id):
+            create_res = admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': section_id})        
+            self.assertEqual(create_res.status_code, 201)
+
+def admin_close_vote(self, vote):
+                vote_id = parse(self.admin_client.get('/voting/votes/'))[vote]['id']
+                close_res = self.admin_client.patch('/voting/votes/'+str(vote_id)+'/', {'open': False}, format='json')
+                self.assertEqual(close_res.status_code, 200)
+                self.assertEqual(parse(close_res)['open'], False)
+
+def attendant_votes(self, vote, alternative, voter_client):
+                vote_id = parse(voter_client.get('/voting/votes/'))[vote]['id']
+                alternative_id = parse(voter_client.get('/voting/votes/' + str(vote_id) + '/'))['alternatives'][alternative]['id']
+                uservote_res = voter_client.post('/voting/made_votes/', {'vote_id': vote_id, 'alternative_id': alternative_id})
+                self.assertEqual(uservote_res.status_code, 204)    
+# --- ---------------------- ---
 class MeetingTest(AuthenticatedTestCase):
     def test_list(self):
         section = create_section('Section')
@@ -274,270 +292,300 @@ class AttendantTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(meeting.attendant_set.count(), 0)
 
-
 class PerfectMeeeting(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(self):
         section = 'D-sektionen'
-        cls.section = create_section(name=section)
-        cls.users = [create_user([cls.section]) for _ in range(5)]
-        cls.scanners = [create_user([cls.section]) for _ in range(2)]
-        cls.admin = create_admin([cls.section])
+        self.section = create_section(name=section)
+        self.users = [create_user([self.section]) for _ in range(5)]
+        self.scanners = [create_user([self.section]) for _ in range(2)]
+        self.admin, self.admin_client = create_admin([self.section])
 
     def test_creation(self):
-        section = create_section('Section')
-        admin, client = create_admin([section])
 
-        response = client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(section.id)})
+        response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
         self.assertEqual(response.status_code, 201)
 
 
     def test_perfect_meeting(self):       
-        create_res = self.admin[1].post('/voting/meetings/', {'name': 'Meeting 1', 'section': self.section.id})        
-        self.assertEqual(create_res.status_code, 201)
-
-        meeting_id = parse(create_res)['id']
         
-        # Add scanners
-        for scanner in self.scanners:
-            scanner_res = self.admin[1].post('/voting/scanners/', {'username': scanner[0].username, 'meeting': meeting_id})
-            self.assertEqual(scanner_res.status_code, 201)
-    
-        # Scanners scan all users
-        for user in self.users:
-            attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
-            self.assertEqual(attendant_res.status_code, 201)
+        admin_create_meeting(self, self.admin_client, self.section.id)
 
+        def admin_add_scanners(self):
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+
+            for scanner in self.scanners:
+                scanner_res = self.admin_client.post('/voting/scanners/', {'username': scanner[0].username, 'meeting': meeting_id})
+                self.assertEqual(scanner_res.status_code, 201)
+        admin_add_scanners(self)
+
+        def scanner_add_attendants(self):
+            meeting_id = parse(self.scanners[1][1].get('/voting/scanners/'))[0]['meeting']['id']
+
+            for user in self.users:
+                attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+                self.assertEqual(attendant_res.status_code, 201)
+        scanner_add_attendants(self)
 			
-        # Do two votes for some reason
-        for _ in range(2):
-            # Create vote
-            alternatives = [{'text': 'D'}, {'text': 'Y'}]
-            vote_res = self.admin[1].post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
-            self.assertEqual(vote_res.status_code, 201)
+        # Run vote
+        def run_vote(self):
 
-            vote_json = parse(vote_res)
-            alternatives = [alt['id'] for alt in vote_json['alternatives']]
+            def admin_create_vote(self):
+                meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+                alternatives = [{'text': 'D'}, {'text': 'Y'}]
 
+                vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+                self.assertEqual(vote_res.status_code, 201)
+
+            admin_create_vote(self)
+                         
             # One user votes for Y 
-            uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[1]})
-            self.assertEqual(uservote_res.status_code, 204)
-                
-            # The rest votes for the obvoius choice: D 
+            # The rest votes for the obvious choice: D 
+            attendant_votes(self, 0, 1, self.users[0][1])    
+
             for user in self.users[1:]:
-                uservote_res =  user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-                self.assertEqual(uservote_res.status_code, 204)
-                    
-            # Close the vote
-            close_res = self.admin[1].patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
-            self.assertEqual(close_res.status_code, 200)
-            self.assertEqual(parse(close_res)['open'], False)
+                attendant_votes(self, 0, 0, user[1])
+                       
+            admin_close_vote(self, 0)
 
-            # Count the votes
-            result_res = self.admin[1].get('/voting/votes/'+str(vote_json['id'])+'/')
-            self.assertEqual(result_res.status_code, 200)
+            def admin_count_votes(self):
+                vote_id = parse(self.admin_client.get('/voting/votes/'))[0]['id']
+                result_res = self.admin_client.get('/voting/votes/'+str(vote_id)+'/')
+                self.assertEqual(result_res.status_code, 200)
             
-            for result in parse(result_res)['alternatives']:
-                if result['text'] == 'D':
-                    self.assertEqual(result['num_votes'], 4) # WOHO WE WON!!!
-                else:
-                    self.assertEqual(result['num_votes'], 1)
+                for result in parse(result_res)['alternatives']:
+                    if result['text'] == 'D':
+                       self.assertEqual(result['num_votes'], 4) # WOHO WE WON!!!
+                    else:
+                       self.assertEqual(result['num_votes'], 1)
 
-        # delete this
-        delete_res = self.admin[1].delete('/voting/meetings/{}/'.format(meeting_id))
-        self.assertEqual(delete_res.status_code, 204)
+            admin_count_votes(self)
+        run_vote(self)
 
 
 class BreakBeforeVote(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(self):
         section = 'D-sektionen'
-        cls.section = create_section(name=section)
-        cls.users = [create_user([cls.section]) for _ in range(2)]
-        cls.scanner = create_user([cls.section])
-        cls.admin, cls.admin_client = create_admin([cls.section])
-
+        self.section = create_section(name=section)
+        self.users = [create_user([self.section]) for _ in range(2)]
+        self.scanner, self.scanner_client = create_user([self.section])
+        self.admin, self.admin_client = create_admin([self.section])
+        
     def test_leave(self):
-        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = parse(meeting_response)['id']
+              
+        def admin_actions(self):
+            alternatives = [{'text': 'D'}, {'text': 'Y'}]
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+            vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+            
+            self.admin_client.post('/voting/attendants/', {'username': self.users[0][0].username, 'meeting': meeting_id})
+            attendant_response = self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
+            self.assertEqual(attendant_response.status_code, 201)
 
-        alternatives = [{'text': 'D'}, {'text': 'Y'}]
-        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
-        vote_json = parse(vote_res)
-        self.admin_client.post('/voting/attendants/', {'username': self.users[0][0].username, 'meeting': meeting_id})
-        attendant_response = self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
-        self.assertEqual(attendant_response.status_code, 201)
+            user_drop_response = self.admin_client.delete('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
+            self.assertEqual(user_drop_response.status_code, 204)
+            self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
 
-        alternatives = [alt['id'] for alt in vote_json['alternatives']]
-
-        user_drop_response = self.admin_client.delete('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
-        self.assertEqual(user_drop_response.status_code, 204)
-        self.users[1][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        uservote_res = self.users[0][1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        self.assertEqual(uservote_res.status_code, 204)
+        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_actions(self)
+        for user in self.users:
+            attendant_votes(self, 0, 0, user[1])
         
 class BreakAfterVote(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(self):
         section = 'D-sektionen'
-        cls.section = create_section(name=section)
-        cls.user, cls.user_client = create_user([cls.section])
-        cls.scanner, cls.scanner_client  = create_user([cls.section])
-        cls.admin, cls.admin_client = create_admin([cls.section])
+        self.section = create_section(name=section)
+        self.user, self.user_client = create_user([self.section])
+        self.scanner, self.scanner_client  = create_user([self.section])
+        self.admin, self.admin_client = create_admin([self.section])
 
-    def test_leave(self):
-        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = parse(meeting_response)['id']
+    def test_break_after_vote(self):
         
-        alternatives = [{'text': 'D'}, {'text': 'Y'}]
-        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
-        self.admin_client.post('/voting/scanners/', {'user': self.scanner.id, 'meeting': meeting_id})
-        
-        vote_json = parse(vote_res)
-        alternatives = [alt['id'] for alt in vote_json['alternatives']]
-        
-        self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-        uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        self.assertEqual(uservote_res.status_code, 204)
+        def admin_actions(self):
+            alternatives = [{'text': 'D'}, {'text': 'Y'}]
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+            self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+            response = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
+            self.assertEqual(response.status_code, 201)
 
-        user_drop_response = self.scanner_client.delete('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-        self.assertEqual(user_drop_response.status_code, 204)
+        def scanner_add_attendants(self):
+            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+            self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+        
+        def scanner_drop_attendant(self):
+            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+            user_drop_response = self.scanner_client.delete('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+            self.assertEqual(user_drop_response.status_code, 204)
+        
+        def attendant_vote_fail(self):
+            vote_id = parse(self.user_client.get('/voting/votes/'))[0]['id']
+            alternative_id = parse(self.user_client.get('/voting/votes/' + str(vote_id) + '/'))['alternatives'][0]['id']
+            uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_id, 'alternative_id': alternative_id})
+            self.assertEqual(uservote_res.status_code, 403)  
 
-        self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-        uservote_fail_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        self.assertEqual(uservote_fail_res.status_code, 403)
+        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_actions(self)
+        scanner_add_attendants(self)
+        attendant_votes(self, 0, 0, self.user_client)
+        scanner_drop_attendant(self)
+        scanner_add_attendants(self)
+        attendant_vote_fail(self)
 
 class ForgotLiUCard(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(self):
         section = 'D-sektionen'
-        cls.section = create_section(name=section)
-        cls.user, cls.user_client = create_user([cls.section])
-        cls.admin, cls.admin_client = create_admin([cls.section])
+        self.section = create_section(name=section)
+        self.user, self.user_client = create_user([self.section])
+        self.admin, self.admin_client = create_admin([self.section])
 
-    def test_leave(self):
-        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = parse(meeting_response)['id']
+    def test_forgot_liu_card(self):
         
-        self.admin_client.post('/voting/attendants/', {'id': self.user.id, 'meeting': meeting_id})
+        def admin_actions(self):
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+            self.admin_client.post('/voting/attendants/', {'id': self.user.id, 'meeting': meeting_id})
 
-        alternatives = [{'text': 'D'}, {'text': 'TBI'}]
-        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+            alternatives = [{'text': 'D'}, {'text': 'TBI'}]
+            self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
         
-        vote_json = parse(vote_res)
-        alternatives = [alt['id'] for alt in vote_json['alternatives']]
-        
-        uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-        self.assertEqual(uservote_res.status_code, 204)
-       
-        result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
-        self.assertEqual(result_res.status_code, 200)
-        
-        for result in parse(result_res)['alternatives']:
-            if result['text'] == 'D':
-                self.assertEqual(result['num_votes'], 1) # WOHO WE WON!!!
-            else:
-                self.assertEqual(result['num_votes'], 0)
+        def admin_count_votes(self):
+            vote_id = parse(self.admin_client.get('/voting/votes/'))[0]['id']
+            result_res = self.admin_client.get('/voting/votes/'+str(vote_id)+'/')
+            self.assertEqual(result_res.status_code, 200)
+
+            for result in parse(result_res)['alternatives']:
+                if result['text'] == 'D':
+                    self.assertEqual(result['num_votes'], 1) # WOHO WE WON!!!
+                else:
+                    self.assertEqual(result['num_votes'], 0)
+
+        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_actions(self)
+        attendant_votes(self, 0, 0, self.user_client)
+        admin_count_votes(self)   
 
 class WrongSection(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(self):
         section = 'D-sektionen'
-        cls.section = create_section(name=section)
-        cls.section2 = create_section(name="Test-sektionen")
-        cls.scanner, cls.scanner_client = create_user([cls.section2])
-        cls.user, cls.user_client = create_user([cls.section])
-        cls.admin, cls.admin_client = create_admin([cls.section])
+        self.section = create_section(name=section)
+        self.section2 = create_section(name="Test-sektionen")
+        self.scanner, self.scanner_client = create_user([self.section2])
+        self.user, self.user_client = create_user([self.section])
+        self.admin, self.admin_client = create_admin([self.section])
 
     def test_wrong_section(self):
         # Create meeting
-        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = parse(meeting_response)['id']
         
         # Make Scanner
-        scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
-        self.assertEqual(scanner_res.status_code, 201)
-
-        # Add legitimate user (for dev.check only, remove once this test is working)
-        add_user_response = self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-        self.assertEqual(add_user_response.status_code, 201)
+        def admin_add_scanners(self):
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+            scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
+            self.assertEqual(scanner_res.status_code, 201)
 
         #Scanner adds himself, should fail since scanner is member of the wrong section
-        add_user_fail_response = self.scanner_client.post('/voting/attendants/', {'username': self.scanner.username, 'meeting': meeting_id})
+        def scanner_add_self(self):
+            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+            add_user_fail_response = self.scanner_client.post('/voting/attendants/', {'username': self.scanner.username, 'meeting': meeting_id})
+            self.assertEqual(add_user_fail_response.status_code, 403)
+
+            vote_res = parse(voter_client.get('/voting/votes/'))            
+            self.assertEqual(vote_res, [])    
         
-        self.assertEqual(add_user_fail_response.status_code, 403)
-        attendants_response = self.admin_client.get('/voting/attendants/', {'meeting': meeting_id})
-        
-        #for attendant in parse(attendants_response):
-            #print(attendant)
+        #def admin_check_attendants(self):
+        #    meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+        #    attendants_response = self.admin_client.get('/voting/attendants/', {'meeting': meeting_id})
+        #    for attendant in parse(attendants_response):
+        #       print(attendant)
+
+        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_add_scanners(self)
+        scanner_add_self(self)
 
 class PizzaBreak(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(self):
         section = 'D-sektionen'
-        cls.section = create_section(name=section)
-        cls.scanner, cls.scanner_client = create_user([cls.section])
-        cls.users = [create_user([cls.section]) for _ in range(50)]
-        cls.admin, cls.admin_client = create_admin([cls.section])
+        self.section = create_section(name=section)
+        self.scanner, self.scanner_client = create_user([self.section])
+        self.users = [create_user([self.section]) for _ in range(50)]
+        self.admin, self.admin_client = create_admin([self.section])
 
     def test_pizza_break(self):
-        # Create meeting
-        meeting_response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
-        meeting_id = parse(meeting_response)['id']
-      
-        # Make Scanner
-        scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
-        self.assertEqual(scanner_res.status_code, 201)
+              
+        def admin_add_scanners(self):
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+            scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
+            self.assertEqual(scanner_res.status_code, 201)
 
-        # Create first vote
-        alternatives = [{'text': 'D'}, {'text': 'Ling'}]
-        vote_res = self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+        def admin_create_vote(self, question, alternatives):
+            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+            self.admin_client.post('/voting/votes/', {'question': question, 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
+     
+        def scanner_add_attendants(self):
+            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+            for user in self.users:
+                self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
         
-        vote_json = parse(vote_res)
-        alternatives = [alt['id'] for alt in vote_json['alternatives']]
-
-        # Add attendants, attendant votes on first vote immediately
-        for user in self.users:
-            self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
-            user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[0]})
-
-        # Close first vote
-        self.admin_client.patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
+        def attendants_vote(self):
+            for user in self.users:    
+                attendant_votes(self, 0, 0, user[1])
 
         # Check result of first vote
-        result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
-        for result in parse(result_res)['alternatives']:
-            if result['text'] == 'D':
-                self.assertEqual(result['num_votes'], 50) # WOHO WE WON!!!
-            else:
-                self.assertEqual(result['num_votes'], 0)
+        def admin_check_result1(self):
+            vote_id = parse(self.admin_client.get('/voting/votes/'))[0]['id']
+            result_res = self.admin_client.get('/voting/votes/'+str(vote_id)+'/')
+            for result in parse(result_res)['alternatives']:
+                if result['text'] == 'D':
+                    self.assertEqual(result['num_votes'], 50) # WOHO WE WON!!!
+                else:
+                    self.assertEqual(result['num_votes'], 0)
 
-        # Remove all users from the meeting
-        for user in self.users:
-            self.scanner_client.delete('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+        def scanner_remove_all(self):
+            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+            for user in self.users:
+                self.scanner_client.delete('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
         
-        # Create second vote
-        alternatives = [{'text': 'Två maskinare'}, {'text': 'En IT:are'}]
-        vote_res = self.admin_client.post('/voting/votes/', {'question': 'En maskinare, en maskinare. Finns det nånting finare? Finns det nånting finare så är det', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')
-        
-        vote_json = parse(vote_res)
-        alternatives = [alt['id'] for alt in vote_json['alternatives']]
-        
-        # Add the second half of users to the meeting and vote on second vote
-        for user in self.users[25:]:
-            self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
-            user[1].post('/voting/made_votes/', {'vote_id': vote_json['id'], 'alternative_id': alternatives[1]})
-
-        # Close second vote
-        self.admin_client.patch('/voting/votes/'+str(vote_json['id'])+'/', {'open': False}, format='json')
+        # Add the second half of users to the meeting
+        def scanner_add_half(self):
+            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+            for user in self.users[25:]:
+                self.scanner_client.post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+                
+        # Second half of users vote
+        def attendants_vote_half(self):
+            for user in self.users[25:]:    
+                attendant_votes(self, 1, 0, user[1])
    
         # Check result of second vote
-        result_res = self.admin_client.get('/voting/votes/'+str(vote_json['id'])+'/')
-        for result in parse(result_res)['alternatives']:
-            if result['text'] == 'En IT:are':
-                self.assertEqual(result['num_votes'], 25) # WOHO WE WON!!!
-            else:
-                self.assertEqual(result['num_votes'], 0)
+        def admin_check_result2(self):
+            vote_id = parse(self.admin_client.get('/voting/votes/'))[1]['id']
+            result_res = self.admin_client.get('/voting/votes/'+str(vote_id)+'/')
+            for result in parse(result_res)['alternatives']:
+                if result['text'] == 'En IT:are':
+                    self.assertEqual(result['num_votes'], 25) # WOHO WE WON!!!
+                else:
+                    self.assertEqual(result['num_votes'], 0)
+
+        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_add_scanners(self)
+        alternatives = [{'text': 'D'}, {'text': 'Ling'}]
+        question = 'Vilken är den bästa sektionen här?'
+        admin_create_vote(self, question, alternatives)
+        scanner_add_attendants(self)
+        attendants_vote(self)
+        admin_close_vote(self, 0)
+        admin_check_result1(self)
+        scanner_remove_all(self)
+        alternatives = [{'text': 'Två maskinare'}, {'text': 'En IT:are'}]
+        question = 'En maskinare, en maskinare. Finns det nånting finare? Finns det nånting finare så är det'
+        admin_create_vote(self, question, alternatives)
+        scanner_add_half(self)
+        attendants_vote_half(self)
+        admin_close_vote(self, 1)
+        admin_check_result2(self)
 
 class NoDuplicates(AuthenticatedTestCase):
     def setUp(self):
