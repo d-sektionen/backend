@@ -8,7 +8,7 @@ class StorageRoom(models.Model):
 
 class Location(models.Model):
     name = models.TextField()
-    room = models.ForeignKey(Room, null=False)
+    room = models.ForeignKey(StorageRoom, null=False)
     can_contain_objects = models.BooleanField()
 
 class Booking(models.Model):
@@ -20,9 +20,9 @@ class Booking(models.Model):
 
 class Object(models.Model):
     name = models.TextField()
-    location = models.ForeignKey(Place, null=False)
+    location = models.ForeignKey(Location, null=False)
     description = models.TextField()
     in_date = models.DateField()
     out_date = models.DateField()
     amount = models.IntegerField()
-    belongs_to = ForeignKey(Object)
+    belongs_to = models.ForeignKey('self', null=True)

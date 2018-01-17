@@ -18,6 +18,7 @@ from django.contrib import admin
 
 import account.urls
 import voting.urls
+import storage.urls
 
 urlpatterns = [
     # Admin pages
@@ -28,4 +29,7 @@ urlpatterns = [
 
     # Voting
     url(r'^voting/', include(voting.urls)),
+
+    # Storage
+    url(r'^storage/', include(storage.urls))
 ]
