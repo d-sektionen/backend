@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'voting',
     'corsheaders',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -170,3 +171,11 @@ JWT_AUTH = {
 }
 
 LOGIN_URL = '/account/login/'
+
+# Websocket channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgiref.inmemory.ChannelLayer",
+        "ROUTING": "voting.sockets.channel_routing",
+    },
+}

@@ -1,5 +1,7 @@
 import json
 
+from channels.test import ChannelTestCase, WSClient
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
@@ -742,3 +744,53 @@ class PermissionTests(TestCase):
         if status_code in [403, 404, 405]:
             self.issues += [msg]
             print('FOUND ISSUE:', msg)
+
+
+class WebsocketTest(ChannelTestCase):
+    def test_successful(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, http_client = create_admin([section])
+        token = http_client._credentials['HTTP_AUTHORIZATION'][4:]
+
+        client = WSClient()
+        client.send_and_consume('websocket.connect', path='/meeting/%d/?token=%s' % (meeting.id, token))
+
+        # Verify that there is nothing to receive
+        self.assertIsNone(client.receive())
+
+        # Test addition of attendants
+        attendant = Attendant.objects.create(user=user, meeting=meeting)
+        message = client.receive(json=True)
+        self.assertEqual('attendants_list', message['type'])
+        self.assertEqual(1, len(message['data']))
+        self.assertEqual(user.id, message['data'][0]['user'])
+        self.assertEqual(meeting.id, message['data'][0]['meeting'])
+
+        # Test voting
+        vote = Vote.objects.create(question='Question?', meeting=meeting)
+        MadeVote.objects.create(user=user, vote=vote)
+        message = client.receive(json=True)
+        self.assertEqual('vote_details', message['type'])
+
+        # Test removal of attendants
+        attendant.delete()
+        message = client.receive(json=True)
+        self.assertEqual('attendants_list', message['type'])
+        self.assertEqual(0, len(message['data']))
+
+        # Verify that there is nothing to receive
+        self.assertIsNone(client.receive())
+
+    def test_unsuccessful(self):
+        section = create_section('Section')
+        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        user, http_client = create_admin([])
+        token = http_client._credentials['HTTP_AUTHORIZATION'][4:]
+
+        client = WSClient()
+        with self.assertRaises(AssertionError) as context:
+            client.send_and_consume('websocket.connect', path='/meeting/%d/?token=%s' % (meeting.id, token))
+
+        message = context.exception.args[0]
+        self.assertTrue('ERROR: Not permitted' in message)
