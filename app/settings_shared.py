@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'voting',
     'corsheaders',
     'channels',
+    'storage',
 ]
 
 MIDDLEWARE = [
