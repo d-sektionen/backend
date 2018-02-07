@@ -10,6 +10,7 @@ accessed at tree[0][0].text.
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 
+from account.kobra import name_from_liu_id
 from account.section_membership import check_membership
 from voting.models import Section
 
@@ -51,6 +52,19 @@ def add_to_section_groups(tree):
         if is_member:
             group = section.user_group
             user.groups.add(group)
+
+
+def set_user_name(tree):
+    """
+    Extracts the user full name from Kobra and sets it in the database.
+    """
+
+    user, user_created = _get_or_create_user(tree)
+    first_name, last_name = name_from_liu_id(user.username)
+    if first_name is not None and last_name is not None:
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
 
 
 def _get_or_create_user(tree):

@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'groups', 'sections')
+        fields = ('username', 'first_name', 'last_name', 'groups', 'sections')
 
     def get_sections(self, obj):
         sections = Section.objects.filter(admin_group_id__in=obj.groups.all())
@@ -32,4 +32,4 @@ class UserSerializer(serializers.ModelSerializer):
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username')
+        fields = ('id', 'username', 'first_name', 'last_name')

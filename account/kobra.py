@@ -25,3 +25,21 @@ def liu_id_from_card(card_id):
         return r.json().get('liu_id')
     else:
         return None
+
+
+def name_from_liu_id(liu_id):
+    if token is None:
+        logger.warning('Unable to authenticate with Kobra (have you set KOBRA_TOKEN?)')
+        return None, None
+
+    r = requests.get(QUERY_URL.format(liu_id), headers={'Authorization': 'Token ' + token})
+    if r.status_code == 200:
+        full_name = r.json().get('name')
+        i = full_name.index(' ')  # First space index
+
+        first_name = full_name[:i]
+        last_name = full_name[i+1:]
+
+        return first_name, last_name
+    else:
+        return None, None
