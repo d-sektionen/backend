@@ -41,12 +41,7 @@ LOGGING = {
 }
 
 # Currently configured for Heroku. Might want to re-configure for deployment on d-sektionen.se.
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "asgi_redis.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-        },
-        "ROUTING": "chat.routing.channel_routing",
-    },
+CHANNEL_LAYERS["default"]["BACKEND"] = "asgi_redis.RedisChannelLayer"
+CHANNEL_LAYERS["default"]["CONFIG"] = {
+    "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
 }
