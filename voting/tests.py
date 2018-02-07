@@ -229,7 +229,7 @@ class ScannerTest(AuthenticatedTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['user'], user.id)
+        self.assertEqual(data[0]['user']['id'], user.id)
         self.assertEqual(data[0]['meeting']['id'], meeting.id)
 
     def test_create(self):
@@ -241,7 +241,7 @@ class ScannerTest(AuthenticatedTestCase):
         data = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(data['user'], user.id)
+        self.assertEqual(data['user']['id'], user.id)
         self.assertEqual(data['meeting']['id'], meeting.id)
 
     def test_destroy(self):
@@ -758,6 +758,20 @@ class WebsocketTest(ChannelTestCase):
 
         # Verify that there is nothing to receive
         self.assertIsNone(client.receive())
+
+        # Test addition of scanners
+        scanner = Scanner.objects.create(user=user, meeting=meeting)
+        message = client.receive(json=True)
+        self.assertEqual('scanner_list', message['type'])
+        self.assertEqual(1, len(message['data']))
+        self.assertEqual(user.id, message['data'][0]['user']['id'])
+        self.assertEqual(user.username, message['data'][0]['user']['username'])
+
+        # Test removal of scanners
+        scanner.delete()
+        message = client.receive(json=True)
+        self.assertEqual('scanner_list', message['type'])
+        self.assertEqual(0, len(message['data']))
 
         # Test addition of attendants
         attendant = Attendant.objects.create(user=user, meeting=meeting)

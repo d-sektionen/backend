@@ -12,11 +12,20 @@ class MeetingSerializer(serializers.ModelSerializer):
 
 
 class ScannerSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
     meeting = MeetingSerializer()
 
     class Meta:
         model = Scanner
         fields = ('id', 'user', 'meeting')
+
+
+class SimpleScannerSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
+
+    class Meta:
+        model = Scanner
+        fields = ('id', 'user')
 
 
 class AttendantSerializer(serializers.ModelSerializer):

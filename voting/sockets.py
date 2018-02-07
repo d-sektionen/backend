@@ -7,8 +7,8 @@ from django.dispatch import receiver
 from rest_framework.exceptions import ValidationError
 from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 
-from voting.models import Meeting, MadeVote, Attendant
-from voting.serializers import VoteDetailsSerializer, AttendantSerializer
+from voting.models import Meeting, MadeVote, Attendant, Scanner
+from voting.serializers import VoteDetailsSerializer, AttendantSerializer, SimpleScannerSerializer
 
 
 @channel_session
@@ -77,6 +77,23 @@ def attendants_list_changed(sender, instance, *args, **kwargs):
     response = {
         'type': 'attendants_list',
         'data': AttendantSerializer(instance.meeting.attendant_set, many=True).data
+    }
+    Group('meeting-' + str(instance.meeting.id)).send({'text': json.dumps(response)})
+
+
+@receiver(post_save, sender=Scanner)
+@receiver(post_delete, sender=Scanner)
+def scanner_list_changed(sender, instance, *args, **kwargs):
+    """
+    We subscribe to the signals Django emit when a model has been saved and
+    forward them to our subscribed clients.
+
+    Reason: A Scanner instance was (saved) created or deleted.
+    """
+
+    response = {
+        'type': 'scanner_list',
+        'data': SimpleScannerSerializer(instance.meeting.scanner_set, many=True).data
     }
     Group('meeting-' + str(instance.meeting.id)).send({'text': json.dumps(response)})
 
