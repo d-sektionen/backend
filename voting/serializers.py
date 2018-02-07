@@ -5,12 +5,6 @@ from account.serializers import SimpleUserSerializer
 from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, Alternative
 
 
-class SectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Section
-        fields = ('id', 'name',)
-
-
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting

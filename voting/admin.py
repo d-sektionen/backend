@@ -1,11 +1,6 @@
 from django.contrib import admin
 
-from voting.models import Section, Meeting, Scanner, Attendant, Vote, Alternative, MadeVote
-
-
-class SectionAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    readonly_fields = ('user_group', 'admin_group')
+from voting.models import Meeting, Scanner, Attendant, Vote, Alternative, MadeVote
 
 
 class MeetingAdmin(admin.ModelAdmin):
@@ -33,7 +28,6 @@ class MadeVoteAdmin(admin.ModelAdmin):
     list_display = ('user', 'vote')
 
 
-admin.site.register(Section, SectionAdmin)
 admin.site.register(Meeting, MeetingAdmin)
 admin.site.register(Scanner, ScannerAdmin)
 admin.site.register(Attendant, AttendantAdmin)

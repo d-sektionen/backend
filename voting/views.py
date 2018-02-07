@@ -33,6 +33,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
         meeting = Meeting.objects.get(id=meeting_id)
         user = kwargs['user']
 
+        # TODO: Verify section membership
         attendant, created = self.get_model().objects.get_or_create(user=user, meeting=meeting)
 
         if created:
