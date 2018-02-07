@@ -269,7 +269,7 @@ class AttendantTest(AuthenticatedTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['user'], user.id)
+        self.assertEqual(data[0]['user']['id'], user.id)
         self.assertEqual(data[0]['meeting'], meeting.id)
 
     def test_create(self):
@@ -281,7 +281,7 @@ class AttendantTest(AuthenticatedTestCase):
         data = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(data['user'], user.id)
+        self.assertEqual(data['user']['id'], user.id)
         self.assertEqual(data['meeting'], meeting.id)
 
     def test_destroy(self):
@@ -764,7 +764,8 @@ class WebsocketTest(ChannelTestCase):
         message = client.receive(json=True)
         self.assertEqual('attendants_list', message['type'])
         self.assertEqual(1, len(message['data']))
-        self.assertEqual(user.id, message['data'][0]['user'])
+        self.assertEqual(user.id, message['data'][0]['user']['id'])
+        self.assertEqual(user.username, message['data'][0]['user']['username'])
         self.assertEqual(meeting.id, message['data'][0]['meeting'])
 
         # Test voting
