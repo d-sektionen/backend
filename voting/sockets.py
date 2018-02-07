@@ -94,7 +94,12 @@ def ws_disconnect(message):
 
 
 def reject(message, reason):
-    message.reply_channel.send({"text": 'ERROR: ' + reason})
+    response = {
+        'type': 'error',
+        'data': reason
+    }
+
+    message.reply_channel.send({"text": json.dumps(response)})
     message.reply_channel.send({"close": True})
 
 

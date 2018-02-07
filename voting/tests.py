@@ -793,4 +793,4 @@ class WebsocketTest(ChannelTestCase):
             client.send_and_consume('websocket.connect', path='/meeting/%d/?token=%s' % (meeting.id, token))
 
         message = context.exception.args[0]
-        self.assertTrue('ERROR: Not permitted' in message)
+        self.assertTrue('Not permitted' in message)
