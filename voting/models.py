@@ -19,6 +19,9 @@ class Section(models.Model):
 
         return items
 
+    def __str__(self):
+        return self.name
+
 
 @receiver(post_save, sender=Section)
 def create_section_groups(sender, instance, created, **kwargs):
@@ -34,6 +37,9 @@ class Meeting(models.Model):
     current_vote = models.ForeignKey('Vote', blank=True, null=True, related_name='+')
     section = models.ForeignKey(Section, null=False)
     archived = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 
 class Scanner(models.Model):
@@ -56,6 +62,9 @@ class Vote(models.Model):
     question = models.CharField(max_length=128)
     open = models.BooleanField(default=True)
     meeting = models.ForeignKey(Meeting, null=False)
+
+    def __str__(self):
+        return self.question
 
 
 class Alternative(models.Model):
