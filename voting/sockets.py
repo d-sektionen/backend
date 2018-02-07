@@ -102,7 +102,7 @@ def has_sufficient_privileges(user, meeting):
     if user is None:
         return False
 
-    required_group = meeting.section.get_admin_group()
+    required_group = meeting.section.admin_group
     return required_group in user.groups.all()
 
 

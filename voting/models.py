@@ -2,6 +2,8 @@ import re
 
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Section(models.Model):
@@ -17,19 +19,14 @@ class Section(models.Model):
 
         return items
 
-    def get_user_group(self):
-        if not self.user_group:
-            self.user_group = Group.objects.create(name=self.name)
-            self.save(update_fields=['user_group'])
 
-        return self.user_group
-
-    def get_admin_group(self):
-        if not self.admin_group:
-            self.admin_group = Group.objects.create(name='Admin for ' + self.name)
-            self.save(update_fields=['admin_group'])
-
-        return self.admin_group
+@receiver(post_save, sender=Section)
+def create_section_groups(sender, instance, created, **kwargs):
+    if created:
+        # Create user and admin groups
+        instance.user_group = Group.objects.create(name=instance.name)
+        instance.admin_group = Group.objects.create(name='Admins for ' + instance.name)
+        instance.save(update_fields=['user_group', 'admin_group'])
 
 
 class Meeting(models.Model):

@@ -17,7 +17,7 @@ def create_user(add_to_sections=None):
     user = User.objects.create_user(username=_next_username(), password='Password123')
     if add_to_sections:
         for section in add_to_sections:
-            user.groups.add(section.get_user_group())
+            user.groups.add(section.user_group)
 
     client = APIClient()
     client.login(username=user.username, password='Password123')
@@ -34,7 +34,7 @@ def create_user(add_to_sections=None):
 def create_admin(add_to_sections):
     user, client = create_user(add_to_sections)
     for section in add_to_sections:
-        user.groups.add(section.get_admin_group())
+        user.groups.add(section.admin_group)
 
     return user, client
 
