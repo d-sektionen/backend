@@ -9,13 +9,13 @@ from storage.models import StorageRoom, Location, Booking, Object
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ('group', 'location', 'start_date', 'until_further_notice', 'description')
+        fields = ('id', 'group', 'location', 'start_date', 'until_further_notice', 'description')
 
 
 class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
-        fields = ('name', 'location', 'description', 'in_date', 'out_date', 'amount', 'belongs_to')
+        fields = ('id', 'name', 'location', 'description', 'in_date', 'out_date', 'amount', 'belongs_to')
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ('name', 'room', 'can_contain_objects', 'current_booking', 'objects')
+        fields = ('id', 'name', 'room', 'can_contain_objects', 'current_booking', 'objects')
 
     def get_current_booking(self, obj):
         now = datetime.now()
@@ -36,4 +36,4 @@ class StorageRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StorageRoom
-        fields = ('name', 'longitude', 'latitude', 'locations')
+        fields = ('id', 'name', 'longitude', 'latitude', 'locations')
