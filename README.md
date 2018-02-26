@@ -40,3 +40,6 @@ Start the Django development server and begin developing:
 ## Accessing content
 For now, the only way to access content is to visit the Django admin
 site. This can be found at http://127.0.0.1:8000/admin.
+
+# Documentation
+## Account
