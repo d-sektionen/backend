@@ -1,11 +1,13 @@
 from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 
-from account.serializers import SimpleUserSerializer
+from account.serializers import SimpleUserSerializer, SectionSerializer
 from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, Alternative
 
 
 class MeetingSerializer(serializers.ModelSerializer):
+    section = SectionSerializer()
+
     class Meta:
         model = Meeting
         fields = ('id', 'name', 'current_vote', 'section', 'archived')
