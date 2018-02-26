@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from rest_framework_jwt.settings import api_settings
 
-from account.serializers import UserSerializer
+from account.models import Section
+from account.serializers import UserSerializer, SectionSerializer, DetailedSectionSerializer
 
 
 @login_required
@@ -40,3 +41,15 @@ class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             return Response(serializer.data)
         else:
             return super(UserViewSet, self).retrieve(request, *args, **kwargs)
+
+
+class SectionViewSet(viewsets.ModelViewSet):
+    serializer_class = DetailedSectionSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        user_groups = user.groups.all()
+        sections = Section.objects.filter(admin_group__in=user_groups)
+
+        return sections
+
