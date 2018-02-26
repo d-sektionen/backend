@@ -43,3 +43,46 @@ site. This can be found at http://127.0.0.1:8000/admin.
 
 # Documentation
 ## Account
+### GET /account/token
+Redirects the user to the LiU login page and upon successful login returns a json object containing a token. Example:
+```
+{
+    "token": "YOUR TOKEN HERE"
+}
+```
+
+### GET /account/token?redirect=URL
+Same as the normal token endpoint but instead of returning a json object redirects the user to the supplied URL with an added query parameter (`URL?token=YOURTOKENHERE`).
+
+### GET /account/user/ID
+Retrieves a user. The ID can be a numerical identifier (as stored in the database), or the string "me" for the currently logged in user. Example:
+```
+{
+    {
+        "username": "patsl736",
+        "first_name": "Patrik",
+        "last_name": "Sletmo",
+        "groups": [
+            {
+                "name": "D-sektionen"
+            },
+            {
+                "name": "Admins for D-sektionen"
+            },
+            {
+                "name": "Admins for I-sektionen"
+            }
+        ],
+        "sections": [
+            {
+                "id": 1,
+                "name": "D-sektionen"
+            },
+            {
+                "id": 2,
+                "name": "I-sektionen"
+            }
+        ]
+    }
+}
+```
