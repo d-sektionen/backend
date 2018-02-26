@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 
 class StorageRoom(models.Model):
+    name = models.TextField()
     longitude = models.TextField()
     latitude = models.TextField()
 
