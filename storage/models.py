@@ -22,7 +22,9 @@ class Booking(models.Model):
 
     def clean(self):
         if self.end_date < self.start_date:
-            raise ValidationError('end_date cannot be earlier than start_date')
+            raise ValidationError('start_date later than end_date')
+        if self.end_date not null AND self.until_further_notice
+            raise ValidationError('end_date and until_further_notice must be mutually exclusive')
 
     def save(self, *args, **kwargs):
         self.full_clean()
