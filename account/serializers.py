@@ -33,3 +33,15 @@ class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name', 'last_name')
+
+
+class DetailedSectionSerializer(serializers.ModelSerializer):
+    administrators = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Section
+        fields = ('id', 'name', 'administrators')
+
+    def get_administrators(self, obj):
+        admins = User.objects.filter(groups__name=obj.admin_group.name)
+        return SimpleUserSerializer(admins, many=True).data
