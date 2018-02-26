@@ -5,11 +5,10 @@ from rest_framework import serializers
 
 from storage.models import StorageRoom, Location, Booking, Object
 
-
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ('id', 'group', 'location', 'start_date', 'until_further_notice', 'description')
+        fields = ('id', 'group', 'location', 'start_date', 'end_date', 'until_further_notice', 'description')
 
 
 class ObjectSerializer(serializers.ModelSerializer):
@@ -37,3 +36,4 @@ class StorageRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageRoom
         fields = ('id', 'name', 'longitude', 'latitude', 'locations')
+
