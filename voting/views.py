@@ -1,15 +1,13 @@
-from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import F
-from rest_framework import viewsets, views, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import list_route
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from account import kobra
-from voting.decorators import extract_user, extract_username
+from app.decorators import extract_user, extract_username
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
-from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, MadeVoteSerializer, VoteDetailsSerializer
+from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer
 
 
 class MeetingViewSet(viewsets.ModelViewSet):
