@@ -74,4 +74,4 @@ class SectionViewSet(viewsets.ModelViewSet):
 
         user.groups.remove(section.admin_group)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)

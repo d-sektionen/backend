@@ -49,7 +49,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
         attendant = self.get_model().objects.filter(user__username=username, meeting=meeting).first()
         if attendant is not None:
             attendant.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({'status': 'ok'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': self.get_model().__name__ + ' does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -109,4 +109,4 @@ class MadeVoteViewSet(viewsets.ViewSet):
 
         MadeVote.objects.create(vote_id=vote_id, user=request.user)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)
