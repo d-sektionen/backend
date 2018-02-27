@@ -5,7 +5,7 @@ from rest_framework.decorators import list_route
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from app.decorators import extract_user, extract_username
+from app.decorators import extract_user, extract_username, extract_data
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer
 
@@ -27,7 +27,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
 
     @extract_user
     def create(self, request, *args, **kwargs):
-        meeting_id = request.data['meeting']
+        meeting_id = extract_data(request, 'meeting')
         meeting = Meeting.objects.get(id=meeting_id)
         user = kwargs['user']
 
@@ -42,7 +42,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
     @list_route(methods=['delete'], url_path='')
     @extract_username
     def delete(self, request, *args, **kwargs):
-        meeting_id = request.data['meeting']
+        meeting_id = extract_data(request, 'meeting')
         meeting = Meeting.objects.get(id=meeting_id)
         username = kwargs['username']
 
