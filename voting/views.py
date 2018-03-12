@@ -7,18 +7,24 @@ from rest_framework.response import Response
 
 from app.decorators import extract_user, extract_username, extract_data
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
-from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer
+from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
 
 
 class MeetingViewSet(viewsets.ModelViewSet):
-    serializer_class = MeetingSerializer
-
     def get_queryset(self):
         user = self.request.user
         user_groups = user.groups.all()
         meetings = Meeting.objects.filter(section__admin_group__in=user_groups)
 
         return meetings
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return MeetingReadSerializer
+
+        # The read serializer does not support foreign keys in requests properly,
+        # so return the normal serializer.
+        return MeetingSerializer
 
 
 class UserIdentifiableViewSet(viewsets.ModelViewSet):

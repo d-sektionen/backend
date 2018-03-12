@@ -6,11 +6,13 @@ from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, 
 
 
 class MeetingSerializer(serializers.ModelSerializer):
-    section = SectionSerializer()
-
     class Meta:
         model = Meeting
         fields = ('id', 'name', 'current_vote', 'section', 'archived')
+
+
+class MeetingReadSerializer(MeetingSerializer):
+    section = SectionSerializer()
 
 
 class ScannerSerializer(serializers.ModelSerializer):

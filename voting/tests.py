@@ -13,7 +13,7 @@ def parse(response):
         return json.loads(response.content.decode('utf-8'))
 
 def admin_create_meeting(self, admin_client, section_id):
-            create_res = admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': section_id})        
+            create_res = admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': section_id})
             self.assertEqual(create_res.status_code, 201)
 
 def admin_close_vote(self, vote):
@@ -26,7 +26,7 @@ def attendant_votes(self, vote, alternative, voter_client):
                 vote_id = parse(voter_client.get('/voting/votes/'))[vote]['id']
                 alternative_id = parse(voter_client.get('/voting/votes/' + str(vote_id) + '/'))['alternatives'][alternative]['id']
                 uservote_res = voter_client.post('/voting/made_votes/', {'vote_id': vote_id, 'alternative_id': alternative_id})
-                self.assertEqual(uservote_res.status_code, 204)    
+                self.assertEqual(uservote_res.status_code, 200)
 # --- ---------------------- ---
 class MeetingTest(AuthenticatedTestCase):
     def test_list(self):
@@ -64,7 +64,7 @@ class MeetingTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['name'], 'Meeting 1')
         self.assertEqual(data['current_vote'], None)
-        self.assertEqual(data['section'], section.id)
+        self.assertEqual(data['section']['id'], section.id)
         self.assertEqual(data['archived'], False)
 
     def test_update(self):
@@ -94,7 +94,7 @@ class VoteTest(AuthenticatedTestCase):
         data = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(data), 1)
+        self.assertEqual(len(data), 1)  # Should only return the open votes of the meeting the user attends!
         self.assertEqual(data[0]['question'], 'Question?')
         self.assertEqual(data[0]['open'], True)
         self.assertEqual(len(data[0]['alternatives']), 2)
@@ -185,14 +185,14 @@ class VotingTest(AuthenticatedTestCase):
         response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
 
         self.alternative1.refresh_from_db()
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(self.alternative1.num_votes, 1)
 
     def test_double_voting(self):
         response1 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
 
         self.alternative1.refresh_from_db()
-        self.assertEqual(response1.status_code, 204)
+        self.assertEqual(response1.status_code, 200)
         self.assertEqual(self.alternative1.num_votes, 1)
 
         response2 = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
@@ -251,7 +251,7 @@ class ScannerTest(AuthenticatedTestCase):
         Scanner.objects.create(user=user, meeting=meeting)
 
         response = self.client.delete('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(meeting.scanner_set.count(), 0)
 
 
@@ -291,7 +291,7 @@ class AttendantTest(AuthenticatedTestCase):
         Attendant.objects.create(user=user, meeting=meeting)
 
         response = self.client.delete('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(meeting.attendant_set.count(), 0)
 
 class PerfectMeeeting(TestCase):
@@ -386,7 +386,7 @@ class BreakBeforeVote(TestCase):
             self.assertEqual(attendant_response.status_code, 201)
 
             user_drop_response = self.admin_client.delete('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
-            self.assertEqual(user_drop_response.status_code, 204)
+            self.assertEqual(user_drop_response.status_code, 200)
             self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
 
         admin_create_meeting(self, self.admin_client, self.section.id)
@@ -419,7 +419,7 @@ class BreakAfterVote(TestCase):
         def scanner_drop_attendant(self):
             meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
             user_drop_response = self.scanner_client.delete('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-            self.assertEqual(user_drop_response.status_code, 204)
+            self.assertEqual(user_drop_response.status_code, 200)
         
         def attendant_vote_fail(self):
             vote_id = parse(self.user_client.get('/voting/votes/'))[0]['id']
