@@ -37,6 +37,6 @@ class Object(models.Model):
     in_date = models.DateField()
     out_date = models.DateField()
     amount = models.IntegerField()
-    belongs_to = models.ForeignKey('self', blank=True, on_delete=models.CASCADE)
+    belongs_to = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
 
 

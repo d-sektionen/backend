@@ -19,7 +19,7 @@ class ObjectSerializer(serializers.ModelSerializer):
 
 class LocationSerializer(serializers.ModelSerializer):
     current_booking = serializers.SerializerMethodField()
-    objects = ObjectSerializer(source='object_set', many=True)
+    objects = ObjectSerializer(source='object_set', many=True, read_only=True)
 
     class Meta:
         model = Location
