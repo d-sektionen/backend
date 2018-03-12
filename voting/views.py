@@ -43,7 +43,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
         if created:
             return Response(self.serializer_class(attendant).data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'error': self.get_model().__name__ + ' already exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': self.get_model().get_model_name() + ' redan registrerad'}, status=status.HTTP_400_BAD_REQUEST)
 
     @list_route(methods=['delete'], url_path='')
     @extract_username
@@ -57,7 +57,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
             attendant.delete()
             return Response({'status': 'ok'}, status=status.HTTP_200_OK)
         else:
-            return Response({'error': self.get_model().__name__ + ' does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': self.get_model().get_model_name() + ' inte registrerad på mötet'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AttendantViewSet(UserIdentifiableViewSet):
@@ -104,14 +104,14 @@ class MadeVoteViewSet(viewsets.ViewSet):
         alternative_id = request.data['alternative_id']
 
         if MadeVote.objects.filter(vote_id=vote_id, user=request.user).exists():
-            return Response({'error': 'Vote has already been made'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Omröstningen finns redan'}, status=status.HTTP_403_FORBIDDEN)
 
-        alernative = Alternative.objects.get(id=alternative_id)
-        if str(alernative.vote_id) != str(vote_id):
-            return Response({'error': 'Unable to find vote'}, status=status.HTTP_404_NOT_FOUND)
+        alternative = Alternative.objects.get(id=alternative_id)
+        if str(alternative.vote_id) != str(vote_id):
+            return Response({'error': 'Omröstningen hittades inte'}, status=status.HTTP_404_NOT_FOUND)
 
-        alernative.num_votes = F('num_votes') + 1
-        alernative.save()
+        alternative.num_votes = F('num_votes') + 1
+        alternative.save()
 
         MadeVote.objects.create(vote_id=vote_id, user=request.user)
 
