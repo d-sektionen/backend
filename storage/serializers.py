@@ -34,9 +34,11 @@ class LocationSerializer(serializers.ModelSerializer):
             return None
 
 
-class StorageRoomSerializer(serializers.ModelSerializer):
-    locations = LocationSerializer(source='location_set', many=True)
-
+class StorageRoomReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageRoom
         fields = ('id', 'name', 'longitude', 'latitude', 'locations')
+
+
+class StorageRoomReadSerializer(StorageRoomReadSerializer):
+    locations = LocationSerializer(source='location_set', many=True)
