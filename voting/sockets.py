@@ -121,11 +121,7 @@ def reject(message, reason):
 
 
 def has_sufficient_privileges(user, meeting):
-    if user is None:
-        return False
-
-    required_group = meeting.section.admin_group
-    return required_group in user.groups.all()
+    return meeting.section.is_admin(user)
 
 
 def user_from_token(message):

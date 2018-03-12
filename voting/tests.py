@@ -491,9 +491,9 @@ class WrongSection(TestCase):
         def scanner_add_self(self):
             meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
             add_user_fail_response = self.scanner_client.post('/voting/attendants/', {'username': self.scanner.username, 'meeting': meeting_id})
-            self.assertEqual(add_user_fail_response.status_code, 403)
+            self.assertEqual(add_user_fail_response.status_code, 400)
 
-            vote_res = parse(voter_client.get('/voting/votes/'))            
+            vote_res = parse(self.scanner_client.get('/voting/votes/'))
             self.assertEqual(vote_res, [])    
         
         #def admin_check_attendants(self):

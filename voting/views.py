@@ -28,6 +28,8 @@ class MeetingViewSet(viewsets.ModelViewSet):
 
 
 class UserIdentifiableViewSet(viewsets.ModelViewSet):
+    check_section_membership = False
+
     def get_model(self):
         return self.serializer_class.Meta.model
 
@@ -37,7 +39,10 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
         meeting = Meeting.objects.get(id=meeting_id)
         user = kwargs['user']
 
-        # TODO: Verify section membership
+        # Verify that the user is a member of the section if configured to do so
+        if self.check_section_membership and not meeting.section.is_member(user):
+            return Response({'error': self.get_model().get_model_name() + ' måste tillhöra sektionen'}, status=status.HTTP_400_BAD_REQUEST)
+
         attendant, created = self.get_model().objects.get_or_create(user=user, meeting=meeting)
 
         if created:
@@ -63,6 +68,7 @@ class UserIdentifiableViewSet(viewsets.ModelViewSet):
 class AttendantViewSet(UserIdentifiableViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
+    check_section_membership = True
 
     def get_queryset(self):
         if 'meeting' not in self.request.query_params:
