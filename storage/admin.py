@@ -1,3 +1,20 @@
 from django.contrib import admin
 
-# Register your models here.
+from storage.models import StorageRoom, Location, Booking, Object
+
+class StorageRoomAdmin(admin.ModelAdmin):
+    list_display = ('name', 'longitude','latitude')
+
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'room', 'can_contain_objects')
+
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ('group', 'location', 'start_date','end_date', 'until_further_notice', 'description')
+
+class ObjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'location','description', 'in_date', 'out_date', 'amount', 'belongs_to')
+
+admin.site.register(StorageRoom, StorageRoomAdmin)
+admin.site.register(Location,LocationAdmin)
+admin.site.register(Booking,BookingAdmin)
+admin.site.register(Object,ObjectAdmin)
