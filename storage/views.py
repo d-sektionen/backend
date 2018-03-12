@@ -7,19 +7,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from storage.models import StorageRoom, Location, Booking, Object
-from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer, StorageRoomReadSerializer
-
+from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer
 
 class StorageRoomViewSet(viewsets.ModelViewSet):
     queryset = StorageRoom.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return StorageRoomReadSerializer
-
-        # The read serializer does not support foreign keys in requests properly,
-        # so return the normal serializer.
-        return StorageRoomSerializer
+    serializer_class = StorageRoomSerializer
     
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
