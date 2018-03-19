@@ -61,7 +61,8 @@ class VoteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        votes = Vote.objects.filter(meeting__attendant__user__in=[user])
+        attended_meetings = Meeting.objects.filter(attendant__user__in=[user])
+        votes = filter(None, [x.current_vote for x in attended_meetings])
 
         return votes
 
