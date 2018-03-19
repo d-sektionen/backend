@@ -53,12 +53,17 @@ class ScannerViewSet(UserIdentifiableViewSet):
 
 
 class VoteViewSet(viewsets.ModelViewSet):
-    queryset = Vote.objects.all()
     serializer_class = VoteListSerializer
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = VoteDetailsSerializer
         return super(VoteViewSet, self).retrieve(request, *args, **kwargs)
+
+    def get_queryset(self):
+        user = self.request.user
+        votes = Vote.objects.filter(meeting__attendant__user__in=[user])
+
+        return votes
 
 
 class MadeVoteViewSet(viewsets.ViewSet):
