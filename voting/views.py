@@ -68,7 +68,7 @@ class MadeVoteViewSet(viewsets.ViewSet):
         alternative_id = request.data['alternative_id']
 
         if MadeVote.objects.filter(vote_id=vote_id, user=request.user).exists():
-            return Response({'error': 'Omröstningen finns redan'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Du har redan röstat i den här omröstningen'}, status=status.HTTP_403_FORBIDDEN)
 
         alternative = Alternative.objects.get(id=alternative_id)
         if str(alternative.vote_id) != str(vote_id):
