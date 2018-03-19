@@ -54,10 +54,15 @@ class PrivateAlternativeSerializer(serializers.ModelSerializer):
 
 class VoteListSerializer(WritableNestedModelSerializer):
     alternatives = PublicAlternativeSerializer(source='alternative_set', many=True)
+    has_voted = serializers.SerializerMethodField()
 
     class Meta:
         model = Vote
-        fields = ('id', 'question', 'open', 'alternatives', 'meeting')
+        fields = ('id', 'question', 'open', 'alternatives', 'meeting', 'has_voted')
+
+    def get_has_voted(self, obj):
+        current_user = self.context['request'].user
+        return MadeVote.objects.filter(user=current_user, vote=obj).exists()
 
 
 class VoteDetailsSerializer(serializers.ModelSerializer):
