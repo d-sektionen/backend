@@ -87,8 +87,10 @@ class VoteTest(AuthenticatedTestCase):
         self.admin, self.client = create_admin([self.section])
 
     def test_list(self):
-        self._create_vote(self.section)
+        vote, meeting = self._create_vote(self.section)
         self._create_vote(self.other_section)
+
+        Attendant.objects.create(meeting=meeting, user=self.admin)
 
         response = self.client.get('/voting/votes/')
         data = json.loads(response.content.decode('utf-8'))
@@ -115,7 +117,9 @@ class VoteTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_show(self):
-        vote = self._create_vote(self.section)
+        vote, meeting = self._create_vote(self.section)
+
+        Attendant.objects.create(meeting=meeting, user=self.admin)
 
         response = self.client.get('/voting/votes/' + str(vote.id) + '/')
         data = json.loads(response.content.decode('utf-8'))
@@ -127,7 +131,9 @@ class VoteTest(AuthenticatedTestCase):
         self.assertTrue('num_votes' in data['alternatives'][0])
 
     def test_update(self):
-        vote = self._create_vote(self.section)
+        vote, meeting = self._create_vote(self.section)
+
+        Attendant.objects.create(meeting=meeting, user=self.admin)
 
         # Ensure that the number of votes persist
         alternatives = vote.alternative_set.all()
@@ -171,7 +177,7 @@ class VoteTest(AuthenticatedTestCase):
         Alternative.objects.create(text='Alternative 1', vote=vote)
         Alternative.objects.create(text='Alternative 2', vote=vote)
 
-        return vote
+        return vote, meeting
 
 
 class VotingTest(AuthenticatedTestCase):
@@ -447,7 +453,7 @@ class ForgotLiUCard(TestCase):
         
         def admin_actions(self):
             meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
-            self.admin_client.post('/voting/attendants/', {'id': self.user.id, 'meeting': meeting_id})
+            self.admin_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
 
             alternatives = [{'text': 'D'}, {'text': 'TBI'}]
             self.admin_client.post('/voting/votes/', {'question': 'Vilken är den bästa sektionen här?', 'meeting': meeting_id, 'alternatives': alternatives}, format='json')

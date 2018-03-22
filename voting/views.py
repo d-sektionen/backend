@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from rest_framework import viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -60,9 +60,19 @@ class VoteViewSet(viewsets.ModelViewSet):
         return super(VoteViewSet, self).retrieve(request, *args, **kwargs)
 
     def get_queryset(self):
+        """
+        This solution is very ugly but makes sure that we return a QuerySet. This
+        is needed for the retrieval of individual vote objects to work correctly.
+
+        It might be better to replace this with a raw SQL query.
+        """
+
         user = self.request.user
-        attended_meetings = Meeting.objects.filter(attendant__user__in=[user])
-        votes = filter(None, [x.current_vote for x in attended_meetings])
+        user_groups = user.groups.all()
+        meetings = Meeting.objects.filter(Q(attendant__user__in=[user]) | Q(section__admin_group__in=user_groups))
+
+        vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
+        votes = Vote.objects.filter(id__in=vote_ids)
 
         return votes
 

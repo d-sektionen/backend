@@ -1,5 +1,7 @@
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from account.models import Section
 
@@ -53,6 +55,22 @@ class Vote(models.Model):
 
     def __str__(self):
         return self.question
+
+
+@receiver(post_save, sender=Vote)
+def update_current_vote(sender, instance, created, **kwargs):
+    """
+    Closes the old meeting vote and sets the meeting's current vote to the new one.
+    """
+
+    meeting = instance.meeting
+    old_vote = meeting.current_vote
+    if old_vote is not None:
+        old_vote.open = False
+        old_vote.save()
+
+    meeting.current_vote = instance
+    meeting.save()
 
 
 class Alternative(models.Model):
