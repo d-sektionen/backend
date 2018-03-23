@@ -63,14 +63,15 @@ def update_current_vote(sender, instance, created, **kwargs):
     Closes the old meeting vote and sets the meeting's current vote to the new one.
     """
 
-    meeting = instance.meeting
-    old_vote = meeting.current_vote
-    if old_vote is not None:
-        old_vote.open = False
-        old_vote.save()
+    if instance.open:
+        meeting = instance.meeting
+        old_vote = meeting.current_vote
+        if old_vote is not None and old_vote != instance:
+            old_vote.open = False
+            old_vote.save()
 
-    meeting.current_vote = instance
-    meeting.save()
+        meeting.current_vote = instance
+        meeting.save()
 
 
 class Alternative(models.Model):
