@@ -224,11 +224,14 @@ class VotingTest(AuthenticatedTestCase):
 
 
 class ScannerTest(AuthenticatedTestCase):
+    def setUp(self):
+        self.section = create_section('Section')
+        self.admin, self.client = create_admin([self.section])
+
     def test_list(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        other_meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        user, user_client = create_user([section])
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        other_meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        user, user_client = create_user([self.section])
         Scanner.objects.create(user=user, meeting=meeting)
         Scanner.objects.create(user=user, meeting=other_meeting)
 
@@ -241,9 +244,8 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(data[0]['meeting']['id'], meeting.id)
 
     def test_create(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        user, user_client = create_user([section])
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        user, user_client = create_user([self.section])
 
         response = self.client.post('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
         data = json.loads(response.content.decode('utf-8'))
@@ -253,9 +255,8 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(data['meeting']['id'], meeting.id)
 
     def test_destroy(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        user, user_client = create_user([section])
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        user, user_client = create_user([self.section])
         Scanner.objects.create(user=user, meeting=meeting)
 
         response = self.client.delete('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
@@ -264,11 +265,15 @@ class ScannerTest(AuthenticatedTestCase):
 
 
 class AttendantTest(AuthenticatedTestCase):
+
+    def setUp(self):
+        self.section = create_section('Section')
+        self.admin, self.client = create_admin([self.section])
+
     def test_list(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        other_meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        user, user_client = create_user([section])
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        other_meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        user, user_client = create_user([self.section])
         Attendant.objects.create(user=user, meeting=meeting)
         Attendant.objects.create(user=user, meeting=other_meeting)
 
@@ -281,9 +286,8 @@ class AttendantTest(AuthenticatedTestCase):
         self.assertEqual(data[0]['meeting'], meeting.id)
 
     def test_create(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        user, user_client = create_user([section])
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        user, user_client = create_user([self.section])
 
         response = self.client.post('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})
         data = json.loads(response.content.decode('utf-8'))
@@ -293,9 +297,8 @@ class AttendantTest(AuthenticatedTestCase):
         self.assertEqual(data['meeting'], meeting.id)
 
     def test_destroy(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        user, user_client = create_user([section])
+        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        user, user_client = create_user([self.section])
         Attendant.objects.create(user=user, meeting=meeting)
 
         response = self.client.delete('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})

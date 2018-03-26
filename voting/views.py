@@ -3,7 +3,7 @@ from django.db.models import F, Q
 from rest_framework import mixins, viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from voting.permissions import AdminMeetingPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission, VotePermission, AttendantPermission
+from voting.permissions import ScannerPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission, VotePermission, AttendantPermission
 
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
@@ -48,7 +48,7 @@ class AttendantViewSet(UserIdentifiableViewSet):
 class ScannerViewSet(UserIdentifiableViewSet):
     queryset = Scanner.objects.all()
     serializer_class = ScannerSerializer
-    permission_classes = (AdminMeetingPermission,)
+    permission_classes = (ScannerPermission,)
 
 
     def get_queryset(self):
