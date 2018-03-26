@@ -87,4 +87,3 @@ class Alternative(models.Model):
 class MadeVote(models.Model):
     user = models.ForeignKey(User, null=False)
     vote = models.ForeignKey(Vote, null=False)
-
