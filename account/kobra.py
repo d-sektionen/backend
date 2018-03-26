@@ -8,6 +8,8 @@ QUERY_URL = BASE_URL + '/api/v1/students/{}'
 
 token = settings.KOBRA_TOKEN
 logger = logging.getLogger(__name__)
+if settings.TESTING:
+    logger.setLevel(logging.ERROR)
 
 
 def liu_id_from_card(card_id):
@@ -43,3 +45,9 @@ def name_from_liu_id(liu_id):
         return first_name, last_name
     else:
         return None, None
+
+
+def is_student(username):
+    firstname, lastname = name_from_liu_id(username)
+
+    return firstname is not None

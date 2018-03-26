@@ -219,6 +219,7 @@ class VotingTest(AuthenticatedTestCase):
         self.vote = Vote.objects.create(question='Question?', meeting=meeting)
         self.alternative1 = Alternative.objects.create(text='Alternative 1', vote=self.vote)
         self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
+        Attendant.objects.create(meeting=meeting, user=self.admin)
 
 
 class ScannerTest(AuthenticatedTestCase):

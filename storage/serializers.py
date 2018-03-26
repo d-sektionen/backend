@@ -14,7 +14,7 @@ class BookingSerializer(serializers.ModelSerializer):
 class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
-        fields = ('id', 'name', 'location', 'description', 'in_date', 'out_date', 'amount', 'belongs_to')
+        fields = ('id', 'name', 'location', 'description', 'in_date', 'amount', 'belongs_to')
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -39,4 +39,4 @@ class StorageRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StorageRoom
-        fields = ('id', 'name', 'longitude', 'latitude', 'locations')
+        fields = ('id', 'name', 'longitude', 'latitude', 'locations', 'description')

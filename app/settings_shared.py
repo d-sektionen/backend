@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import datetime
@@ -182,3 +183,5 @@ CHANNEL_LAYERS = {
         "ROUTING": "voting.sockets.channel_routing",
     },
 }
+
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
