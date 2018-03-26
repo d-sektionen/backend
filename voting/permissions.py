@@ -1,14 +1,70 @@
 from rest_framework.permissions import BasePermission
 
-from voting.models import Scanner
+from account.models import Section
+from app.permissions import RestPermission
+from voting.models import Scanner, Meeting
 
 
-class AdminMeetingPermission(BasePermission):
+class AdminMeetingPermission(RestPermission):
+    def has_action_permission(self, request, view, action):
+        if action == 'LIST' or action == 'CREATE' or (action == 'DESTROY' and 'pk' not in view.kwargs):
+            meeting = self.get_foreign_object(request, Meeting, 'meeting')
+            if meeting is not None:
+                return meeting.section.is_admin(request.user)
+            else:
+                return False
+
+        return True
+
     def has_object_permission(self, request, view, obj):
         return obj.meeting.section.is_admin(request.user)
 
 
-class AdminSectionPermission(BasePermission):
+class AttendantPermission(RestPermission):
+    def has_action_permission(self, request, view, action):
+        if action == 'LIST':
+            meeting = self.get_foreign_object(request, Meeting, 'meeting')
+            if meeting is not None:
+                return meeting.section.is_admin(request.user)
+            else:
+                return False
+        elif action == 'CREATE' or (action == 'DESTROY' and 'pk' not in view.kwargs):
+            meeting = self.get_foreign_object(request, Meeting, 'meeting')
+            if meeting is not None:
+                return meeting.section.is_admin(request.user) or Scanner.objects.filter(user=request.user, meeting=meeting).exists()
+
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        return obj.meeting.section.is_admin(request.user)
+
+
+class VotePermission(RestPermission):
+    def has_action_permission(self, request, view, action):
+        if action == 'CREATE':
+            meeting = self.get_foreign_object(request, Meeting, 'meeting')
+            if meeting is not None:
+                return meeting.section.is_admin(request.user)
+            else:
+                return False
+        else:
+            return True
+
+    def has_object_permission(self, request, view, obj):
+        return obj.meeting.section.is_admin(request.user)
+
+
+class AdminSectionPermission(RestPermission):
+    def has_action_permission(self, request, view, action):
+        if action == 'CREATE':
+            section = self.get_foreign_object(request, Section, 'section')
+            if section is not None:
+                return section.is_admin(request.user)
+            else:
+                return False
+
+        return True
+
     def has_object_permission(self, request, view, obj):
         return obj.section.is_admin(request.user)
 

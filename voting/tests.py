@@ -674,7 +674,7 @@ class PermissionTests(TestCase):
         self.issues = []
 
     def test_meeting_permissions(self):
-        self.performTest([ADMIN], LIST, '/voting/meetings/')
+        self.performTest([ADMIN, OTHER_ADMIN], LIST, '/voting/meetings/', accept_empty=True)
         self.performTest([ADMIN], CREATE, '/voting/meetings/', {'name': 'Name', 'section': self.own_section.id})
         self.performTest([ADMIN], SHOW, '/voting/meetings/%d/' % self.own_meeting.id)
         self.performTest([ADMIN], UPDATE, '/voting/meetings/%d/' % self.own_meeting.id, {'name': 'Test'})
@@ -721,7 +721,7 @@ class PermissionTests(TestCase):
 
         self.assertNoIssues()
 
-    def performTest(self, allowed_users, method, path, data=None):
+    def performTest(self, allowed_users, method, path, data=None, accept_empty=False):
         for identifier, (user, client) in self.users.items():
             db_state = self._enter_atomics()
             if data is not None:
@@ -734,25 +734,31 @@ class PermissionTests(TestCase):
 
             response = client.generic(method, path, **kwargs)
             if identifier in allowed_users:
-                self.verifySuccess(response.status_code, identifier + ' could not execute ' + method + ' on ' + path)
+                self.verifySuccess(response.status_code, response.content, identifier + ' could not execute ' + method + ' on ' + path, accept_empty)
             else:
-                self.verifyFailure(response.status_code, identifier + ' could incorrectly execute ' + method + ' on ' + path)
+                self.verifyFailure(response.status_code, response.content, identifier + ' could incorrectly execute ' + method + ' on ' + path, accept_empty)
 
-            print(response.content)
+            #print(response.content)
             self._rollback_atomics(db_state)
 
     def assertNoIssues(self):
         self.assertEqual(0, len(self.issues), 'One or more issues were found!')
 
-    def verifyFailure(self, status_code, msg):
+    def verifyFailure(self, status_code, content, msg, accept_empty):
         if status_code not in [403, 404, 405]:
-            self.issues += [msg]
-            print('FOUND ISSUE:', msg)
+            if accept_empty and content == b'[]':
+                return
+            else:
+                self.issues += [msg]
+                print('FOUND ISSUE:', msg)
 
-    def verifySuccess(self, status_code, msg):
+    def verifySuccess(self, status_code, content, msg, accept_empty):
         if status_code in [403, 404, 405]:
-            self.issues += [msg]
-            print('FOUND ISSUE:', msg)
+            if accept_empty and content == b'[]':
+                return
+            else:
+                self.issues += [msg]
+                print('FOUND ISSUE:', msg)
 
 
 class WebsocketTest(ChannelTestCase):

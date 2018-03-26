@@ -3,15 +3,19 @@ from django.db.models import F, Q
 from rest_framework import mixins, viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from voting.permissions import AdminMeetingPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission
+from voting.permissions import AdminMeetingPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission, VotePermission, AttendantPermission
 
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
 from voting.view_helpers import different_read_serializer, UserIdentifiableViewSet
 
 
+class NoDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    pass
+
+
 @different_read_serializer
-class MeetingViewSet(viewsets.ModelViewSet):
+class MeetingViewSet(NoDeleteViewSet):
     serializer_class = MeetingSerializer
     read_serializer_class = MeetingReadSerializer
     permission_classes = (AdminSectionPermission,)
@@ -28,7 +32,7 @@ class AttendantViewSet(UserIdentifiableViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
     check_section_membership = True
-    permission_classes = (AdminMeetingPermission, ScannerOrAdminMeetingPermission)
+    permission_classes = (AttendantPermission,)
 
 
     def get_queryset(self):
@@ -57,10 +61,10 @@ class ScannerViewSet(UserIdentifiableViewSet):
             return Scanner.objects.filter(user=self.request.user)
 
 
-class VoteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class VoteViewSet(NoDeleteViewSet):
     serializer_class = VoteListSerializer
     queryset = Vote.objects.all()
-    permission_classes = (AdminMeetingPermission,)
+    permission_classes = (VotePermission,)
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = VoteDetailsSerializer
