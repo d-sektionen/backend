@@ -54,12 +54,13 @@ class ScannerViewSet(UserIdentifiableViewSet):
 
 class VoteViewSet(viewsets.ModelViewSet):
     serializer_class = VoteListSerializer
+    queryset = Vote.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = VoteDetailsSerializer
         return super(VoteViewSet, self).retrieve(request, *args, **kwargs)
 
-    def get_queryset(self):
+    def list(self, request, *args, **kwargs):
         """
         This solution is very ugly but makes sure that we return a QuerySet. This
         is needed for the retrieval of individual vote objects to work correctly.
@@ -69,12 +70,16 @@ class VoteViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
         user_groups = user.groups.all()
-        meetings = Meeting.objects.filter(Q(attendant__user__in=[user]) | Q(section__admin_group__in=user_groups))
+        if 'current' in request.query_params and request.query_params['current'] == 'true':
+            meetings = Meeting.objects.filter(attendant__user__in=[user]).order_by('-id')
+        else:
+            meetings = Meeting.objects.filter(section__admin_group__in=user_groups)
 
         vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
         votes = Vote.objects.filter(id__in=vote_ids)
 
-        return votes
+        serializer = self.get_serializer(votes, many=True)
+        return Response(serializer.data)
 
 
 class MadeVoteViewSet(viewsets.ViewSet):

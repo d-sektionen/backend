@@ -23,7 +23,7 @@ def admin_close_vote(self, vote):
                 self.assertEqual(parse(close_res)['open'], False)
 
 def attendant_votes(self, vote, alternative, voter_client):
-                vote_id = parse(voter_client.get('/voting/votes/'))[vote]['id']
+                vote_id = parse(voter_client.get('/voting/votes/?current=true'))[vote]['id']
                 alternative_id = parse(voter_client.get('/voting/votes/' + str(vote_id) + '/'))['alternatives'][alternative]['id']
                 uservote_res = voter_client.post('/voting/made_votes/', {'vote_id': vote_id, 'alternative_id': alternative_id})
                 self.assertEqual(uservote_res.status_code, 200)
@@ -428,7 +428,7 @@ class BreakAfterVote(TestCase):
             self.assertEqual(user_drop_response.status_code, 200)
         
         def attendant_vote_fail(self):
-            vote_id = parse(self.user_client.get('/voting/votes/'))[0]['id']
+            vote_id = parse(self.user_client.get('/voting/votes/?current=true'))[0]['id']
             alternative_id = parse(self.user_client.get('/voting/votes/' + str(vote_id) + '/'))['alternatives'][0]['id']
             uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_id, 'alternative_id': alternative_id})
             self.assertEqual(uservote_res.status_code, 403)  
@@ -565,11 +565,11 @@ class PizzaBreak(TestCase):
         # Second half of users vote
         def attendants_vote_half(self):
             for user in self.users[25:]:    
-                attendant_votes(self, 1, 1, user[1])
+                attendant_votes(self, 0, 1, user[1])
    
         # Check result of second vote
         def admin_check_result2(self):
-            vote_id = parse(self.admin_client.get('/voting/votes/'))[1]['id']
+            vote_id = parse(self.admin_client.get('/voting/votes/'))[0]['id']
             result_res = self.admin_client.get('/voting/votes/'+str(vote_id)+'/')
             for result in parse(result_res)['alternatives']:
                 if result['text'] == 'En IT:are':
@@ -592,7 +592,7 @@ class PizzaBreak(TestCase):
         admin_create_vote(self, question, alternatives)
         scanner_add_half(self)
         attendants_vote_half(self)
-        admin_close_vote(self, 1)
+        admin_close_vote(self, 0)
         admin_check_result2(self)
 
 class NoDuplicates(AuthenticatedTestCase):
