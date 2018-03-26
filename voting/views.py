@@ -3,7 +3,7 @@ from django.db.models import F, Q
 from rest_framework import viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-
+from voting.permissions import AdminMeetingPermission, ScannerOrAdminMeetingPermission
 
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
@@ -14,6 +14,7 @@ from voting.view_helpers import different_read_serializer, UserIdentifiableViewS
 class MeetingViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingSerializer
     read_serializer_class = MeetingReadSerializer
+    permission_classes = (AdminMeetingPermission,)
 
     def get_queryset(self):
         user = self.request.user
@@ -27,6 +28,8 @@ class AttendantViewSet(UserIdentifiableViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
     check_section_membership = True
+    permission_classes = (AdminMeetingPermission, ScannerOrAdminMeetingPermission)
+
 
     def get_queryset(self):
         if 'meeting' not in self.request.query_params:
@@ -41,6 +44,8 @@ class AttendantViewSet(UserIdentifiableViewSet):
 class ScannerViewSet(UserIdentifiableViewSet):
     queryset = Scanner.objects.all()
     serializer_class = ScannerSerializer
+    permission_classes = (AdminMeetingPermission,)
+
 
     def get_queryset(self):
         if 'meeting' in self.request.query_params:
@@ -55,6 +60,7 @@ class ScannerViewSet(UserIdentifiableViewSet):
 class VoteViewSet(viewsets.ModelViewSet):
     serializer_class = VoteListSerializer
     queryset = Vote.objects.all()
+    permission_classes = (AdminMeetingPermission,)
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = VoteDetailsSerializer
