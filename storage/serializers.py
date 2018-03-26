@@ -39,4 +39,4 @@ class StorageRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StorageRoom
-        fields = ('id', 'name', 'longitude', 'latitude', 'locations')
+        fields = ('id', 'name', 'longitude', 'latitude', 'locations', 'description')

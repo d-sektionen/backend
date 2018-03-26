@@ -6,6 +6,7 @@ class StorageRoom(models.Model):
     name = models.TextField()
     longitude = models.TextField()
     latitude = models.TextField()
+    description = models.TextField(default='')
 
 class Location(models.Model):
     name = models.TextField()

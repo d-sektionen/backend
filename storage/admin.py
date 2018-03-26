@@ -3,7 +3,7 @@ from django.contrib import admin
 from storage.models import StorageRoom, Location, Booking, Object
 
 class StorageRoomAdmin(admin.ModelAdmin):
-    list_display = ('name', 'longitude','latitude')
+    list_display = ('name', 'longitude','latitude', 'description')
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('name', 'room', 'can_contain_objects')
