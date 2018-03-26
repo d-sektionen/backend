@@ -1,9 +1,9 @@
 from django.db import transaction
 from django.db.models import F, Q
-from rest_framework import viewsets, status
+from rest_framework import mixins, viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from voting.permissions import AdminMeetingPermission, ScannerOrAdminMeetingPermission
+from voting.permissions import AdminMeetingPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission
 
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
@@ -14,7 +14,7 @@ from voting.view_helpers import different_read_serializer, UserIdentifiableViewS
 class MeetingViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingSerializer
     read_serializer_class = MeetingReadSerializer
-    permission_classes = (AdminMeetingPermission,)
+    permission_classes = (AdminSectionPermission,)
 
     def get_queryset(self):
         user = self.request.user
@@ -57,7 +57,7 @@ class ScannerViewSet(UserIdentifiableViewSet):
             return Scanner.objects.filter(user=self.request.user)
 
 
-class VoteViewSet(viewsets.ModelViewSet):
+class VoteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = VoteListSerializer
     queryset = Vote.objects.all()
     permission_classes = (AdminMeetingPermission,)

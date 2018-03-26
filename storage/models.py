@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import models
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
@@ -13,6 +14,13 @@ class Location(models.Model):
     name = models.TextField()
     room = models.ForeignKey(StorageRoom, null=False, on_delete=models.CASCADE)
     can_contain_objects = models.BooleanField()
+
+    def current_booking(self):
+        today = date.today()
+        try:
+            return Booking.objects.get(location=self, start_date__gte=today, end_date__lte=today)
+        except Booking.DoesNotExist:
+            return None
 
 class Booking(models.Model):
     group = models.ForeignKey(Group, null=False, on_delete=models.CASCADE)
@@ -34,6 +42,9 @@ class Booking(models.Model):
         self.full_clean()
         return super(Booking, self).save(*args, **kwargs)
 
+    def has_permissions(self, user):
+        return user.groups.filter(name=self.group.name).exists()
+
 class Object(models.Model):
     name = models.TextField()
     location = models.ForeignKey(Location, null=False, on_delete=models.CASCADE)
@@ -42,4 +53,9 @@ class Object(models.Model):
     amount = models.IntegerField()
     belongs_to = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
 
-
+    def has_permissions(self, user):
+        current_booking = self.location.current_booking()
+        if current_booking is not None:
+            return current_booking.has_permissions(user)
+        else:
+            return False

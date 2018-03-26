@@ -1,35 +1,27 @@
-from django.contrib.auth.models import User
-from django.db import transaction
-from django.db.models import F
-from rest_framework import viewsets, views, status
-from rest_framework.decorators import list_route
-from rest_framework.exceptions import ValidationError
+from rest_framework import mixins, viewsets, status
 from rest_framework.response import Response
-
-from django import forms
-from django.contrib.auth.models import Group
-
-from django.db import transaction
-from django.db.models import F
-from rest_framework.response import Response
-
 
 from storage.models import StorageRoom, Location, Booking, Object
+from storage.permissions import BookingPermission, ObjectPermission
 from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer
 
-class StorageRoomViewSet(viewsets.ModelViewSet):
+
+class StorageRoomViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = StorageRoom.objects.all()
     serializer_class = StorageRoomSerializer
-    
-class LocationViewSet(viewsets.ModelViewSet):
+
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
+
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+    permission_classes = (BookingPermission,)
 
-#TODO : Fixa så att mutex:en inte fuckar
+    # TODO : Fixa så att mutex:en inte fuckar
     def create(self, request):
         location = request.data['location']
         start_date = request.data['start_date']
@@ -38,10 +30,10 @@ class BookingViewSet(viewsets.ModelViewSet):
             until_further_notice = request.data['until_further_notice']
         else:
             until_further_notice = False
-        
+
         if until_further_notice:
-            if Booking.objects.filter(until_further_notice=True, location=location).exists(): 
-                return Response({'error': 'Finns redan en until_further_notice-bokning'}, status=status.HTTP_403_FORBIDDEN)          
+            if Booking.objects.filter(until_further_notice=True, location=location).exists():
+                return Response({'error': 'Finns redan en until_further_notice-bokning'}, status=status.HTTP_403_FORBIDDEN)
 
             if Booking.objects.filter(end_date__gte=start_date, location=location).exists():
                 return Response({'error': 'Until_further_notice men någon annan pågår'}, status=status.HTTP_403_FORBIDDEN)
@@ -57,6 +49,8 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         return super(BookingViewSet, self).create(request)
 
+
 class ObjectViewSet(viewsets.ModelViewSet):
     queryset = Object.objects.all()
     serializer_class = ObjectSerializer
+    permission_classes = (ObjectPermission,)
