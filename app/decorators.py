@@ -3,13 +3,18 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from account import kobra
+from account.user import get_or_create_user_if_student
 
 
 def extract_user(func):
     @extract_username
     def extract_user_impl(self, request, *args, **kwargs):
         username = kwargs['username']
-        user, created = User.objects.get_or_create(username=username)
+        user = get_or_create_user_if_student(username)
+
+        if user is None:
+            return Response({'error': 'Användaren är ingen student'}, status=status.HTTP_404_NOT_FOUND)
+
         return func(self, request, user=user, *args, **kwargs)
 
     return extract_user_impl

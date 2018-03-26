@@ -43,3 +43,9 @@ def name_from_liu_id(liu_id):
         return first_name, last_name
     else:
         return None, None
+
+
+def is_student(username):
+    firstname, lastname = name_from_liu_id(username)
+
+    return firstname is not None
