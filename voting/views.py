@@ -82,11 +82,10 @@ class VoteViewSet(NoDeleteViewSet):
         user_groups = user.groups.all()
         if 'current' in request.query_params and request.query_params['current'] == 'true':
             meetings = Meeting.objects.filter(attendant__user__in=[user]).order_by('-id')
+            vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
+            votes = Vote.objects.filter(id__in=vote_ids)
         else:
-            meetings = Meeting.objects.filter(section__admin_group__in=user_groups)
-
-        vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
-        votes = Vote.objects.filter(id__in=vote_ids)
+            votes = Vote.objects.filter(meeting__section__admin_group__in=user_groups)
 
         serializer = self.get_serializer(votes, many=True)
         return Response(serializer.data)

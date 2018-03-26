@@ -575,7 +575,7 @@ class PizzaBreak(TestCase):
    
         # Check result of second vote
         def admin_check_result2(self):
-            vote_id = parse(self.admin_client.get('/voting/votes/'))[0]['id']
+            vote_id = parse(self.admin_client.get('/voting/votes/'))[1]['id']
             result_res = self.admin_client.get('/voting/votes/'+str(vote_id)+'/')
             for result in parse(result_res)['alternatives']:
                 if result['text'] == 'En IT:are':
