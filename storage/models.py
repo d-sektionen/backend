@@ -37,7 +37,6 @@ class Object(models.Model):
     location = models.ForeignKey(Location, null=False, on_delete=models.CASCADE)
     description = models.TextField()
     in_date = models.DateField()
-    out_date = models.DateField()
     amount = models.IntegerField()
     belongs_to = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
 
