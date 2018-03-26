@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
@@ -23,7 +23,7 @@ def different_read_serializer(cls):
     return DifferentReadSerializer
 
 
-class UserIdentifiableViewSet(viewsets.ModelViewSet):
+class UserIdentifiableViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     check_section_membership = False
 
     def get_model(self):
