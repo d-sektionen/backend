@@ -12,7 +12,7 @@ class BookingAdmin(admin.ModelAdmin):
     list_display = ('group', 'location', 'start_date','end_date', 'until_further_notice', 'description')
 
 class ObjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'location','description', 'in_date', 'out_date', 'amount', 'belongs_to')
+    list_display = ('name', 'location','description', 'in_date', 'amount', 'belongs_to')
 
 admin.site.register(StorageRoom, StorageRoomAdmin)
 admin.site.register(Location,LocationAdmin)
