@@ -88,12 +88,17 @@ class MadeVoteViewSet(viewsets.ViewSet):
         vote_id = request.data['vote_id']
         alternative_id = request.data['alternative_id']
 
-        if MadeVote.objects.filter(vote_id=vote_id, user=request.user).exists():
-            return Response({'error': 'Du har redan röstat i den här omröstningen'}, status=status.HTTP_403_FORBIDDEN)
-
         alternative = Alternative.objects.get(id=alternative_id)
         if str(alternative.vote_id) != str(vote_id):
             return Response({'error': 'Omröstningen hittades inte'}, status=status.HTTP_404_NOT_FOUND)
+
+        vote = Vote.objects.get(id=vote_id)
+        if not Attendant.objects.filter(meeting=vote.meeting, user=request.user).exists():
+            return Response({'error': 'Du måste närvara på mötet för att få rösta'}, status=status.HTTP_403_FORBIDDEN)
+
+        if MadeVote.objects.filter(vote_id=vote_id, user=request.user).exists():
+            return Response({'error': 'Du har redan röstat i den här omröstningen'}, status=status.HTTP_403_FORBIDDEN)
+
 
         # Update the reference by performing the addition directly in the database (using reference F)
         alternative.num_votes = F('num_votes') + 1
