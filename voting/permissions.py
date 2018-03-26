@@ -8,6 +8,11 @@ class AdminMeetingPermission(BasePermission):
         return obj.meeting.section.is_admin(request.user)
 
 
+class AdminSectionPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.section.is_admin(request.user)
+
+
 class ScannerOrAdminMeetingPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method == "POST" or request.method == "DELETE":
