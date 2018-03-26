@@ -17,12 +17,12 @@ def extract_user(func):
 
 def extract_username(func):
     def extract_username_impl(self, request, *args, **kwargs):
-        if 'card_id' in request.data:
-            card_id = request.data['card_id']
+        card_id = extract_data(request, 'card_id')
+        username = extract_data(request, 'username')
+
+        if card_id is not None:
             username = kobra.liu_id_from_card(card_id)
-        elif 'username' in request.data:
-            username = request.data['username'].strip().lower()
-        else:
+        elif username is None:
             return Response({'error': 'Missing required parameter username or card_id'}, status=status.HTTP_400_BAD_REQUEST)
 
         if username is None:
@@ -31,3 +31,12 @@ def extract_username(func):
         return func(self, request, username=username, *args, **kwargs)
 
     return extract_username_impl
+
+
+def extract_data(request, key):
+    if key in request.data:
+        return request.data[key]
+    elif key in request.query_params:
+        return request.query_params[key]
+    else:
+        return None

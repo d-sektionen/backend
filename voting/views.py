@@ -1,19 +1,19 @@
-from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import F
-from rest_framework import viewsets, views, status
-from rest_framework.decorators import list_route
+from django.db.models import F, Q
+from rest_framework import viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from account import kobra
-from voting.decorators import extract_user, extract_username
+
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
-from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, MadeVoteSerializer, VoteDetailsSerializer
+from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
+from voting.view_helpers import different_read_serializer, UserIdentifiableViewSet
 
 
+@different_read_serializer
 class MeetingViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingSerializer
+    read_serializer_class = MeetingReadSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -23,42 +23,10 @@ class MeetingViewSet(viewsets.ModelViewSet):
         return meetings
 
 
-class UserIdentifiableViewSet(viewsets.ModelViewSet):
-    def get_model(self):
-        return self.serializer_class.Meta.model
-
-    @extract_user
-    def create(self, request, *args, **kwargs):
-        meeting_id = request.data['meeting']
-        meeting = Meeting.objects.get(id=meeting_id)
-        user = kwargs['user']
-
-        # TODO: Verify section membership
-        attendant, created = self.get_model().objects.get_or_create(user=user, meeting=meeting)
-
-        if created:
-            return Response(self.serializer_class(attendant).data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': self.get_model().__name__ + ' already exist'}, status=status.HTTP_400_BAD_REQUEST)
-
-    @list_route(methods=['delete'], url_path='')
-    @extract_username
-    def delete(self, request, *args, **kwargs):
-        meeting_id = request.data['meeting']
-        meeting = Meeting.objects.get(id=meeting_id)
-        username = kwargs['username']
-
-        attendant = self.get_model().objects.filter(user__username=username, meeting=meeting).first()
-        if attendant is not None:
-            attendant.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({'error': self.get_model().__name__ + ' does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
-
 class AttendantViewSet(UserIdentifiableViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
+    check_section_membership = True
 
     def get_queryset(self):
         if 'meeting' not in self.request.query_params:
@@ -85,12 +53,33 @@ class ScannerViewSet(UserIdentifiableViewSet):
 
 
 class VoteViewSet(viewsets.ModelViewSet):
-    queryset = Vote.objects.all()
     serializer_class = VoteListSerializer
+    queryset = Vote.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = VoteDetailsSerializer
         return super(VoteViewSet, self).retrieve(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        """
+        This solution is very ugly but makes sure that we return a QuerySet. This
+        is needed for the retrieval of individual vote objects to work correctly.
+
+        It might be better to replace this with a raw SQL query.
+        """
+
+        user = self.request.user
+        user_groups = user.groups.all()
+        if 'current' in request.query_params and request.query_params['current'] == 'true':
+            meetings = Meeting.objects.filter(attendant__user__in=[user]).order_by('-id')
+        else:
+            meetings = Meeting.objects.filter(section__admin_group__in=user_groups)
+
+        vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
+        votes = Vote.objects.filter(id__in=vote_ids)
+
+        serializer = self.get_serializer(votes, many=True)
+        return Response(serializer.data)
 
 
 class MadeVoteViewSet(viewsets.ViewSet):
@@ -100,15 +89,16 @@ class MadeVoteViewSet(viewsets.ViewSet):
         alternative_id = request.data['alternative_id']
 
         if MadeVote.objects.filter(vote_id=vote_id, user=request.user).exists():
-            return Response({'error': 'Vote has already been made'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Du har redan röstat i den här omröstningen'}, status=status.HTTP_403_FORBIDDEN)
 
-        alernative = Alternative.objects.get(id=alternative_id)
-        if str(alernative.vote_id) != str(vote_id):
-            return Response({'error': 'Unable to find vote'}, status=status.HTTP_404_NOT_FOUND)
+        alternative = Alternative.objects.get(id=alternative_id)
+        if str(alternative.vote_id) != str(vote_id):
+            return Response({'error': 'Omröstningen hittades inte'}, status=status.HTTP_404_NOT_FOUND)
 
-        alernative.num_votes = F('num_votes') + 1
-        alernative.save()
+        # Update the reference by performing the addition directly in the database (using reference F)
+        alternative.num_votes = F('num_votes') + 1
+        alternative.save()
 
         MadeVote.objects.create(vote_id=vote_id, user=request.user)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)

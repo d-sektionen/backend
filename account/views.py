@@ -1,13 +1,15 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from rest_framework_jwt.settings import api_settings
 
 from account.models import Section
 from account.serializers import UserSerializer, SectionSerializer, DetailedSectionSerializer
+from app.decorators import extract_user, extract_username
 
 
 @login_required
@@ -53,3 +55,23 @@ class SectionViewSet(viewsets.ModelViewSet):
 
         return sections
 
+    @extract_user
+    def create(self, request, *args, **kwargs):
+        section_id = request.data['section']
+        section = Section.objects.get(id=section_id)
+        user = kwargs['user']
+
+        user.groups.add(section.admin_group)
+
+        return Response(status=status.HTTP_201_CREATED)
+
+    @list_route(methods=['delete'], url_path='')
+    @extract_user
+    def delete(self, request, *args, **kwargs):
+        section_id = request.data['section']
+        section = Section.objects.get(id=section_id)
+        user = kwargs['user']
+
+        user.groups.remove(section.admin_group)
+
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)

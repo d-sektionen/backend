@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 
 from storage.models import StorageRoom, Location, Booking, Object
@@ -9,7 +8,7 @@ from storage.models import StorageRoom, Location, Booking, Object
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ('id', 'group', 'location', 'start_date', 'until_further_notice', 'description')
+        fields = ('id', 'group', 'location', 'start_date', 'end_date', 'until_further_notice', 'description')
 
 
 class ObjectSerializer(serializers.ModelSerializer):
@@ -20,7 +19,7 @@ class ObjectSerializer(serializers.ModelSerializer):
 
 class LocationSerializer(serializers.ModelSerializer):
     current_booking = serializers.SerializerMethodField()
-    objects = ObjectSerializer(source='object_set', many=True)
+    objects = ObjectSerializer(source='object_set', many=True, read_only=True)
 
     class Meta:
         model = Location
@@ -28,11 +27,15 @@ class LocationSerializer(serializers.ModelSerializer):
 
     def get_current_booking(self, obj):
         now = datetime.now()
-        return obj.booking_set.filter(start_date__lte=now, end_date__gte=now).first()
+        booking = obj.booking_set.filter(start_date__lte=now, end_date__gte=now).first()
+        if booking is not None:
+            return BookingSerializer(booking).data
+        else:
+            return None
 
 
 class StorageRoomSerializer(serializers.ModelSerializer):
-    locations = LocationSerializer(source='location_set', many=True)
+    locations = LocationSerializer(source='location_set', many=True, read_only=True)
 
     class Meta:
         model = StorageRoom

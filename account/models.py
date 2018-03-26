@@ -6,6 +6,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+def is_user_in_group(group, user):
+    if user is None:
+        return False
+
+    return group in user.groups.all()
+
+
 class Section(models.Model):
     name = models.TextField()
     program_codes = models.TextField()
@@ -18,6 +25,12 @@ class Section(models.Model):
         items = [x for x in items if x]  # Filter
 
         return items
+
+    def is_member(self, user):
+        return is_user_in_group(self.user_group, user)
+
+    def is_admin(self, user):
+        return is_user_in_group(self.admin_group, user)
 
     def __str__(self):
         return self.name

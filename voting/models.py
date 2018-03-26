@@ -1,5 +1,7 @@
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from account.models import Section
 
@@ -10,14 +12,9 @@ class Meeting(models.Model):
     section = models.ForeignKey(Section, null=False)
     archived = models.BooleanField(default=False)
 
-    class Meta:
-        permissions = (
-            ("create_meeting", "Can create Meeting"),
-            ("read_meeting", "Can read Meeting"),
-            ("update_meeting", "Can update Meeting"),
-            ("delete_meeting", "Can delete Meeting"),
-            ("list_meetings", "Can list Meetings")
-        )
+    @staticmethod
+    def get_model_name():
+        return "Möte"
 
     def __str__(self):
         return self.name
@@ -27,26 +24,24 @@ class Scanner(models.Model):
     user = models.ForeignKey(User, null=False)
     meeting = models.ForeignKey(Meeting, null=False)
 
+    @staticmethod
+    def get_model_name():
+        return "Skannare"
+
     class Meta:
         unique_together = ('user', 'meeting')
-        permissions = (
-            ("create_scanner", "Can create Scanner"),
-            ("delete_scanner", "Can delete Scanner"),
-            ("list_scanners", "Can list Scanners")
-        )
 
 
 class Attendant(models.Model):
     user = models.ForeignKey(User, null=False)
     meeting = models.ForeignKey(Meeting, null=False)
 
+    @staticmethod
+    def get_model_name():
+        return "Deltagare"
+
     class Meta:
         unique_together = ('user', 'meeting')
-        permissions = (
-            ("create_attendant", "Can create Attendant"),
-            ("delete_attendant", "Can delete Attendant"),
-            ("list_attendants", "Can list Attendants")
-        )
 
 
 class Vote(models.Model):
@@ -54,17 +49,29 @@ class Vote(models.Model):
     open = models.BooleanField(default=True)
     meeting = models.ForeignKey(Meeting, null=False)
 
-    class Meta:
-        permissions = (
-            ("create_vote", "Can create Vote"),
-            ("read_vote", "Can read Vote"),
-            ("update_vote", "Can update Vote"),
-            ("delete_vote", "Can delete Vote"),
-            ("list_votes", "Can list Votes")
-        )
+    @staticmethod
+    def get_model_name():
+        return "Röst"
 
     def __str__(self):
         return self.question
+
+
+@receiver(post_save, sender=Vote)
+def update_current_vote(sender, instance, created, **kwargs):
+    """
+    Closes the old meeting vote and sets the meeting's current vote to the new one.
+    """
+
+    if instance.open:
+        meeting = instance.meeting
+        old_vote = meeting.current_vote
+        if old_vote is not None and old_vote != instance:
+            old_vote.open = False
+            old_vote.save()
+
+        meeting.current_vote = instance
+        meeting.save()
 
 
 class Alternative(models.Model):
@@ -72,15 +79,11 @@ class Alternative(models.Model):
     num_votes = models.IntegerField(default=0)
     vote = models.ForeignKey(Vote, null=False)
 
-    class Meta:
-        permissions = ()
+    @staticmethod
+    def get_model_name():
+        return "Alternativ"
 
 
 class MadeVote(models.Model):
     user = models.ForeignKey(User, null=False)
     vote = models.ForeignKey(Vote, null=False)
-
-    class Meta:
-        permissions = (
-            ("create_made_vote", "Can create MadeVote")
-        )
