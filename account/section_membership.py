@@ -26,6 +26,8 @@ SERVICE_KEY = settings.STUDENT_PORTAL_SERVICE_KEY
 PROGRAM_CODE_FORMAT = '&programkoder=%s'
 
 logger = logging.getLogger(__name__)
+if settings.TESTING:
+    logger.setLevel(logging.ERROR)
 
 
 def check_membership(liu_id, section):

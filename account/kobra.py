@@ -8,6 +8,8 @@ QUERY_URL = BASE_URL + '/api/v1/students/{}'
 
 token = settings.KOBRA_TOKEN
 logger = logging.getLogger(__name__)
+if settings.TESTING:
+    logger.setLevel(logging.ERROR)
 
 
 def liu_id_from_card(card_id):
