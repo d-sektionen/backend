@@ -81,9 +81,9 @@ class VoteViewSet(NoDeleteViewSet):
         user = self.request.user
         user_groups = user.groups.all()
         if 'current' in request.query_params and request.query_params['current'] == 'true':
-            meetings = Meeting.objects.filter(attendant__user__in=[user]).order_by('-id')
+            meetings = Meeting.objects.filter(attendant__user__in=[user])
             vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
-            votes = Vote.objects.filter(id__in=vote_ids)
+            votes = Vote.objects.filter(id__in=vote_ids).order_by('-id')
         else:
             votes = Vote.objects.filter(meeting__section__admin_group__in=user_groups)
 
