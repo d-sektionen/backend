@@ -242,6 +242,7 @@ class ScannerTest(AuthenticatedTestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['user']['id'], user.id)
         self.assertEqual(data[0]['meeting']['id'], meeting.id)
+        self.assertEqual(data[0]['meeting']['section']['id'], self.section.id)
 
     def test_create(self):
         meeting = Meeting.objects.create(name='Meeting 1', section=self.section)

@@ -17,7 +17,7 @@ class MeetingReadSerializer(MeetingSerializer):
 
 class ScannerSerializer(serializers.ModelSerializer):
     user = SimpleUserSerializer()
-    meeting = MeetingSerializer()
+    meeting = MeetingReadSerializer()
 
     class Meta:
         model = Scanner
