@@ -16,8 +16,8 @@ def is_user_in_group(group, user):
 class Section(models.Model):
     name = models.TextField()
     program_codes = models.TextField()
-    user_group = models.ForeignKey(Group, blank=True, null=True, related_name='+')
-    admin_group = models.ForeignKey(Group, blank=True, null=True, related_name='+')
+    user_group = models.ForeignKey(Group, blank=True, null=True, related_name='section_user_group')
+    admin_group = models.ForeignKey(Group, blank=True, null=True, related_name='section_admin_group')
 
     def get_program_codes(self):
         items = re.split('[, \n]', self.program_codes)  # Split

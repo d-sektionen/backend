@@ -10,23 +10,27 @@ class SectionSerializer(serializers.ModelSerializer):
         fields = ('id', 'name',)
 
 
-class GroupSerializer(serializers.ModelSerializer):
+class CommitteeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ('name',)
+        fields = ('id', 'name',)
 
 
 class UserSerializer(serializers.ModelSerializer):
-    groups = GroupSerializer(many=True)
+    committees = serializers.SerializerMethodField()
     sections = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'groups', 'sections')
+        fields = ('username', 'first_name', 'last_name', 'committees', 'sections')
 
     def get_sections(self, obj):
         sections = Section.objects.filter(admin_group_id__in=obj.groups.all())
         return SectionSerializer(sections, many=True).data
+
+    def get_committees(self, obj):
+        committees = Group.objects.filter(id__in=obj.groups.all(), section_user_group=None, section_admin_group=None)
+        return CommitteeSerializer(committees, many=True).data
 
 
 class SimpleUserSerializer(serializers.ModelSerializer):
