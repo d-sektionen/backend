@@ -7,7 +7,7 @@ from django.dispatch import receiver
 
 
 def is_user_in_group(group, user):
-    if user is None:
+    if group is None or user is None:
         return False
 
     return group in user.groups.all()

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 
+from account.models import is_user_in_group
 from storage.models import StorageRoom, Location, Booking, Object
 
 
@@ -24,6 +25,18 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = ('id', 'name', 'room', 'can_contain_objects', 'current_booking', 'objects')
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+
+        # Censor the objects field if the user doesn't have the sufficient permissions to view them
+        if self.context:
+            request = self.context.get('request')
+            if request:
+                if not instance.has_permissions(request.user):
+                    ret['objects'] = []
+
+        return ret
 
     def get_current_booking(self, obj):
         now = datetime.now()

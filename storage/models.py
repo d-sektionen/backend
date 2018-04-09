@@ -3,6 +3,9 @@ from django.db import models
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 
+from account.models import is_user_in_group
+
+
 class StorageRoom(models.Model):
     name = models.TextField()
     longitude = models.TextField()
@@ -18,9 +21,16 @@ class Location(models.Model):
     def current_booking(self):
         today = date.today()
         try:
-            return Booking.objects.get(location=self, start_date__gte=today, end_date__lte=today)
+            return Booking.objects.get(location=self, start_date__lte=today, end_date__gte=today)
         except Booking.DoesNotExist:
             return None
+
+    def has_permissions(self, user):
+        current_booking = self.current_booking()
+        if current_booking is not None:
+            return current_booking.has_permissions(user)
+        else:
+            return False
 
 class Booking(models.Model):
     group = models.ForeignKey(Group, null=False, on_delete=models.CASCADE)
@@ -43,19 +53,15 @@ class Booking(models.Model):
         return super(Booking, self).save(*args, **kwargs)
 
     def has_permissions(self, user):
-        return user.groups.filter(name=self.group.name).exists()
+        return is_user_in_group(self.group, user)
 
 class Object(models.Model):
     name = models.TextField()
     location = models.ForeignKey(Location, null=False, on_delete=models.CASCADE)
     description = models.TextField()
-    in_date = models.DateField()
+    in_date = models.DateField(default=date.today)
     amount = models.IntegerField()
     belongs_to = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
 
     def has_permissions(self, user):
-        current_booking = self.location.current_booking()
-        if current_booking is not None:
-            return current_booking.has_permissions(user)
-        else:
-            return False
+        return self.location.has_permissions(user)

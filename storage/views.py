@@ -1,5 +1,6 @@
 from rest_framework import mixins, viewsets, status
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from storage.models import StorageRoom, Location, Booking, Object
 from storage.permissions import BookingPermission, ObjectPermission
@@ -50,7 +51,11 @@ class BookingViewSet(viewsets.ModelViewSet):
         return super(BookingViewSet, self).create(request)
 
 
-class ObjectViewSet(viewsets.ModelViewSet):
+class ObjectViewSet(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    GenericViewSet):
     queryset = Object.objects.all()
     serializer_class = ObjectSerializer
     permission_classes = (ObjectPermission,)

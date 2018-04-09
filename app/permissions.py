@@ -32,18 +32,24 @@ class RestPermission(BasePermission):
             return 'CREATE'
         elif method == 'DELETE':
             return 'DESTROY'
+        elif method == 'OPTIONS':
+            return 'OPTIONS'
         else:
             return 'UPDATE'
 
     def get_foreign_object(self, request, model, key):
         try:
-            pk = request.data.get(key)
-            if pk is None:
-                pk = request.query_params.get(key)
-
+            pk = self.get_field(request, key)
             if pk is not None:
                 return model.objects.get(pk=pk)
         except model.DoesNotExist:
             pass
 
         return None
+
+    def get_field(self, request, key):
+        value = request.data.get(key)
+        if value is None:
+            value = request.query_params.get(key)
+
+        return value
