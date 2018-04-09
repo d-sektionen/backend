@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from rest_framework import mixins, viewsets, status
@@ -8,8 +9,8 @@ from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 
 from account.models import Section
-from account.serializers import UserSerializer, SectionSerializer, DetailedSectionSerializer
-from app.decorators import extract_user, extract_username
+from account.serializers import UserSerializer, DetailedSectionSerializer
+from app.decorators import extract_user
 
 
 @login_required
@@ -36,6 +37,7 @@ def generate_token(request):
 
 class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = UserSerializer
+    queryset = User.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
         if kwargs['pk'] == 'me':
