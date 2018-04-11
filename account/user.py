@@ -37,9 +37,12 @@ def set_real_name(user):
 def get_or_create_user_if_student(username):
     user = _get_existing_user(username)
     if user is None:
-        if is_student(user):
+        print('Creating non-existing user')
+        if is_student(username):
+            print('User is student')
             user = User.objects.create(username=username)
         else:
+            print('User is not a student')
             # We don't create users that aren't students
             return None
 

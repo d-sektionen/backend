@@ -34,7 +34,9 @@ def name_from_liu_id(liu_id):
         logger.warning('Unable to authenticate with Kobra (have you set KOBRA_TOKEN?)')
         return None, None
 
+    print('Query url: "%s"' % QUERY_URL.format(liu_id))
     r = requests.get(QUERY_URL.format(liu_id), headers={'Authorization': 'Token ' + token})
+    print(r.content)
     if r.status_code == 200:
         full_name = r.json().get('name')
         i = full_name.index(' ')  # First space index
