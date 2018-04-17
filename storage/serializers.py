@@ -8,8 +8,6 @@ from storage.models import StorageRoom, Location, Booking, Object
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    group = CommitteeSerializer()
-
     class Meta:
         model = Booking
         fields = ('id', 'group', 'location', 'start_date', 'end_date', 'until_further_notice', 'description')

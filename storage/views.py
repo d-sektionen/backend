@@ -51,7 +51,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             if Booking.objects.filter(start_date__gte=start_date, start_date__lte=end_date, location=location).exists():
                 return Response({'error': 'Slut under pågående bokning'}, status=status.HTTP_403_FORBIDDEN)
 
-        return super(BookingViewSet, self).create(request)
+        return super().create(request)
 
 
 class ObjectViewSet(mixins.CreateModelMixin,
