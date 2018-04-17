@@ -1,6 +1,5 @@
 -r development.txt
 
-# Heroku
-gunicorn==19.7.1
+# d-sektionen.se
 dj-database-url==0.4.2
-psycopg2==2.6.2
+mysqlclient==1.3.12
