@@ -47,7 +47,7 @@ class LocationSerializer(serializers.ModelSerializer):
         now = datetime.now()
         booking = obj.booking_set.filter(start_date__lte=now, end_date__gte=now).first()
         if booking is not None:
-            return BookingSerializer(booking).data
+            return BookingReadSerializer(booking).data
         else:
             return None
 
