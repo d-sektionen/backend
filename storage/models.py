@@ -16,6 +16,7 @@ class StorageRoom(models.Model):
 class Location(models.Model):
     name = models.TextField()
     room = models.ForeignKey(StorageRoom, null=False, on_delete=models.CASCADE)
+    description = models.TextField(blank=True)
     can_contain_objects = models.BooleanField()
 
     def current_booking(self):
@@ -62,6 +63,9 @@ class Object(models.Model):
     in_date = models.DateField(default=date.today)
     amount = models.IntegerField()
     belongs_to = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
+    private = models.BooleanField(default=False)
+    can_be_borrowed = models.BooleanField(default=False)
+    
 
     def has_permissions(self, user):
         return self.location.has_permissions(user)

@@ -18,7 +18,7 @@ class BookingSerializer(serializers.ModelSerializer):
 class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
-        fields = ('id', 'name', 'location', 'description', 'in_date', 'amount', 'belongs_to')
+        fields = ('id', 'name', 'location', 'description', 'in_date', 'amount', 'belongs_to', 'private', 'can_be_borrowed')
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ('id', 'name', 'room', 'can_contain_objects', 'current_booking', 'objects')
+        fields = ('id', 'name', 'room', 'description', 'can_contain_objects', 'current_booking', 'objects')
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
