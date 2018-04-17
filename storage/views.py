@@ -2,9 +2,10 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from app.view_helpers import different_read_serializer
 from storage.models import StorageRoom, Location, Booking, Object
 from storage.permissions import BookingPermission, ObjectPermission
-from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer
+from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer, BookingReadSerializer
 
 
 class StorageRoomViewSet(viewsets.ReadOnlyModelViewSet):
@@ -17,9 +18,11 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LocationSerializer
 
 
+@different_read_serializer
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+    read_serializer_class = BookingReadSerializer
     permission_classes = (BookingPermission,)
 
     # TODO : Fixa så att mutex:en inte fuckar

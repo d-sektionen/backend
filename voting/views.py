@@ -3,11 +3,13 @@ from django.db.models import F, Q
 from rest_framework import mixins, viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+
+from app.view_helpers import different_read_serializer
 from voting.permissions import ScannerPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission, VotePermission, AttendantPermission
 
 from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
 from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
-from voting.view_helpers import different_read_serializer, UserIdentifiableViewSet
+from voting.view_helpers import UserIdentifiableViewSet
 
 
 class NoDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):

@@ -15,6 +15,10 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = ('id', 'group', 'location', 'start_date', 'end_date', 'until_further_notice', 'description')
 
 
+class BookingReadSerializer(BookingSerializer):
+    group = CommitteeSerializer()
+
+
 class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
