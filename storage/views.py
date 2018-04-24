@@ -2,9 +2,10 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from app.view_helpers import different_read_serializer
 from storage.models import StorageRoom, Location, Booking, Object
 from storage.permissions import BookingPermission, ObjectPermission
-from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer
+from storage.serializers import StorageRoomSerializer, LocationSerializer, BookingSerializer, ObjectSerializer, BookingReadSerializer
 
 
 class StorageRoomViewSet(viewsets.ReadOnlyModelViewSet):
@@ -17,9 +18,11 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LocationSerializer
 
 
+@different_read_serializer
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+    read_serializer_class = BookingReadSerializer
     permission_classes = (BookingPermission,)
 
     # TODO : Fixa så att mutex:en inte fuckar
@@ -48,7 +51,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             if Booking.objects.filter(start_date__gte=start_date, start_date__lte=end_date, location=location).exists():
                 return Response({'error': 'Slut under pågående bokning'}, status=status.HTTP_403_FORBIDDEN)
 
-        return super(BookingViewSet, self).create(request)
+        return super().create(request)
 
 
 class ObjectViewSet(mixins.CreateModelMixin,

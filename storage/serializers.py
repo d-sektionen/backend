@@ -8,11 +8,13 @@ from storage.models import StorageRoom, Location, Booking, Object
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    group = CommitteeSerializer()
-
     class Meta:
         model = Booking
         fields = ('id', 'group', 'location', 'start_date', 'end_date', 'until_further_notice', 'description')
+
+
+class BookingReadSerializer(BookingSerializer):
+    group = CommitteeSerializer()
 
 
 class ObjectSerializer(serializers.ModelSerializer):
@@ -45,7 +47,7 @@ class LocationSerializer(serializers.ModelSerializer):
         now = datetime.now()
         booking = obj.booking_set.filter(start_date__lte=now, end_date__gte=now).first()
         if booking is not None:
-            return BookingSerializer(booking).data
+            return BookingReadSerializer(booking).data
         else:
             return None
 
