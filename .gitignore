@@ -5,3 +5,7 @@ __pycache__/
 .vscode/
 /app/staticfiles/
 .env
+*~
+\#*#
+*.pid
+uwsgi_params

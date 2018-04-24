@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'kronos',
     'account',
     'rest_framework',
-    'voting',
+    'voting.apps.VotingConfig',
     'corsheaders',
     'channels',
     'storage',
