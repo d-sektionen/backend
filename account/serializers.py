@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, User, Profile
 from rest_framework import serializers
 
 from voting.models import Section
@@ -16,13 +16,20 @@ class CommitteeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name',)
 
 
+class ProfileSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('liu-card-id',)
+
+
 class UserSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
     sections = serializers.SerializerMethodField()
+    profile = ProfileSerializer()
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'committees', 'sections')
+        fields = ('id', 'username', 'first_name', 'last_name', 'committees', 'sections', 'profile',)
 
     def get_sections(self, obj):
         sections = Section.objects.filter(admin_group_id__in=obj.groups.all())
