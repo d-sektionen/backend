@@ -1,6 +1,7 @@
-from django.contrib.auth.models import Group, User, Profile
+from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
+from account.models import Profile
 from voting.models import Section
 
 
@@ -16,10 +17,10 @@ class CommitteeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name',)
 
 
-class ProfileSerialize(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ('liu-card-id',)
+        fields = ('liu_card_id',)
 
 
 class UserSerializer(serializers.ModelSerializer):
