@@ -142,6 +142,9 @@ SYSTEM_ADMINS = [
     'samjo788',
     'anglo547',
     'jeswr740',
+    'ludfo119',
+    'fremo917',
+    'emini757',
 ]
 
 # User configuration sheet
