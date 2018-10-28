@@ -39,26 +39,26 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
-    def retrieve(self, request, *args, **kwargs):
-        if kwargs['pk'] == 'me':
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
-        else:
-            return super(UserViewSet, self).retrieve(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        print(request)
-        print(request.data)
-        print("loooooooooooooooooooooooooooooooooooool")
-        print(kwargs)
-        if kwargs['pk'] == 'me':
-            instance = request.user
-            serializer = self.serializer_class(instance, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return super(UserViewSet, self).update(request, *args, **kwargs)
+    # def retrieve(self, request, *args, **kwargs):
+    #     if kwargs['pk'] == 'me':
+    #         serializer = self.get_serializer(request.user)
+    #         return Response(serializer.data)
+    #     else:
+    #         return super(UserViewSet, self).retrieve(request, *args, **kwargs)
+    #
+    # def update(self, request, *args, **kwargs):
+    #     print(request)
+    #     print(request.data)
+    #     print("loooooooooooooooooooooooooooooooooooool")
+    #     print(kwargs)
+    #     if kwargs['pk'] == 'me':
+    #         instance = request.user
+    #         serializer = self.serializer_class(instance, data=request.data, partial=True)
+    #         serializer.is_valid(raise_exception=True)
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     else:
+    #         return super(UserViewSet, self).update(request, *args, **kwargs)
 
 
 # class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):

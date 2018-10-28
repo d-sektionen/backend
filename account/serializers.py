@@ -40,6 +40,28 @@ class UserSerializer(serializers.ModelSerializer):
         committees = Group.objects.filter(id__in=obj.groups.all(), section_user_group=None, section_admin_group=None)
         return CommitteeSerializer(committees, many=True).data
 
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile')
+        # Unless the application properly enforces that this field is
+        # always set, the follow could raise a `DoesNotExist`, which
+        # would need to be handled.
+        profile = instance.profile
+
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.save()
+
+        profile.liu_card_id = profile_data.get(
+            'liu_card_id',
+            profile.liu_card_id
+        )
+
+        profile.save()
+
+        return instance
+
 
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
