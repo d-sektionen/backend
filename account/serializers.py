@@ -28,13 +28,18 @@ class ProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
     sections = serializers.SerializerMethodField()
+    admin_sections = serializers.SerializerMethodField()
     profile = ProfileSerializer()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'committees', 'sections', 'profile',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'committees', 'sections', 'admin_sections', 'profile',)
 
     def get_sections(self, obj):
+        sections = Section.objects.filter(user_group_id__in=obj.groups.all())
+        return SectionSerializer(sections, many=True).data
+
+    def get_admin_sections(self, obj):
         sections = Section.objects.filter(admin_group_id__in=obj.groups.all())
         return SectionSerializer(sections, many=True).data
 
