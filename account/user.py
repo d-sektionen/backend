@@ -12,7 +12,7 @@ def apply_admin_permissions(user):
         user.is_superuser = True
         user.save()
 
-
+       
 def add_to_section_groups(user):
     sections = Section.objects.all()
     for section in sections:
@@ -22,34 +22,14 @@ def add_to_section_groups(user):
             user.groups.add(group)
 
 
-def set_real_name(user):
-    first_name, last_name = name_from_liu_id(user.username)
-    if first_name is not None and last_name is not None:
-        user.first_name = first_name
-        user.last_name = last_name
-        user.save()
-
-        return True
-
-    return False
-
-
 def get_or_create_user_if_student(username):
     user = _get_existing_user(username)
     if user is None:
         print('Creating non-existing user')
-        if is_student(username):
-            print('User is student')
-            user = User.objects.create(username=username)
-        else:
-            print('User is not a student')
-            # We don't create users that aren't students
-            return None
+        user = User.objects.create(username=username)
 
     apply_admin_permissions(user)
     add_to_section_groups(user)
-    set_real_name(user)
-
     return user
 
 

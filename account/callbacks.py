@@ -44,7 +44,6 @@ def add_to_section_groups(tree):
     Checks program membership and adds the user to the section groups in which
     they belong.
     """
-
     user, user_created = _get_or_create_user(tree)
     sections = Section.objects.all()
     for section in sections:
@@ -52,6 +51,7 @@ def add_to_section_groups(tree):
         if is_member:
             group = section.user_group
             user.groups.add(group)
+
 
 
 def set_user_name(tree):

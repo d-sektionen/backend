@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.response import Response
 
-from account import kobra
+from account.models import Profile
 from account.user import get_or_create_user_if_student
 
 
@@ -11,7 +11,7 @@ def extract_user(func):
     def extract_user_impl(self, request, *args, **kwargs):
         username = kwargs['username']
         print('extract_user_impl, username: ' + str(username))
-        user = get_or_create_user_if_student(username)
+        user = User.objects.get(username=username)
 
         print('extract_user_impl, user: ' + str(user))
 
@@ -32,7 +32,8 @@ def extract_username(func):
         print('extract_username_impl, username: ' + str(username))
 
         if card_id is not None:
-            username = kobra.liu_id_from_card(card_id)
+            # Querya ddabaas för card id i profiler, sätt username till username och first name last name.
+            username = Profile.objects.get(liu_card_id=card_id)
         elif username is None:
             return Response({'error': 'Missing required parameter username or card_id'}, status=status.HTTP_400_BAD_REQUEST)
 
