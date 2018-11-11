@@ -16,13 +16,14 @@ https://www.lith.liu.se/sh/civing/index.html (civilingenjör)
 https://www.lith.liu.se/sh/kand/index.html   (kandidatutbildning)
 """
 
+import os
 import logging
 import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
 
 SERVICE_URL = 'https://www4.student.liu.se/tentasearch/check_liuid_program?password=%s&liuid=%s%s'
-SERVICE_KEY = settings.STUDENT_PORTAL_SERVICE_KEY
+SERVICE_KEY = os.getenv('STUDENT_PORTAL_SERVICE_KEY')
 PROGRAM_CODE_FORMAT = '&programkoder=%s'
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ def check_membership(liu_id, section):
     student portal API given by LiU-IT. All faults will be logged. Please note
     that the environment variable STUDENT_PORTAL_SERVICE_KEY must be set.
     """
-
+    
     program_code_arguments = _build_program_code_arguments(section)
     verification_url = SERVICE_URL % (SERVICE_KEY, liu_id, program_code_arguments)
 
