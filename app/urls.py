@@ -14,11 +14,30 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.views import redirect_to_login
+from django.urls import reverse
 
 import account.urls
 import voting.urls
 import storage.urls
+import tools.urls
+
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
+from wagtail.core import urls as wagtail_urls
+from cms.api.api import api_router as cms_api_router
+
+from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
+
+import cas.views
+
+
+def redirect_to_my_auth(request):
+    return redirect_to_login(reverse('wagtailadmin_home'), login_url='/account/login')
 
 urlpatterns = [
     # Admin pages
@@ -31,5 +50,18 @@ urlpatterns = [
     url(r'^voting/', include(voting.urls)),
 
     # Storage
-    url(r'^storage/', include(storage.urls))
-]
+    url(r'^storage/', include(storage.urls)),
+
+    # Tools
+    url(r'^tools/', include(tools.urls)),
+
+    # CMS routes (Wagtail)
+    url(r'^api/cms/', cms_api_router.urls),
+    url(r'^graphql/cms', csrf_exempt(GraphQLView.as_view())),
+    url(r'^graphiql/cms', csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
+    url(r'^cms/login', redirect_to_my_auth, name='wagtailadmin_login'),
+    url(r'^cms/logout', cas.views.logout, name='wagtailadmin_logout'),
+    url(r'^cms/', include(wagtailadmin_urls)),
+    url(r'^documents/', include(wagtaildocs_urls)),
+    url(r'^pages/', include(wagtail_urls))
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO: Change for production

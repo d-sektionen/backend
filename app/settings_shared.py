@@ -21,6 +21,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Application definition
 
 INSTALLED_APPS = [
+    # ---
+    # Project apps
+    # ---
+    'account',
+    'storage',
+    'voting.apps.VotingConfig',
+    'tools',
+
+    # ---
+    # Django related
+    # ---
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,12 +40,42 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cas',
     'kronos',
-    'account',
     'rest_framework',
-    'voting.apps.VotingConfig',
     'corsheaders',
     'channels',
-    'storage',
+    'graphene_django',
+
+    # ---
+    # Wagtail related
+    # ---
+
+    # Wagtail project apps
+    'cms.misc',
+    'cms.home',
+    'cms.infomail',
+    'cms.infopage',
+    'cms.snippets',
+    'cms.post',
+
+    # Wagtail modules
+
+    'wagtail.contrib.styleguide',
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail.core',
+    'wagtail.api.v2',
+
+    'wagtailmarkdown',
+    'modelcluster',
+    'taggit',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +89,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'cas.middleware.CASMiddleware',
+
+    'wagtail.core.middleware.SiteMiddleware',
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -118,6 +162,11 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATIC_URL = '/static/'
 
+# used by cms for uploads
+# TODO: change to a better solution in production
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
@@ -125,7 +174,7 @@ STATICFILES_DIRS = (
 
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-# CAS
+# CAS (system for LiU authentication)
 CAS_SERVER_URL = "https://login.liu.se/cas/"
 CAS_LOGOUT_COMPLETELY = True
 CAS_PROVIDE_URL_TO_LOGOUT = True
@@ -136,7 +185,7 @@ CAS_RESPONSE_CALLBACKS = (
     'account.callbacks.set_user_name',
 )
 
-# User roles
+# User roles, these users are always admins.
 SYSTEM_ADMINS = [
     'patsl736',
     'samjo788',
@@ -147,10 +196,10 @@ SYSTEM_ADMINS = [
     'emini757',
 ]
 
-# User configuration sheet
+# User configuration sheet (for getting user info from a google docs sheet)
+# TODO: this is outdated, look into this and remove.
 SA_CREDENTIALS_FILE = 'credentials.json'
 SA_FILE_ID = '1vgN5ds5LMUZ0V3lG_sHcjxCRD3NmaOTc6uVamSOxEOQ'
-
 SA_COL_NAME = 'Namn'
 SA_COL_LIU_ID = 'Liu-Id'
 SA_COL_UTSKOTT = 'Utskott'
@@ -158,19 +207,37 @@ SA_COL_TITLE = 'Post utskott'
 
 # Django REST Framework
 REST_FRAMEWORK = {
+    # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
     'DEFAULT_PERMISSION_CLASSES': (
         'app.permissions.AllowOptionsAuthentication',
     ),
+    # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
-STUDENT_PORTAL_SERVICE_KEY = os.getenv('STUDENT_PORTAL_SERVICE_KEY')
+# GraphQL configuration, right now only used in CMS.
+GRAPHENE = {
+    'SCHEMA': 'cms.graphql.schema.schema',
+}
 
+
+# Wagtail config, used in cms
+# TODO: configure wagtail search backend, probably simple DB-search
+# for development to avoid dependencies and a more advanced search
+# backend for production.
+WAGTAIL_SITE_NAME = "Datateknologsektionen"
+WAGTAIL_ALLOW_UNICODE_SLUGS = False
+
+
+# TODO: remove, these services are discontinued.
+STUDENT_PORTAL_SERVICE_KEY = os.getenv('STUDENT_PORTAL_SERVICE_KEY')
 KOBRA_TOKEN = os.getenv('KOBRA_TOKEN')
 
+
+# TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
 
 JWT_AUTH = {
