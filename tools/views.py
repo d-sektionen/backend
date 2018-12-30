@@ -1,13 +1,18 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from icalendar import Calendar, Event, vDatetime
-from datetime import timedelta
+import datetime
+from django.utils import timezone
 
 import requests
 
 # move to settings if you cba.
 CAL_URL = 'https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics'
-LOCAL_TIMEZONE = timedelta(hours=2)
+LOCAL_TIMEZONE = datetime.timedelta(hours=2)
+
+def normalize_date(date):
+  return timezone.make_aware(datetime.datetime(date.year, date.month, date.day))
 
 """
 WIP
@@ -16,39 +21,65 @@ Parses the D-sektionen calendar and creates a Django REST Framework endpoint for
 Inspiration from https://github.com/bsab/icstojson/blob/master/app.py
 """
 @api_view()
+@authentication_classes([])
+@permission_classes((AllowAny,))
 def section_calendar(request):
-  r = requests.get(CAL_URL)
+  r = requests.get(CAL_URL) # TODO: Cache request for a few minutes.
   if r.status_code == 200:
     cal = Calendar.from_ical(r.text)
     data = {}
-    data[cal.name] = dict(cal.items())
-    data[cal.name]['VEVENT'] = []
+    conversions = {
+      'X-WR-CALDESC': 'description',
+      'X-WR-CALNAME': 'name',
+      'X-WR-TIMEZONE': 'timezone',
+      'CALSCALE': 'calscale',
+      'METHOD': 'method',
+      'PRODID': 'prodid',
+      'VERSION': 'version',
+    }
+    for item in cal.items():
+      if item[0] in conversions:
+        data[conversions[item[0]]] = item[1]
+    data['url'] = CAL_URL
+    data['events'] = []
 
-    for event in cal.walk():
-        if isinstance(event, Event):
+    not_started = request.query_params.get('not_started') != None
+    not_ended = request.query_params.get('not_ended') != None
 
-            uid = event.decoded("UID") if "UID" in event else ""
-            dtstamp = event.decoded("DTSTAMP") if "DTSTAMP" in event else ""
-            start = (event.decoded("DTSTART") if "DTSTART" in event else "") + LOCAL_TIMEZONE
-            end = (event.decoded("DTEND") if "DTEND" in event else "") + LOCAL_TIMEZONE
-            title = event.decoded("SUMMARY") if "SUMMARY" in event else ""
-            track = event.decoded("LOCATION") if "LOCATION" in event else ""
-            description = event.decoded("DESCRIPTION") if "DESCRIPTION" in event else ""
-            action = event.decoded("ACTION") if "ACTION" in event else ""
+    for event in cal.walk('VEVENT'):
+      if isinstance(event, Event):
+        now = timezone.now()
+        start = (event.decoded("DTSTART") if "DTSTART" in event else "") + LOCAL_TIMEZONE
+        end = (event.decoded("DTEND") if "DTEND" in event else "") + LOCAL_TIMEZONE
+        if ((not_started and now >= normalize_date(start))
+          or (not_ended and now >= normalize_date(end))):
+          continue
 
-            pevent = {}
-            pevent["DTSTAMP"]= dtstamp
-            pevent["UID"]= uid
-            pevent["CLASS"] = "PUBLIC"
-            pevent["title"] = title
-            pevent["location"] = track
-            pevent["ACTION"] = action
-            pevent["start"] = start #vDatetime(start).to_ical() # start.time().strftime("%Y%m%dT%H%M")
-            # pevent["GEO"]= ""
-            pevent["description"] = description
-            pevent["end"] = end #vDatetime(end).to_ical() #end.time().strftime("%Y%m%dT%H%M")
+        conversions = {
+          "UID": 'uid',
+          "DTSTAMP": 'dumb_timestamp',
+          "SUMMARY": 'title',
+          "LOCATION": 'location',
+          "DESCRIPTION": 'description',
+          "ACTION": 'action',
+          "LAST-MODIFIED": 'modified',
+          "CREATED": 'created',
+          "TRANSP": 'transparency',
+          "STATUS": 'status',
+          "SEQUENCE": 'times_updated',
+        }
 
-            data[cal.name]['VEVENT'].append(pevent)
+        pevent = {}
+        pevent["start"] = start
+        pevent["end"] = end
+
+        for item in event.items():
+          if item[0] in conversions:
+            pevent[conversions[item[0]]] = event.decoded(item[0])
+
+
+        data['events'].append(pevent)
+    
     return Response(data)
   else:
     return Response(['This endpoint is a WIP you should not get this response when it\'s ready.'])
