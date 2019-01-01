@@ -3,7 +3,6 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from account.models import Profile
-from account.user import get_or_create_user_if_student
 
 
 def extract_user(func):
