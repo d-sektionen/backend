@@ -8,8 +8,9 @@ from rest_framework.response import Response
 
 from rest_framework_jwt.settings import api_settings
 
-from account.models import Section
-from account.serializers import UserSerializer, DetailedSectionSerializer
+from .models import Section
+from .serializers import UserSerializer, DetailedSectionSerializer
+from .permissions import IsUser
 from app.decorators import extract_user
 
 
@@ -34,10 +35,14 @@ def generate_token(request):
             'token': token
         })
 
-
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    permission_classes = (IsUser, ) # Add IsAdminUser too if you want, not really needed though 
 
     def retrieve(self, request, *args, **kwargs):
         if kwargs['pk'] == 'me':
