@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'storage',
     'voting.apps.VotingConfig',
     'tools',
+    'membership',
 
     # ---
     # Django related
@@ -179,10 +180,7 @@ CAS_SERVER_URL = "https://login.liu.se/cas/"
 CAS_LOGOUT_COMPLETELY = True
 CAS_PROVIDE_URL_TO_LOGOUT = True
 CAS_RESPONSE_CALLBACKS = (
-    'account.callbacks.normalize_username',
-    'account.callbacks.apply_admin_permissions',
-    'account.callbacks.add_to_section_groups',
-    'account.callbacks.set_user_name',
+    'account.user.cas_callback',
 )
 
 # User roles, these users are always admins.
