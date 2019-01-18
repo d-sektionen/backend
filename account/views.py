@@ -44,23 +44,26 @@ class UserViewSet(
     queryset = User.objects.all()
     permission_classes = (IsUser, ) # Add IsAdminUser too if you want, not really needed though 
 
-    def retrieve(self, request, *args, **kwargs):
-        if kwargs['pk'] == 'me':
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
-        else:
-            return super(UserViewSet, self).retrieve(request, *args, **kwargs)
+    def get_object(self):
+        return self.request.user if self.kwargs['pk'] == 'me' else super().get_object()
 
-    def update(self, request, *args, **kwargs):
+    # def retrieve(self, request, *args, **kwargs):
+    #     if kwargs['pk'] == 'me':
+    #         serializer = self.get_serializer(request.user)
+    #         return Response(serializer.data)
+    #     else:
+    #         return super(UserViewSet, self).retrieve(request, *args, **kwargs)
 
-        if kwargs['pk'] == 'me':
-            instance = request.user
-            serializer = self.serializer_class(instance, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return super(UserViewSet, self).update(request, *args, **kwargs)
+    # def update(self, request, *args, **kwargs):
+
+    #     if kwargs['pk'] == 'me':
+    #         instance = request.user
+    #         serializer = self.serializer_class(instance, data=request.data, partial=True)
+    #         serializer.is_valid(raise_exception=True)
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     else:
+    #         return super(UserViewSet, self).update(request, *args, **kwargs)
 
 
 class SectionViewSet(viewsets.ModelViewSet):
