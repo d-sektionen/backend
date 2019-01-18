@@ -17,6 +17,7 @@ from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.core.blocks import PageChooserBlock
 from wagtailmarkdown.blocks import MarkdownBlock
 from django.contrib.auth.models import User
+from .validators import color_lightness_validator
 
 """
 Committee is for storing different committees (utskott).
@@ -118,3 +119,22 @@ class Sponsor(models.Model):
 
     def __str__(self):
         return self.text
+
+"""
+Theme is a model for customizing the look of a page.
+Can for example be used to give the Donna page a pink background.
+"""
+@register_snippet
+class Theme(models.Model):
+    name = models.CharField(max_length=255)
+    background_color = models.CharField(max_length=6, validators=[color_lightness_validator(242)])
+    panel_color = models.CharField(max_length=6, validators=[color_lightness_validator(230)])
+    
+    panels = [
+        FieldPanel('name'),
+        FieldPanel('background_color'),
+        FieldPanel('panel_color')
+    ]
+
+    def __str__(self):
+        return self.name

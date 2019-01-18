@@ -20,6 +20,20 @@ from wagtailmarkdown.blocks import MarkdownBlock
 from cms.snippets.models import Contact, Committee
 
 class InfoPage(Page):
+    header_image = models.ForeignKey(
+        'wagtailimages.Image',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+    theme = models.ForeignKey(
+        'snippets.Theme',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
     body = StreamField([
         ('richtext', blocks.RichTextBlock(features=['h2', 'h3', 'h4', 'bold', 'italic', 'staben', 'ol', 'ul', 'link'], )),
         ('social', SnippetChooserBlock(Committee)),
@@ -31,6 +45,8 @@ class InfoPage(Page):
     subpage_types = ['InfoPage']
 
     content_panels = Page.content_panels + [
-        StreamFieldPanel('body', classname="full")
+        SnippetChooserPanel('theme'),
+        ImageChooserPanel('header_image'),
+        StreamFieldPanel('body', classname="full"),
     ]
 

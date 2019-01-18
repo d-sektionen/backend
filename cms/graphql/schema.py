@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 from .graphene_wagtail import DefaultStreamBlock, create_stream_field_type
 from cms.infopage.models import InfoPage
-from cms.snippets.models import Committee, Sponsor, SocialMedia, Contact
+from cms.snippets.models import Committee, Sponsor, SocialMedia, Contact, Theme
 from cms.home.models import HomePage
 from cms.infomail.models import InfomailIndexPage, InfomailPage, InfomailArticlePage
 from wagtail.contrib.redirects.models import Redirect
@@ -78,6 +78,10 @@ class CommitteeNode(DjangoObjectType):
 class SponsorNode(DjangoObjectType):
   class Meta:
     model = Sponsor
+
+class ThemeNode(DjangoObjectType):
+  class Meta:
+    model = Theme
 
 class RichtextBlock(DefaultStreamBlock):
   pass
