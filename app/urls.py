@@ -19,6 +19,8 @@ from django.contrib import admin
 import account.urls
 import voting.urls
 import storage.urls
+import booking.urls
+import tools.urls
 
 urlpatterns = [
     # Admin pages
@@ -31,5 +33,11 @@ urlpatterns = [
     url(r'^voting/', include(voting.urls)),
 
     # Storage
-    url(r'^storage/', include(storage.urls))
+    url(r'^storage/', include(storage.urls)),
+
+    # Booking
+    url(r'^booking/', include(booking.urls)),
+
+    # Tools
+    url(r'^tools/', include(tools.urls)),
 ]
