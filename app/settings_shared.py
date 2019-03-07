@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'voting.apps.VotingConfig',
     'tools',
     'membership',
+    'booking',
+    'logger',
 
     # ---
     # Django related
@@ -234,6 +236,11 @@ WAGTAIL_ALLOW_UNICODE_SLUGS = False
 STUDENT_PORTAL_SERVICE_KEY = os.getenv('STUDENT_PORTAL_SERVICE_KEY')
 KOBRA_TOKEN = os.getenv('KOBRA_TOKEN')
 
+
+NETLIGHT_API_URL = 'https://api.gluehome.com/api/Hubs/047223e2-ab81-4d21-992c-4c4afffdbd1d/Commands'
+NETLIGHT_API_KEY = os.getenv('NETLIGHT_API_KEY')
+NETLIGHT_LOCK_ID = os.getenv('NETLIGHT_LOCK_ID')
+NETLIGHT_AUTHORIZATION = os.getenv('NETLIGHT_AUTHORIZATION')
 
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True

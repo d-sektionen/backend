@@ -1,7 +1,8 @@
-from app.settings_shared import *
 import dj_database_url
 from dotenv import load_dotenv
 load_dotenv()
+from app.settings_shared import *
+
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'INSECURE_SECRET_KEY')
 DEBUG = False

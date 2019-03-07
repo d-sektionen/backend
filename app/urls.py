@@ -23,6 +23,7 @@ from django.urls import reverse
 import account.urls
 import voting.urls
 import storage.urls
+import booking.urls
 import tools.urls
 
 from wagtail.admin import urls as wagtailadmin_urls
@@ -52,6 +53,9 @@ urlpatterns = [
     # Storage
     url(r'^storage/', include(storage.urls)),
 
+    # Booking
+    url(r'^booking/', include(booking.urls)),
+    
     # Tools
     url(r'^tools/', include(tools.urls)),
 
@@ -65,3 +69,4 @@ urlpatterns = [
     url(r'^documents/', include(wagtaildocs_urls)),
     url(r'^pages/', include(wagtail_urls))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO: Change for production
+

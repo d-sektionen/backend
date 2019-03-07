@@ -5,4 +5,5 @@ from . import views
 
 urlpatterns = [
     url(r'calendar', views.section_calendar),
+    url(r'netlight', views.netlight),
 ]
