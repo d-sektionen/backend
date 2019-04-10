@@ -73,3 +73,13 @@ def netlight(request):
   
   # If all other checks fail.
   return Response({'detail': 'Problem i kommunikationen med låset.','status': r.status_code}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+  
+"""
+
+"""
+@api_view(['GET'])
+@permission_classes((AllowSectionMembers,))
+def member_only_accel_redirect(request):
+  return Response({}, headers={'X-Accel-Redirect': request.query_params.get('url')})
