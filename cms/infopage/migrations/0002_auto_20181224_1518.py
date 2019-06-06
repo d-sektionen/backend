@@ -7,7 +7,6 @@ from django.db import migrations
 import wagtail.core.blocks
 import wagtail.core.fields
 import wagtail.snippets.blocks
-import wagtailmarkdown.blocks
 
 
 class Migration(migrations.Migration):
@@ -20,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='infopage',
             name='body',
-            field=wagtail.core.fields.StreamField([('markdown', wagtailmarkdown.blocks.MarkdownBlock()), ('richtext', wagtail.core.blocks.RichTextBlock(features=['h2', 'h3', 'h4', 'bold', 'italic', 'staben', 'ol', 'ul', 'link'])), ('social', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Committee)), ('contact', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Contact)), ('page', wagtail.core.blocks.PageChooserBlock())]),
+            field=wagtail.core.fields.StreamField([ ('richtext', wagtail.core.blocks.RichTextBlock(features=['h2', 'h3', 'h4', 'bold', 'italic', 'staben', 'ol', 'ul', 'link'])), ('social', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Committee)), ('contact', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Contact)), ('page', wagtail.core.blocks.PageChooserBlock())]),
         ),
     ]

@@ -15,7 +15,6 @@ from wagtail.snippets.models import register_snippet
 from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.core.blocks import PageChooserBlock
-from wagtailmarkdown.blocks import MarkdownBlock
 from django.contrib.auth.models import User
 from .validators import color_lightness_validator
 

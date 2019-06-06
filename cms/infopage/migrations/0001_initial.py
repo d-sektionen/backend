@@ -8,7 +8,6 @@ import django.db.models.deletion
 import wagtail.core.blocks
 import wagtail.core.fields
 import wagtail.snippets.blocks
-import wagtailmarkdown.blocks
 
 
 class Migration(migrations.Migration):
@@ -24,7 +23,7 @@ class Migration(migrations.Migration):
             name='InfoPage',
             fields=[
                 ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.Page')),
-                ('body', wagtail.core.fields.StreamField([('markdown', wagtailmarkdown.blocks.MarkdownBlock()), ('social', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Committee)), ('contact', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Contact)), ('page', wagtail.core.blocks.PageChooserBlock())])),
+                ('body', wagtail.core.fields.StreamField([('social', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Committee)), ('contact', wagtail.snippets.blocks.SnippetChooserBlock(cms.snippets.models.Contact)), ('page', wagtail.core.blocks.PageChooserBlock())])),
             ],
             options={
                 'abstract': False,

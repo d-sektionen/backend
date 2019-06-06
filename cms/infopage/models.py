@@ -16,7 +16,6 @@ from wagtail.snippets.models import register_snippet
 from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.core.blocks import PageChooserBlock
-from wagtailmarkdown.blocks import MarkdownBlock
 from cms.snippets.models import Contact, Committee
 
 class InfoPage(Page):
