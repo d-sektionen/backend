@@ -71,7 +71,7 @@ def create_stream_field_type(field_name, **kwargs):
     # Different graphene types can't have the same name, so we're
     # generating this class dynamically
     StreamFieldType = type(
-        f"{string.capwords(field_name, sep='_').replace('_', '')}Type",
+        "{}Type".format(string.capwords(field_name, sep='_').replace('_', '')),
         (graphene.Union,),
         dict(Meta=Meta))
 
