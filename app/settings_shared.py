@@ -172,7 +172,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'app', 'static'),
 )
 
-STATICFILES_STORAGE = 'storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 # CAS (system for LiU authentication)
 CAS_SERVER_URL = "https://login.liu.se/cas/"
