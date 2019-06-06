@@ -10,3 +10,4 @@ __pycache__/
 *.pid
 uwsgi_params
 media/
+static/

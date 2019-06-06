@@ -17,3 +17,8 @@ class PostIndexNode(DjangoObjectType):
     model = PostIndex
     only_fields = []
     interfaces = (PageInterface,)
+
+  posts = graphene.List(PostNode)
+
+  def resolve_posts(self, info):
+    return Post.objects.child_of(self).live()

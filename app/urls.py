@@ -61,8 +61,8 @@ urlpatterns = [
 
     # CMS routes (Wagtail)
     url(r'^api/cms/', cms_api_router.urls),
-    url(r'^graphql/cms', csrf_exempt(GraphQLView.as_view())),
-    url(r'^graphiql/cms', csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
+    url(r'^cms/graphql', csrf_exempt(GraphQLView.as_view())),
+    url(r'^cms/graphiql', csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
     url(r'^cms/login', redirect_to_my_auth, name='wagtailadmin_login'),
     url(r'^cms/logout', cas.views.logout, name='wagtailadmin_logout'),
     url(r'^cms/', include(wagtailadmin_urls)),

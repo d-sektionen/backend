@@ -22,6 +22,15 @@ class PostIndex(Page):
   subpage_types = ['Post']
 
 class Post(Page):
+    excerpt = models.TextField(max_length=255, blank=True)
+    image = models.ForeignKey(
+        'wagtailimages.Image',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+
     body = StreamField([
         ('richtext', blocks.RichTextBlock(features=['h2', 'h3', 'h4', 'bold', 'italic', 'staben', 'ol', 'ul', 'link'], )),
         ('social', SnippetChooserBlock(Committee)),
@@ -33,6 +42,8 @@ class Post(Page):
     subpage_types = []
 
     content_panels = Page.content_panels + [
+        FieldPanel('excerpt'),
+        ImageChooserPanel('image'),
         StreamFieldPanel('body', classname="full")
     ]
 
