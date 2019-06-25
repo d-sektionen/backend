@@ -25,6 +25,7 @@ import voting.urls
 import storage.urls
 import booking.urls
 import tools.urls
+import checkin.urls
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
@@ -58,6 +59,9 @@ urlpatterns = [
     
     # Tools
     url(r'^tools/', include(tools.urls)),
+    
+    # Checkin
+    url(r'^checkin/', include(checkin.urls)),
 
     # CMS routes (Wagtail)
     url(r'^api/cms/', cms_api_router.urls),

@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'membership',
     'booking',
     'logger',
+    'checkin',
+    'attendance',
 
     # ---
     # Django related
