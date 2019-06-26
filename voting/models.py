@@ -8,8 +8,8 @@ from account.models import Section
 
 class Meeting(models.Model):
     name = models.CharField(max_length=64)
-    current_vote = models.ForeignKey('Vote', blank=True, null=True, related_name='+')
-    section = models.ForeignKey(Section, null=False)
+    current_vote = models.ForeignKey('Vote', blank=True, null=True, related_name='+', on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, null=False, on_delete=models.CASCADE)
     archived = models.BooleanField(default=False)
 
     @staticmethod
@@ -21,8 +21,8 @@ class Meeting(models.Model):
 
 
 class Scanner(models.Model):
-    user = models.ForeignKey(User, null=False)
-    meeting = models.ForeignKey(Meeting, null=False)
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
 
     @staticmethod
     def get_model_name():
@@ -33,8 +33,8 @@ class Scanner(models.Model):
 
 
 class Attendant(models.Model):
-    user = models.ForeignKey(User, null=False)
-    meeting = models.ForeignKey(Meeting, null=False)
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
 
     @staticmethod
     def get_model_name():
@@ -47,7 +47,7 @@ class Attendant(models.Model):
 class Vote(models.Model):
     question = models.CharField(max_length=128)
     open = models.BooleanField(default=True)
-    meeting = models.ForeignKey(Meeting, null=False)
+    meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
 
     @staticmethod
     def get_model_name():
@@ -77,7 +77,7 @@ def update_current_vote(sender, instance, created, **kwargs):
 class Alternative(models.Model):
     text = models.CharField(max_length=64)
     num_votes = models.IntegerField(default=0)
-    vote = models.ForeignKey(Vote, null=False)
+    vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
 
     @staticmethod
     def get_model_name():
@@ -85,5 +85,5 @@ class Alternative(models.Model):
 
 
 class MadeVote(models.Model):
-    user = models.ForeignKey(User, null=False)
-    vote = models.ForeignKey(Vote, null=False)
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)

@@ -34,6 +34,7 @@ class Entry(models.Model):
   )
   description = models.TextField(max_length=128)
   timestamp = models.DateTimeField(auto_now_add=True)
+  # TODO: maybe not CASCADE
   user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="+")
   
   def __str__(self):

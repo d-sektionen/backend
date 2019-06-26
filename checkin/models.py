@@ -20,8 +20,8 @@ class Event(models.Model):
     return Response({"detail": 'You can not register someone on a plain Event, the Event class should be extended.'}, status.HTTP_400_BAD_REQUEST)
 
 class Doorkeeper(models.Model):
-  user = models.ForeignKey(User, null=False)
-  event = models.ForeignKey(Event, null=False)
+  user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+  event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
 
   class Meta:
     unique_together = ('user', 'event')
