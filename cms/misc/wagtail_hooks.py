@@ -6,14 +6,20 @@ https://docs.wagtail.io/en/v2.4/reference/hooks.html
 import wagtail.admin.rich_text.editors.draftail.features as draftail_features
 from wagtail.admin.rich_text.converters.html_to_contentstate import InlineStyleElementHandler
 from wagtail.core import hooks
+from wagtail.admin.menu import MenuItem
+from django.urls import reverse
+from django.conf.urls import url
 
-"""
-Registering the `staben` feature, which uses the `STABEN` Draft.js inline style type,
-and is stored as HTML with an `<span>` tag.
-http://docs.wagtail.io/en/v2.4/advanced_topics/customisation/extending_draftail.html
-"""
+from . import views
+from .gatsby import gatsby_manager
+
 @hooks.register('register_rich_text_features')
 def register_staben_text_feature(features):
+    """
+    Registering the `staben` feature, which uses the `STABEN` Draft.js inline style type,
+    and is stored as HTML with an `<span>` tag.
+    http://docs.wagtail.io/en/v2.4/advanced_topics/customisation/extending_draftail.html
+    """
     feature_name = 'staben'
     type_ = 'STABEN'
     tag = 'span' # Yes, reserves span for STABEN text, should probably be improved.
@@ -40,3 +46,39 @@ def register_staben_text_feature(features):
 
     # Call register_converter_rule to register the content transformation conversion.
     features.register_converter_rule('contentstate', feature_name, db_conversion)
+
+@hooks.register('register_admin_urls')
+def register_admin_urls():
+    """
+    Registers the url for gatsby builds.
+    """
+    return [
+        url(r'^gatsby/$', views.gatsby, name='gatsby'),
+    ]
+
+@hooks.register('register_admin_menu_item')
+def register_frank_menu_item():
+    """
+    Registers the menu for gatsby builds.
+    """
+    return MenuItem('Gatsby', reverse('gatsby'), classnames='icon icon-site', order=10000)
+
+
+"""
+Runs gatsby manager whenever a change is made to the content.
+"""
+@hooks.register('after_create_page')
+def do_after_page_create(request, page):
+    gatsby_manager(True)
+@hooks.register('after_delete_page')
+def do_after_page_delete(request, page):
+    gatsby_manager(True)
+@hooks.register('after_edit_page')
+def do_after_page_edit(request, page):
+    gatsby_manager(True)
+@hooks.register('after_copy_page')
+def do_after_page_copy(request, page):
+    gatsby_manager(True)
+@hooks.register('after_move_page')
+def do_after_page_move(request, page):
+    gatsby_manager(True)
