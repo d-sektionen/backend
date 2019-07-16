@@ -4,38 +4,24 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from app.view_helpers import different_read_serializer
-from voting.permissions import ScannerPermission, ScannerOrAdminMeetingPermission, AdminSectionPermission, VotePermission, AttendantPermission
+from app.permissions import FixedDjangoModelPermissions
+from .permissions import VotePermission
 
-from voting.models import Meeting, Attendant, Scanner, Vote, MadeVote, Alternative
-from voting.serializers import MeetingSerializer, AttendantSerializer, ScannerSerializer, VoteListSerializer, VoteDetailsSerializer, MeetingReadSerializer
-from voting.view_helpers import UserIdentifiableViewSet
-
+from .models import Meeting, Attendant, Vote, MadeVote, Alternative
+from .serializers import MeetingSerializer, AttendantSerializer, VoteListSerializer, VoteDetailsSerializer
 
 class NoDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     pass
 
-
-@different_read_serializer
 class MeetingViewSet(NoDeleteViewSet):
+    queryset = Meeting.objects.all()
     serializer_class = MeetingSerializer
-    read_serializer_class = MeetingReadSerializer
-    permission_classes = (AdminSectionPermission,)
+    permission_classes = (FixedDjangoModelPermissions,) 
 
-    def get_queryset(self):
-        user = self.request.user
-        user_groups = user.groups.all()
-        meetings = Meeting.objects.filter(section__admin_group__in=user_groups)
-
-        return meetings
-
-
-class AttendantViewSet(UserIdentifiableViewSet):
+class AttendantViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
-    check_section_membership = True
-    permission_classes = (AttendantPermission,)
-
+    permission_classes = (FixedDjangoModelPermissions,)
 
     def get_queryset(self):
         if 'meeting' not in self.request.query_params:
@@ -45,23 +31,6 @@ class AttendantViewSet(UserIdentifiableViewSet):
         meeting = Meeting.objects.get(id=meeting_id)
 
         return meeting.attendant_set
-
-
-class ScannerViewSet(UserIdentifiableViewSet):
-    queryset = Scanner.objects.all()
-    serializer_class = ScannerSerializer
-    permission_classes = (ScannerPermission,)
-
-
-    def get_queryset(self):
-        if 'meeting' in self.request.query_params:
-            meeting_id = self.request.query_params['meeting']
-            meeting = Meeting.objects.get(id=meeting_id)
-
-            return meeting.scanner_set
-        else:
-            return Scanner.objects.filter(user=self.request.user)
-
 
 class VoteViewSet(NoDeleteViewSet):
     serializer_class = VoteListSerializer
@@ -81,13 +50,15 @@ class VoteViewSet(NoDeleteViewSet):
         """
 
         user = self.request.user
-        user_groups = user.groups.all()
         if 'current' in request.query_params and request.query_params['current'] == 'true':
             meetings = Meeting.objects.filter(attendant__user__in=[user])
             vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
             votes = Vote.objects.filter(id__in=vote_ids).order_by('-id')
+        elif user.has_perm('voting.view_vote'):
+            # Show everything for an admin
+            votes = Vote.objects.all()
         else:
-            votes = Vote.objects.filter(meeting__section__admin_group__in=user_groups)
+            votes = Vote.objects.none()
 
         serializer = self.get_serializer(votes, many=True)
         return Response(serializer.data)

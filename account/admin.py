@@ -1,12 +1,6 @@
 from django.contrib import admin
 
-from account.models import Section, Profile
-
-class SectionAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    readonly_fields = ('user_group', 'admin_group',)
-
-admin.site.register(Section, SectionAdmin)
+from .models import Profile
 
 class ProfileAdmin(admin.ModelAdmin):
     readonly_fields = ('user',)

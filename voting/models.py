@@ -2,15 +2,16 @@ from django.contrib.auth.models import Group, User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from rest_framework.response import Response
+from rest_framework import status
 
-from account.models import Section
+from membership.utils import check_membership
+from checkin.models import Event
 
+class Meeting(Event):
+    ACTIONS = ['Lägg till deltagare', 'Ta bort deltagare']
 
-class Meeting(models.Model):
-    name = models.CharField(max_length=64)
     current_vote = models.ForeignKey('Vote', blank=True, null=True, related_name='+', on_delete=models.CASCADE)
-    section = models.ForeignKey(Section, null=False, on_delete=models.CASCADE)
-    archived = models.BooleanField(default=False)
 
     @staticmethod
     def get_model_name():
@@ -19,18 +20,24 @@ class Meeting(models.Model):
     def __str__(self):
         return self.name
 
+    def on_register(self, user, action):
+        if action == "0":
+            if not check_membership(user.username):
+                return Response({"detail": 'User is not a member of D-sektionen.'}, status.HTTP_400_BAD_REQUEST)
+            
+            attendant, created = Attendant.objects.get_or_create(user=user, meeting=self)
+            if not created:
+                return Response({"detail": user.username + ' is already registered on the meeting.'}, status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": user.username + ' was successfully registered.', 'icon': 'FiUserCheck'}, status.HTTP_200_OK)
+            
+        elif action == "1":
+            attendant = Attendant.objects.filter(user=user, meeting=self).first()
+            if attendant is not None:
+                attendant.delete()
+                return Response({'detail': user.username + ' was successfully unregistered.', 'icon': 'FiUserX'}, status.HTTP_200_OK)
+            return Response({"detail": user.username + ' is not registered on the meeting.'}, status.HTTP_400_BAD_REQUEST)
 
-class Scanner(models.Model):
-    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-    meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
-
-    @staticmethod
-    def get_model_name():
-        return "Skannare"
-
-    class Meta:
-        unique_together = ('user', 'meeting')
-
+        return Response({"detail": 'Unknown action'}, status.HTTP_400_BAD_REQUEST)
 
 class Attendant(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)

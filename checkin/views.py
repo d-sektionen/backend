@@ -5,7 +5,23 @@ from django.contrib.auth.models import User
 
 from account.models import Profile
 from . import serializers
-from .models import Event
+from .models import Event, Doorkeeper
+from .permissions import OnlyDoorkeepersRegister, DoorkeeperPermission
+
+class DoorkeeperViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    queryset = Doorkeeper.objects.all()
+    serializer_class = serializers.DoorkeeperSerializer
+    permission_classes = (DoorkeeperPermission,)
+
+    def get_queryset(self):
+        if 'event_id' in self.request.query_params:
+            event_id = self.request.query_params['event_id']
+
+            return Doorkeeper.objects.filter(event_id=event_id)
+        else:
+            # Returns Doorkeepers for all events if no event is specified,
+            # maybe it should be limited to event types the User is admin for.
+            return Doorkeeper.objects.all()
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -26,6 +42,7 @@ class RegisterViewSet(viewsets.ViewSet):
   Viewset with only POST for Doorkeepers to do an action for people to an Event.
   """
   serializer_class = serializers.RegisterSerializer
+  permission_classes = (OnlyDoorkeepersRegister,)
 
   def create(self, request):
     serializer = serializers.RegisterSerializer(data=request.data)

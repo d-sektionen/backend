@@ -37,7 +37,6 @@ from graphene_django.views import GraphQLView
 
 import cas.views
 
-
 def redirect_to_my_auth(request):
     return redirect_to_login(reverse('wagtailadmin_home'), login_url='/account/login')
 
@@ -74,3 +73,4 @@ urlpatterns = [
     url(r'^pages/', include(wagtail_urls))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO: Change for production
 
+# TODO: define custom error handlers https://www.django-rest-framework.org/api-guide/exceptions/#generic-error-views

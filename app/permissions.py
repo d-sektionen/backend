@@ -1,4 +1,4 @@
-from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated, BasePermission, DjangoModelPermissions
 
 
 class AllowOptionsAuthentication(IsAuthenticated):
@@ -6,6 +6,14 @@ class AllowOptionsAuthentication(IsAuthenticated):
         if request.method == 'OPTIONS':
             return True
         return request.user and request.user.is_authenticated
+
+class FixedDjangoModelPermissions(DjangoModelPermissions):
+    """
+    DjangoModelPermissions does not handle view permissions from django 2.1,
+    this fixes that.
+    """
+    def __init__(self):
+        self.perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
 
 
 class RestPermission(BasePermission):

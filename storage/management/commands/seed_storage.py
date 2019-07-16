@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 
-from account.models import Section
 from storage.models import StorageRoom, Location
 
 

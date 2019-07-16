@@ -6,7 +6,7 @@ import datetime
 from django.utils import timezone
 from rest_framework import status
 from django.conf import settings
-from account.permissions import AllowSectionMembers
+from account.permissions import AllowMembers
 from logger.utils import log, Entry
 
 import requests
@@ -99,7 +99,7 @@ def section_calendar(request):
 Unlocks or locks the Netlight door.
 """
 @api_view(['POST'])
-@permission_classes((AllowSectionMembers,))
+@permission_classes((AllowMembers,))
 def netlight(request):
   mode = request.query_params.get('mode')
   hub_command = None
@@ -157,6 +157,6 @@ def netlight(request):
 
 """
 @api_view(['GET'])
-@permission_classes((AllowSectionMembers,))
+@permission_classes((AllowMembers,))
 def member_only_accel_redirect(request):
   return Response({}, headers={'X-Accel-Redirect': request.query_params.get('url')})

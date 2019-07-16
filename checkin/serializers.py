@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Event
+from account.serializers import SimpleUserSerializer
+from .models import Event, Doorkeeper
 
 class RegisterSerializer(serializers.Serializer):
   event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all())
@@ -21,3 +22,13 @@ class EventSerializer(serializers.ModelSerializer):
     model = Event
     fields = ('id', 'name', 'archived', 'actions')
     read_only_fields = ('id', 'name', 'archived', 'actions')
+
+class DoorkeeperSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(write_only=True)
+    user = SimpleUserSerializer(read_only=True)
+    event_id = serializers.IntegerField(write_only=True)
+    event = EventSerializer(read_only=True)
+
+    class Meta:
+        model = Doorkeeper
+        fields = ('id', 'user_id', 'user', 'event_id', 'event')

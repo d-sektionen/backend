@@ -4,16 +4,16 @@ from channels.test import ChannelTestCase, WSClient
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from account.tests import AuthenticatedTestCase, create_section, create_admin, create_user
-from voting.models import Section, Meeting, Vote, Alternative, Scanner, Attendant, MadeVote
+from account.tests import AuthenticatedTestCase, create_admin, create_user
+from .models import Meeting, Vote, Alternative, Scanner, Attendant, MadeVote
 
 
 # --- Reoccurring operations ---
 def parse(response):
         return json.loads(response.content.decode('utf-8'))
 
-def admin_create_meeting(self, admin_client, section_id):
-            create_res = admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': section_id})
+def admin_create_meeting(self, admin_client):
+            create_res = admin_client.post('/voting/meetings/', {'name': 'Meeting 1'})
             self.assertEqual(create_res.status_code, 201)
 
 def admin_close_vote(self, vote):
@@ -31,33 +31,30 @@ def attendant_votes(self, vote, alternative, voter_client):
 # --- ---------------------- ---
 class MeetingTest(AuthenticatedTestCase):
     def test_list(self):
-        section = create_section('Section')
-        other_section = create_section('Other section')
-        Meeting.objects.create(name='Meeting 1', section=section)
-        Meeting.objects.create(name='Meeting 2', section=other_section)
-        Meeting.objects.create(name='Meeting 3', section=section)
+        Meeting.objects.create(name='Meeting 1')
+        Meeting.objects.create(name='Meeting 2')
+        Meeting.objects.create(name='Meeting 3')
 
-        admin, client = create_admin([section])
+        admin, client = create_admin() #TODO: fix
 
         response = client.get('/voting/meetings/')
         data = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(data), 2)
+        self.assertEqual(len(data), 3)
         self.assertEqual(data[0]['name'], 'Meeting 1')
-        self.assertEqual(data[1]['name'], 'Meeting 3')
+        self.assertEqual(data[1]['name'], 'Meeting 2')
+        self.assertEqual(data[2]['name'], 'Meeting 3')
 
     def test_create(self):
-        section = create_section('Section')
-        admin, client = create_admin([section])
+        admin, client = create_admin()
 
-        response = client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(section.id)})
+        response = client.post('/voting/meetings/', {'name': 'Meeting 1'})
         self.assertEqual(response.status_code, 201)
 
     def test_show(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        admin, client = create_admin([section])
+        meeting = Meeting.objects.create(name='Meeting 1')
+        admin, client = create_admin()
 
         response = client.get('/voting/meetings/' + str(meeting.id) + '/')
         data = json.loads(response.content.decode('utf-8'))
@@ -65,13 +62,11 @@ class MeetingTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['name'], 'Meeting 1')
         self.assertEqual(data['current_vote'], None)
-        self.assertEqual(data['section']['id'], section.id)
         self.assertEqual(data['archived'], False)
 
     def test_update(self):
-        section = create_section('Section')
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
-        admin, client = create_admin([section])
+        meeting = Meeting.objects.create(name='Meeting 1')
+        admin, client = create_admin()
 
         response = client.patch('/voting/meetings/' + str(meeting.id) + '/', {'name': 'New meeting name', 'archived': True})
         data = json.loads(response.content.decode('utf-8'))
@@ -83,13 +78,11 @@ class MeetingTest(AuthenticatedTestCase):
 
 class VoteTest(AuthenticatedTestCase):
     def setUp(self):
-        self.section = create_section('Section')
-        self.other_section = create_section('Other section')
-        self.admin, self.client = create_admin([self.section])
+        self.admin, self.client = create_admin()
 
     def test_list(self):
-        vote, meeting = self._create_vote(self.section)
-        self._create_vote(self.other_section)
+        vote, meeting = self._create_vote()
+        self._create_vote()
 
         Attendant.objects.create(meeting=meeting, user=self.admin)
 
@@ -104,7 +97,7 @@ class VoteTest(AuthenticatedTestCase):
         self.assertFalse('num_votes' in data[0]['alternatives'][0])
 
     def test_creation(self):
-        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
+        meeting = Meeting.objects.create(name='Meeting 1')
         alternatives = [
             {
                 'text': 'Alternative 1'
@@ -118,7 +111,7 @@ class VoteTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_show(self):
-        vote, meeting = self._create_vote(self.section)
+        vote, meeting = self._create_vote()
 
         Attendant.objects.create(meeting=meeting, user=self.admin)
 
@@ -132,7 +125,7 @@ class VoteTest(AuthenticatedTestCase):
         self.assertTrue('num_votes' in data['alternatives'][0])
 
     def test_update(self):
-        vote, meeting = self._create_vote(self.section)
+        vote, meeting = self._create_vote()
 
         Attendant.objects.create(meeting=meeting, user=self.admin)
 
@@ -172,8 +165,8 @@ class VoteTest(AuthenticatedTestCase):
         self.assertEqual(data['alternatives'][1]['num_votes'], 7)
 
     @staticmethod
-    def _create_vote(section):
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+    def _create_vote():
+        meeting = Meeting.objects.create(name='Meeting 1')
         vote = Vote.objects.create(question='Question?', meeting=meeting)
         Alternative.objects.create(text='Alternative 1', vote=vote)
         Alternative.objects.create(text='Alternative 2', vote=vote)
@@ -183,10 +176,9 @@ class VoteTest(AuthenticatedTestCase):
 
 class VotingTest(AuthenticatedTestCase):
     def setUp(self):
-        self.section = create_section('Section')
-        self.admin, self.client = create_admin([self.section])
+        self.admin, self.client = create_admin()
 
-        self._create_vote(self.section)
+        self._create_vote()
 
     def test_voting(self):
         response = self.client.post('/voting/made_votes/', {'vote_id': self.vote.id, 'alternative_id': self.alternative1.id})
@@ -216,13 +208,13 @@ class VotingTest(AuthenticatedTestCase):
         self.assertEqual(self.alternative1.num_votes, 0)
 
     def _create_vote(self, section):
-        meeting = Meeting.objects.create(name='Meeting 1', section=section)
+        meeting = Meeting.objects.create(name='Meeting 1')
         self.vote = Vote.objects.create(question='Question?', meeting=meeting)
         self.alternative1 = Alternative.objects.create(text='Alternative 1', vote=self.vote)
         self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
         Attendant.objects.create(meeting=meeting, user=self.admin)
 
-
+# TODO: Move to checkin
 class ScannerTest(AuthenticatedTestCase):
     def setUp(self):
         self.section = create_section('Section')
@@ -268,13 +260,12 @@ class ScannerTest(AuthenticatedTestCase):
 class AttendantTest(AuthenticatedTestCase):
 
     def setUp(self):
-        self.section = create_section('Section')
-        self.admin, self.client = create_admin([self.section])
+        self.admin, self.client = create_admin()
 
     def test_list(self):
-        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-        other_meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-        user, user_client = create_user([self.section])
+        meeting = Meeting.objects.create(name='Meeting 1')
+        other_meeting = Meeting.objects.create(name='Meeting 1')
+        user, user_client = create_user()
         Attendant.objects.create(user=user, meeting=meeting)
         Attendant.objects.create(user=user, meeting=other_meeting)
 
@@ -287,8 +278,8 @@ class AttendantTest(AuthenticatedTestCase):
         self.assertEqual(data[0]['meeting'], meeting.id)
 
     def test_create(self):
-        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-        user, user_client = create_user([self.section])
+        meeting = Meeting.objects.create(name='Meeting 1')
+        user, user_client = create_user()
 
         response = self.client.post('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})
         data = json.loads(response.content.decode('utf-8'))
@@ -298,8 +289,8 @@ class AttendantTest(AuthenticatedTestCase):
         self.assertEqual(data['meeting'], meeting.id)
 
     def test_destroy(self):
-        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-        user, user_client = create_user([self.section])
+        meeting = Meeting.objects.create(name='Meeting 1')
+        user, user_client = create_user()
         Attendant.objects.create(user=user, meeting=meeting)
 
         response = self.client.delete('/voting/attendants/', {'username': user.username, 'meeting': meeting.id})
@@ -309,21 +300,19 @@ class AttendantTest(AuthenticatedTestCase):
 class PerfectMeeeting(TestCase):
     @classmethod
     def setUpTestData(self):
-        section = 'D-sektionen'
-        self.section = create_section(name=section)
-        self.users = [create_user([self.section]) for _ in range(5)]
-        self.scanners = [create_user([self.section]) for _ in range(2)]
-        self.admin, self.admin_client = create_admin([self.section])
+        self.users = [create_user() for _ in range(5)]
+        self.scanners = [create_user() for _ in range(2)]
+        self.admin, self.admin_client = create_admin()
 
     def test_creation(self):
 
-        response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1', 'section': str(self.section.id)})
+        response = self.admin_client.post('/voting/meetings/', {'name': 'Meeting 1'})
         self.assertEqual(response.status_code, 201)
 
 
     def test_perfect_meeting(self):       
         
-        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_create_meeting(self, self.admin_client)
 
         def admin_add_scanners(self):
             meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
@@ -331,6 +320,7 @@ class PerfectMeeeting(TestCase):
             for scanner in self.scanners:
                 scanner_res = self.admin_client.post('/voting/scanners/', {'username': scanner[0].username, 'meeting': meeting_id})
                 self.assertEqual(scanner_res.status_code, 201)
+        
         admin_add_scanners(self)
 
         def scanner_add_attendants(self):
@@ -339,6 +329,7 @@ class PerfectMeeeting(TestCase):
             for user in self.users:
                 attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
                 self.assertEqual(attendant_res.status_code, 201)
+        
         scanner_add_attendants(self)
 			
         # Run vote
@@ -354,7 +345,7 @@ class PerfectMeeeting(TestCase):
             admin_create_vote(self)
                          
             # One user votes for Y 
-            # The rest votes for the obvious choice: D 
+            # The rest vote for the obvious choice: D 
             attendant_votes(self, 0, 1, self.users[0][1])    
 
             for user in self.users[1:]:
@@ -380,11 +371,9 @@ class PerfectMeeeting(TestCase):
 class BreakBeforeVote(TestCase):
     @classmethod
     def setUpTestData(self):
-        section = 'D-sektionen'
-        self.section = create_section(name=section)
-        self.users = [create_user([self.section]) for _ in range(2)]
-        self.scanner, self.scanner_client = create_user([self.section])
-        self.admin, self.admin_client = create_admin([self.section])
+        self.users = [create_user() for _ in range(2)]
+        self.scanner, self.scanner_client = create_user()
+        self.admin, self.admin_client = create_admin()
         
     def test_leave(self):
               
@@ -401,7 +390,7 @@ class BreakBeforeVote(TestCase):
             self.assertEqual(user_drop_response.status_code, 200)
             self.admin_client.post('/voting/attendants/', {'username': self.users[1][0].username, 'meeting': meeting_id})
 
-        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_create_meeting(self, self.admin_client)
         admin_actions(self)
         for user in self.users:
             attendant_votes(self, 0, 0, user[1])
@@ -409,11 +398,9 @@ class BreakBeforeVote(TestCase):
 class BreakAfterVote(TestCase):
     @classmethod
     def setUpTestData(self):
-        section = 'D-sektionen'
-        self.section = create_section(name=section)
-        self.user, self.user_client = create_user([self.section])
-        self.scanner, self.scanner_client  = create_user([self.section])
-        self.admin, self.admin_client = create_admin([self.section])
+        self.user, self.user_client = create_user()
+        self.scanner, self.scanner_client  = create_user()
+        self.admin, self.admin_client = create_admin()
 
     def test_break_after_vote(self):
         
@@ -440,7 +427,7 @@ class BreakAfterVote(TestCase):
             uservote_res = self.user_client.post('/voting/made_votes/', {'vote_id': vote_id, 'alternative_id': alternative_id})
             self.assertEqual(uservote_res.status_code, 403)  
 
-        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_create_meeting(self, self.admin_client)
         admin_actions(self)
         scanner_add_attendants(self)
         attendant_votes(self, 0, 0, self.user_client)
@@ -451,10 +438,8 @@ class BreakAfterVote(TestCase):
 class ForgotLiUCard(TestCase):
     @classmethod
     def setUpTestData(self):
-        section = 'D-sektionen'
-        self.section = create_section(name=section)
-        self.user, self.user_client = create_user([self.section])
-        self.admin, self.admin_client = create_admin([self.section])
+        self.user, self.user_client = create_user()
+        self.admin, self.admin_client = create_admin()
 
     def test_forgot_liu_card(self):
         
@@ -476,7 +461,7 @@ class ForgotLiUCard(TestCase):
                 else:
                     self.assertEqual(result['num_votes'], 0)
 
-        admin_create_meeting(self, self.admin_client, self.section.id)
+        admin_create_meeting(self, self.admin_client)
         admin_actions(self)
         attendant_votes(self, 0, 0, self.user_client)
         admin_count_votes(self)   

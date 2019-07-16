@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from membership.utils import check_membership, get_name
-from .models import Section
 
 """
 Contains the callback used by the CAS plugin. This callback is called
@@ -47,16 +46,6 @@ def apply_admin_permissions(user):
         user.save()
 
 """
-Adds a user to the "D-sektionen" group if their username is a liu_id in the membership database.
-"""
-def add_to_section_groups(user):
-    section = Section.objects.get(name="D-sektionen")
-    if section and check_membership(user.username):
-        group = section.user_group
-        user.groups.add(group)
-
-
-"""
 Creates a user with the given username (usually liu_id)
 The user gets privileges and their name set.
 """
@@ -65,7 +54,6 @@ def get_or_create_user(username):
     user, created = User.objects.get_or_create(username=username)
 
     apply_admin_permissions(user)
-    add_to_section_groups(user)
     set_name(user)
     if created:
         print('Created non-existing user')

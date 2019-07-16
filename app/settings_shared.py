@@ -197,12 +197,12 @@ SYSTEM_ADMINS = [
 
 # User configuration sheet (for getting user info from a google docs sheet)
 # TODO: this is outdated, look into this and remove.
-SA_CREDENTIALS_FILE = 'credentials.json'
-SA_FILE_ID = '1vgN5ds5LMUZ0V3lG_sHcjxCRD3NmaOTc6uVamSOxEOQ'
-SA_COL_NAME = 'Namn'
-SA_COL_LIU_ID = 'Liu-Id'
-SA_COL_UTSKOTT = 'Utskott'
-SA_COL_TITLE = 'Post utskott'
+# SA_CREDENTIALS_FILE = 'credentials.json'
+# SA_FILE_ID = '1vgN5ds5LMUZ0V3lG_sHcjxCRD3NmaOTc6uVamSOxEOQ'
+# SA_COL_NAME = 'Namn'
+# SA_COL_LIU_ID = 'Liu-Id'
+# SA_COL_UTSKOTT = 'Utskott'
+# SA_COL_TITLE = 'Post utskott'
 
 # Django REST Framework
 REST_FRAMEWORK = {

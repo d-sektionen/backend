@@ -1,19 +1,13 @@
 from django.contrib import admin
 
-from voting.models import Meeting, Scanner, Attendant, Vote, Alternative, MadeVote
+from voting.models import Meeting, Attendant, Vote, Alternative, MadeVote
 
 
 class MeetingAdmin(admin.ModelAdmin):
-    list_display = ('name', 'section', 'archived')
-
-
-class ScannerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'meeting')
-
+    list_display = ('name', 'archived')
 
 class AttendantAdmin(admin.ModelAdmin):
     list_display = ('user', 'meeting')
-
 
 class VoteAdmin(admin.ModelAdmin):
     list_display = ('question', 'meeting', 'open')
@@ -29,7 +23,6 @@ class MadeVoteAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Meeting, MeetingAdmin)
-admin.site.register(Scanner, ScannerAdmin)
 admin.site.register(Attendant, AttendantAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(Alternative, AlternativeAdmin)

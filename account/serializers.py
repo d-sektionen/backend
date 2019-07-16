@@ -1,17 +1,10 @@
 from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
-from account.models import Profile
-from voting.models import Section
+from membership.utils import check_membership
 
-import account.user as user
-
-
-class SectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Section
-        fields = ('id', 'name',)
-
+from .models import Profile
+from . import user
 
 class CommitteeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,24 +20,23 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
-    sections = serializers.SerializerMethodField()
-    admin_sections = serializers.SerializerMethodField()
+    membership = serializers.SerializerMethodField()
+    pretty_name = serializers.SerializerMethodField()
     profile = ProfileSerializer()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'committees', 'sections', 'admin_sections', 'profile',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'pretty_name', 'committees', 'membership', 'profile',)
 
-    def get_sections(self, obj):
-        sections = Section.objects.filter(user_group_id__in=obj.groups.all())
-        return SectionSerializer(sections, many=True).data
-
-    def get_admin_sections(self, obj):
-        sections = Section.objects.filter(admin_group_id__in=obj.groups.all())
-        return SectionSerializer(sections, many=True).data
+    def get_membership(self, obj):
+        return check_membership(obj.username)
+    
+    def get_pretty_name(self, obj):
+        return obj.get_full_name() if obj.get_full_name() else obj.get_username()
 
     def get_committees(self, obj):
-        committees = Group.objects.filter(id__in=obj.groups.all(), section_user_group=None, section_admin_group=None)
+        # TODO: fix this
+        committees = Group.objects.filter(id__in=obj.groups.all())
         return CommitteeSerializer(committees, many=True).data
 
     def update(self, instance, validated_data):
@@ -63,9 +55,6 @@ class UserSerializer(serializers.ModelSerializer):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
-
-        # add user to section groups
-        user.add_to_section_groups(instance)
 
         profile.liu_card_id = profile_data.get(
             'liu_card_id',
@@ -89,14 +78,3 @@ class SimpleUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'first_name', 'last_name')
         read_only_fields = ('id', 'username', 'first_name', 'last_name')
 
-
-class DetailedSectionSerializer(serializers.ModelSerializer):
-    administrators = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Section
-        fields = ('id', 'name', 'administrators')
-
-    def get_administrators(self, obj):
-        admins = User.objects.filter(groups__name=obj.admin_group.name)
-        return SimpleUserSerializer(admins, many=True).data

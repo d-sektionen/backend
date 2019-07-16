@@ -7,8 +7,8 @@ from django.dispatch import receiver
 from rest_framework.exceptions import ValidationError
 from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 
-from voting.models import Meeting, MadeVote, Attendant, Scanner
-from voting.serializers import VoteDetailsSerializer, AttendantSerializer, SimpleScannerSerializer
+from voting.models import Meeting, MadeVote, Attendant
+from voting.serializers import VoteDetailsSerializer, AttendantSerializer
 
 
 @channel_session
@@ -80,22 +80,23 @@ def attendants_list_changed(sender, instance, *args, **kwargs):
     }
     Group('meeting-' + str(instance.meeting.id)).send({'text': json.dumps(response)})
 
+## Should be reimplemented with Doorkeepers
 
-@receiver(post_save, sender=Scanner)
-@receiver(post_delete, sender=Scanner)
-def scanner_list_changed(sender, instance, *args, **kwargs):
-    """
-    We subscribe to the signals Django emit when a model has been saved and
-    forward them to our subscribed clients.
+# @receiver(post_save, sender=Scanner)
+# @receiver(post_delete, sender=Scanner)
+# def scanner_list_changed(sender, instance, *args, **kwargs):
+#     """
+#     We subscribe to the signals Django emit when a model has been saved and
+#     forward them to our subscribed clients.
 
-    Reason: A Scanner instance was (saved) created or deleted.
-    """
+#     Reason: A Scanner instance was (saved) created or deleted.
+#     """
 
-    response = {
-        'type': 'scanner_list',
-        'data': SimpleScannerSerializer(instance.meeting.scanner_set, many=True).data
-    }
-    Group('meeting-' + str(instance.meeting.id)).send({'text': json.dumps(response)})
+#     response = {
+#         'type': 'scanner_list',
+#         'data': SimpleScannerSerializer(instance.meeting.scanner_set, many=True).data
+#     }
+#     Group('meeting-' + str(instance.meeting.id)).send({'text': json.dumps(response)})
 
 
 @channel_session
@@ -121,7 +122,7 @@ def reject(message, reason):
 
 
 def has_sufficient_privileges(user, meeting):
-    return meeting.section.is_admin(user)
+    return meeting.section.is_admin(user) # outdated
 
 
 def user_from_token(message):

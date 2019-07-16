@@ -1,43 +1,37 @@
 from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
-from account.serializers import SimpleUserSerializer, SectionSerializer
-from voting.models import Meeting, Scanner, Attendant, Vote, MadeVote, Section, Alternative
+from membership.utils import check_membership
+from account.serializers import SimpleUserSerializer
+
+from .models import Meeting, Attendant, Vote, MadeVote, Alternative
 
 
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
-        fields = ('id', 'name', 'current_vote', 'section', 'archived')
-
-
-class MeetingReadSerializer(MeetingSerializer):
-    section = SectionSerializer()
-
-
-class ScannerSerializer(serializers.ModelSerializer):
-    user = SimpleUserSerializer()
-    meeting = MeetingReadSerializer()
-
-    class Meta:
-        model = Scanner
-        fields = ('id', 'user', 'meeting')
-
-
-class SimpleScannerSerializer(serializers.ModelSerializer):
-    user = SimpleUserSerializer()
-
-    class Meta:
-        model = Scanner
-        fields = ('id', 'user')
+        fields = ('id', 'name', 'current_vote', 'archived')
 
 
 class AttendantSerializer(serializers.ModelSerializer):
-    user = SimpleUserSerializer()
+    user_id = serializers.IntegerField(write_only=True)
+    user = SimpleUserSerializer(read_only=True)
+    meeting_id = serializers.IntegerField(write_only=True)
+    meeting = MeetingSerializer(read_only=True)
+
+    def validate_user_id(self, value):
+        """
+        Validate that user is a member.
+        """
+        user = User.objects.get(id=value)
+        if not check_membership(user.get_username()):
+            raise serializers.ValidationError("User is not a member")
+        return value
 
     class Meta:
         model = Attendant
-        fields = ('id', 'user', 'meeting')
+        fields = ('id', 'user', 'meeting', 'user_id', 'meeting_id')
 
 
 class PublicAlternativeSerializer(serializers.ModelSerializer):

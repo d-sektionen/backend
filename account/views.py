@@ -8,10 +8,8 @@ from rest_framework.response import Response
 
 from rest_framework_jwt.settings import api_settings
 
-from .models import Section
-from .serializers import UserSerializer, DetailedSectionSerializer
+from .serializers import UserSerializer
 from .permissions import IsUser
-from app.decorators import extract_user
 
 
 @login_required
@@ -65,34 +63,3 @@ class UserViewSet(
     #     else:
     #         return super(UserViewSet, self).update(request, *args, **kwargs)
 
-
-class SectionViewSet(viewsets.ModelViewSet):
-    serializer_class = DetailedSectionSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        user_groups = user.groups.all()
-        sections = Section.objects.filter(admin_group__in=user_groups)
-
-        return sections
-
-    @extract_user
-    def create(self, request, *args, **kwargs):
-        section_id = request.data['section']
-        section = Section.objects.get(id=section_id)
-        user = kwargs['user']
-
-        user.groups.add(section.admin_group)
-
-        return Response(status=status.HTTP_201_CREATED)
-
-    @list_route(methods=['delete'], url_path='')
-    @extract_user
-    def delete(self, request, *args, **kwargs):
-        section_id = request.data['section']
-        section = Section.objects.get(id=section_id)
-        user = kwargs['user']
-
-        user.groups.remove(section.admin_group)
-
-        return Response({'status': 'ok'}, status=status.HTTP_200_OK)

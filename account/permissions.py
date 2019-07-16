@@ -8,7 +8,7 @@ class IsUser(BasePermission):
         else:
             return False
 
-class AllowSectionMembers(BasePermission):
+class AllowMembers(BasePermission):
     def has_permission(self, request, view):
         if request.user:
             return check_membership(request.user.username)

@@ -7,7 +7,6 @@ import cas.views
 
 router = routers.DefaultRouter()
 router.register(r'user', views.UserViewSet, base_name='user')
-router.register(r'section', views.SectionViewSet, base_name='section')
 
 urlpatterns = [
     url(r'^', include(router.urls)),

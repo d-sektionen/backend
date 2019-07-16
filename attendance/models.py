@@ -11,8 +11,8 @@ class Occurrence(Event):
 
   members_only = models.BooleanField(default=False)
   clear_data = models.DateField()
-  attendant_limit = models.IntegerField()
-  attendants = models.ManyToManyField(User, related_name='+')
+  attendant_limit = models.IntegerField(default=0)
+  attendants = models.ManyToManyField(User, related_name='+', blank=True)
 
   def on_register(self, user, action):
     already_registered = self.attendants.filter(pk=user.pk).exists()
