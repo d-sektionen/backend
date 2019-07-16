@@ -212,7 +212,7 @@ REST_FRAMEWORK = {
     ),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
@@ -246,8 +246,9 @@ GATSBY_MANAGER_URL = os.getenv('GATSBY_MANAGER_URL')
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
 
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(weeks=1),
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=5),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=15),
 }
 
 LOGIN_URL = '/account/login/'

@@ -14,7 +14,7 @@ class NoDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
     pass
 
 class MeetingViewSet(NoDeleteViewSet):
-    queryset = Meeting.objects.all()
+    queryset = Meeting.objects.filter(archived=False)
     serializer_class = MeetingSerializer
     permission_classes = (FixedDjangoModelPermissions,) 
 
@@ -24,13 +24,13 @@ class AttendantViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.De
     permission_classes = (FixedDjangoModelPermissions,)
 
     def get_queryset(self):
-        if 'meeting' not in self.request.query_params:
-            raise ValidationError(detail='Missing required parameter "meeting"')
+        if self.request.method == 'GET':
+            if 'meeting_id' not in self.request.query_params:
+                raise ValidationError(detail='Missing required parameter "meeting_id"')
+            meeting_id = self.request.query_params['meeting_id']
+            return Attendant.objects.filter(meeting_id=meeting_id)
 
-        meeting_id = self.request.query_params['meeting']
-        meeting = Meeting.objects.get(id=meeting_id)
-
-        return meeting.attendant_set
+        return Attendant.objects.all()
 
 class VoteViewSet(NoDeleteViewSet):
     serializer_class = VoteListSerializer

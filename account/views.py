@@ -3,10 +3,10 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from rest_framework import mixins, viewsets, status
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, action
 from rest_framework.response import Response
 
-from rest_framework_jwt.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserSerializer
 from .permissions import IsUser
@@ -14,23 +14,17 @@ from .permissions import IsUser
 
 @login_required
 def generate_token(request):
-    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-
-    payload = jwt_payload_handler(request.user)
-    token = jwt_encode_handler(payload)
+    refresh = RefreshToken.for_user(request.user)
 
     if 'redirect' in request.GET:
         redirect_url = request.GET['redirect']
-        if '?' in redirect_url:
-            redirect_url += '&token=' + token
-        else:
-            redirect_url += '?token=' + token
+        querystring = 'access=' + str(refresh.access_token) + '&refresh=' + str(refresh)
 
-        return redirect(redirect_url)
+        return redirect(redirect_url + ('&' if '?' in redirect_url else '?') + querystring)
     else:
         return JsonResponse({
-            'token': token
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
         })
 
 class UserViewSet(
@@ -44,22 +38,4 @@ class UserViewSet(
 
     def get_object(self):
         return self.request.user if self.kwargs['pk'] == 'me' else super().get_object()
-
-    # def retrieve(self, request, *args, **kwargs):
-    #     if kwargs['pk'] == 'me':
-    #         serializer = self.get_serializer(request.user)
-    #         return Response(serializer.data)
-    #     else:
-    #         return super(UserViewSet, self).retrieve(request, *args, **kwargs)
-
-    # def update(self, request, *args, **kwargs):
-
-    #     if kwargs['pk'] == 'me':
-    #         instance = request.user
-    #         serializer = self.serializer_class(instance, data=request.data, partial=True)
-    #         serializer.is_valid(raise_exception=True)
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     else:
-    #         return super(UserViewSet, self).update(request, *args, **kwargs)
 
