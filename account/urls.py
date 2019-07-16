@@ -18,7 +18,7 @@ urlpatterns = [
     url(r'^token/$', views.generate_token),
     url(r'^token/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
     # Login with credentials
-    url(r'^login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    url(r'^credential-login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 
     # CAS
     url(r'^login/$', cas.views.login, name='login'),
