@@ -26,6 +26,7 @@ import storage.urls
 import booking.urls
 import tools.urls
 import checkin.urls
+import attendance.urls
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
@@ -61,6 +62,9 @@ urlpatterns = [
     
     # Checkin
     url(r'^checkin/', include(checkin.urls)),
+
+    # Attendance
+    url(r'^attendance/', include(attendance.urls)),
 
     # CMS routes (Wagtail)
     url(r'^api/cms/', cms_api_router.urls),
