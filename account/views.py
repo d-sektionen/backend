@@ -8,12 +8,10 @@ from rest_framework.decorators import list_route, action
 from rest_framework.response import Response
 
 from rest_framework_simplejwt.tokens import RefreshToken
-import jwt
 
-import datetime
-
-from .serializers import UserSerializer
+from .serializers import UserSerializer, SimpleUserSerializer
 from .permissions import IsUser
+from .idtoken import generate_id_token, read_id_token
 
 
 @login_required
@@ -43,7 +41,7 @@ class UserViewSet(
     def get_object(self):
         return self.request.user if self.kwargs['pk'] == 'me' else super().get_object()
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get', 'post'])
     def identification_token(self, request):
         """
         Returns a jwt token, for identifying a user, NOT to be used for auth.
@@ -51,10 +49,14 @@ class UserViewSet(
         Currently used to enable user identifying QR codes for the checkin app.
         (The QR codes are generated and read client side)
         """
-        # TODO: implement reading of identification codes.
-        expiry = datetime.datetime.utcnow() + datetime.timedelta(days=10)
-        expiry = expiry.replace(second=0, microsecond=0, minute=0, hour=6)
-        encoded = jwt.encode({'u': request.user.id, 'exp': expiry}, settings.SECRET_KEY, algorithm='HS256')
+        if request.method == 'GET':
+            token = generate_id_token(request.user)
+            return Response({'token': token}, status.HTTP_200_OK)
+        elif request.method == 'POST':
+            # TODO: validate that token param exists
+            user = read_id_token(request.data['token'])
+            return Response(SimpleUserSerializer(user).data, status.HTTP_200_OK)
 
-        return Response({'token': encoded, 'expires': str(expiry)}, status.HTTP_200_OK)
+        
+
 

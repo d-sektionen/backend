@@ -4,6 +4,7 @@ from rest_framework import mixins, viewsets, status
 from django.contrib.auth.models import User
 
 from account.models import Profile
+from account.idtoken import read_id_token
 from . import serializers
 from .models import Event, Doorkeeper
 from .permissions import OnlyDoorkeepersRegister, DoorkeeperPermission
@@ -61,8 +62,15 @@ class RegisterViewSet(viewsets.ViewSet):
     
 
     if (identifier_type == 'AU'):
-      # Checks if card id by checking if identifier is numeric, else it's a username. Could be improved.
-      identifier_type = 'CI' if identifier.isnumeric() else 'UN'
+      if identifier.isnumeric():
+        # Checks if card id by checking if identifier is numeric. Could be improved.
+        identifier_type = 'CI'
+      if len(identifier) > 80:
+        # Checks if idtoken by checking if identifier is long, also a bad solution since usernames can be up to 150 chars.
+        identifier_type = 'IT'
+      else:
+        # else it's a username.
+        identifier_type = 'UN'
 
     user = None
     try:
@@ -70,7 +78,12 @@ class RegisterViewSet(viewsets.ViewSet):
         user = Profile.objects.get(liu_card_id=identifier).user
       elif (identifier_type == 'UN'):
         user = User.objects.get(username__iexact=identifier)
+      elif (identifier_type == 'IT'):
+        user = read_id_token(identifier)
     except:
+      return Response({ 'detail': 'User not found.' }, status=status.HTTP_400_BAD_REQUEST)
+
+    if user is None: 
       return Response({ 'detail': 'User not found.' }, status=status.HTTP_400_BAD_REQUEST)
 
     action = serializer.data['action']
