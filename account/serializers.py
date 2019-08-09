@@ -72,9 +72,8 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class SimpleUserSerializer(serializers.ModelSerializer):
+class SimpleUserSerializer(UserSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name')
-        read_only_fields = ('id', 'username', 'first_name', 'last_name')
-
+        fields = ('id', 'username', 'first_name', 'last_name', 'pretty_name')
+        read_only_fields = ('id', 'username', 'first_name', 'last_name', 'pretty_name')

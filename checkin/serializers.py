@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
+
 from account.serializers import SimpleUserSerializer
+
 from .models import Event, Doorkeeper
 
 class RegisterSerializer(serializers.Serializer):
@@ -24,11 +27,11 @@ class EventSerializer(serializers.ModelSerializer):
     read_only_fields = ('id', 'name', 'archived', 'actions')
 
 class DoorkeeperSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(write_only=True)
+    user_username = serializers.SlugRelatedField(slug_field='username', write_only=True, queryset=User.objects.all(), source="user")
     user = SimpleUserSerializer(read_only=True)
-    event_id = serializers.IntegerField(write_only=True)
+    event_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Event.objects.all(), source='event')
     event = EventSerializer(read_only=True)
 
     class Meta:
         model = Doorkeeper
-        fields = ('id', 'user_id', 'user', 'event_id', 'event')
+        fields = ('id', 'user_username', 'user', 'event_id', 'event')
