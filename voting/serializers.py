@@ -15,9 +15,9 @@ class MeetingSerializer(serializers.ModelSerializer):
 
 
 class AttendantSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(write_only=True)
+    user_username = serializers.SlugRelatedField(slug_field='username', write_only=True, queryset=User.objects.all(), source="user")
     user = SimpleUserSerializer(read_only=True)
-    meeting_id = serializers.IntegerField(write_only=True)
+    meeting_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Meeting.objects.all(), source='meeting')
     meeting = MeetingSerializer(read_only=True)
 
     def validate_user_id(self, value):
@@ -31,7 +31,7 @@ class AttendantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attendant
-        fields = ('id', 'user', 'meeting', 'user_id', 'meeting_id')
+        fields = ('id', 'user', 'meeting', 'user_username', 'meeting_id')
 
 
 class PublicAlternativeSerializer(serializers.ModelSerializer):
