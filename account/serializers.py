@@ -2,6 +2,7 @@ from django.contrib.auth.models import Group, User
 from rest_framework import serializers
 
 from membership.utils import check_membership
+from checkin.models import Doorkeeper
 
 from .models import Profile
 from . import user
@@ -22,11 +23,12 @@ class UserSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     pretty_name = serializers.SerializerMethodField()
+    privileges = serializers.SerializerMethodField()
     profile = ProfileSerializer()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'pretty_name', 'committees', 'membership', 'profile',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'pretty_name', 'committees', 'membership', 'profile', 'privileges')
 
     def get_membership(self, obj):
         return check_membership(obj.username)
@@ -38,6 +40,13 @@ class UserSerializer(serializers.ModelSerializer):
         # TODO: fix this
         committees = Group.objects.filter(id__in=obj.groups.all())
         return CommitteeSerializer(committees, many=True).data
+
+    def get_privileges(self, obj):
+        return {
+            "booking_admin": obj.has_perms(('booking.add_booking', 'booking.change_booking', 'booking.delete_booking', 'booking.view_booking')),
+            "doorkeeper": Doorkeeper.objects.filter(user=obj).exists(),
+            "attendance_admin": obj.has_perms(('booking.add_booking', 'booking.change_booking', 'booking.delete_booking', 'booking.view_booking')),
+        }
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile')
