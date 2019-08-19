@@ -27,6 +27,7 @@ import booking.urls
 import tools.urls
 import checkin.urls
 import attendance.urls
+import membership.urls
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
@@ -36,45 +37,56 @@ from cms.api.api import api_router as cms_api_router
 from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
 
+# from grapple import urls as grapple_urls
+
 import cas.views
 
+
 def redirect_to_my_auth(request):
-    return redirect_to_login(reverse('wagtailadmin_home'), login_url='/account/login')
+    return redirect_to_login(reverse("wagtailadmin_home"), login_url="/account/login")
+
 
 urlpatterns = [
     # Admin pages
-    url(r'^admin/', admin.site.urls),
-
+    url(r"^admin/", admin.site.urls),
     # Account
-    url(r'^account/', include(account.urls)),
-
+    url(r"^account/", include(account.urls)),
     # Voting
-    url(r'^voting/', include(voting.urls)),
-
+    url(r"^voting/", include(voting.urls)),
     # Storage
-    url(r'^storage/', include(storage.urls)),
-
+    url(r"^storage/", include(storage.urls)),
     # Booking
-    url(r'^booking/', include(booking.urls)),
-    
+    url(r"^booking/", include(booking.urls)),
     # Tools
-    url(r'^tools/', include(tools.urls)),
-    
+    url(r"^tools/", include(tools.urls)),
     # Checkin
-    url(r'^checkin/', include(checkin.urls)),
-
+    url(r"^checkin/", include(checkin.urls)),
     # Attendance
-    url(r'^attendance/', include(attendance.urls)),
-
+    url(r"^attendance/", include(attendance.urls)),
+    # Membership
+    url(r"^membership/", include(membership.urls)),
     # CMS routes (Wagtail)
-    url(r'^api/cms/', cms_api_router.urls),
-    url(r'^cms/graphql', csrf_exempt(GraphQLView.as_view())),
-    url(r'^cms/graphiql', csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
-    url(r'^cms/login', redirect_to_my_auth, name='wagtailadmin_login'),
-    url(r'^cms/logout', cas.views.logout, name='wagtailadmin_logout'),
-    url(r'^cms/', include(wagtailadmin_urls)),
-    url(r'^documents/', include(wagtaildocs_urls)),
-    url(r'^pages/', include(wagtail_urls))
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO: Change for production
+    url(r"^api/cms/", cms_api_router.urls),
+    url(r"^cms/graphql", csrf_exempt(GraphQLView.as_view())),
+    url(r"^cms/graphiql", csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
+    url(r"^cms/login", redirect_to_my_auth, name="wagtailadmin_login"),
+    url(r"^cms/logout", cas.views.logout, name="wagtailadmin_logout"),
+    url(r"^cms/", include(wagtailadmin_urls)),
+    url(r"^documents/", include(wagtaildocs_urls)),
+    url(r"^pages/", include(wagtail_urls))
+    # url(r"^api/cms/", cms_api_router.urls),
+    # # url(r'^cms/graphql', csrf_exempt(GraphQLView.as_view())),
+    # # url(r'^cms/graphiql', csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
+    # url(r"^cms/", include(grapple_urls)),
+    # url(r"^cms/login", redirect_to_my_auth, name="wagtailadmin_login"),
+    # url(r"^cms/logout", cas.views.logout, name="wagtailadmin_logout"),
+    # url(r"^cms/", include(wagtailadmin_urls)),
+    # url(r"^documents/", include(wagtaildocs_urls)),
+    # url(r"^pages/", include(wagtail_urls)),
+] + static(
+    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+)  # TODO: Change for production
 
 # TODO: define custom error handlers https://www.django-rest-framework.org/api-guide/exceptions/#generic-error-views
+# handler500 = 'rest_framework.exceptions.server_error'
+# handler400 = 'rest_framework.exceptions.bad_request'
