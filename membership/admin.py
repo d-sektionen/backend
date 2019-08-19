@@ -38,7 +38,7 @@ def accept_request(modeladmin, request, queryset):
             registration = (
                 program_codes[member_request.program]
                 + "-1-ht"
-                + member_request.starting_year
+                + str(member_request.starting_year)
             )
 
             ProgramRegistration.objects.create(member=member, registration=registration)
