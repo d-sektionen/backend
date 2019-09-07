@@ -24,104 +24,98 @@ INSTALLED_APPS = [
     # ---
     # Project apps
     # ---
-    'account',
-    'storage',
-    'voting.apps.VotingConfig',
-    'tools',
-    'membership',
-    'booking',
-    'logger',
-    'checkin',
-    'attendance',
-
+    "account",
+    "storage",
+    "voting.apps.VotingConfig",
+    "tools",
+    "membership",
+    "booking",
+    "logger",
+    "checkin",
+    "attendance",
     # ---
     # Django related
     # ---
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'cas',
-    'kronos',
-    'rest_framework',
-    'corsheaders',
-    'channels',
-    'graphene_django',
-
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "cas",
+    "kronos",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "corsheaders",
+    "channels",
+    "graphene_django",
     # ---
     # Wagtail related
     # ---
-
     # Wagtail project apps
-    'cms.misc',
-    'cms.home',
-    'cms.infomail',
-    'cms.infopage',
-    'cms.snippets',
-    'cms.post',
-
+    "cms.misc",
+    "cms.home",
+    "cms.infomail",
+    "cms.infopage",
+    "cms.snippets",
+    "cms.post",
     # Wagtail modules
-
-    'wagtail.contrib.styleguide',
-    'wagtail.contrib.forms',
-    'wagtail.contrib.redirects',
-    'wagtail.embeds',
-    'wagtail.sites',
-    'wagtail.users',
-    'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
-    'wagtail.search',
-    'wagtail.admin',
-    'wagtail.core',
-    'wagtail.api.v2',
-
-    'modelcluster',
-    'taggit',
+    "wagtail.contrib.styleguide",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail.core",
+    "wagtail.api.v2",
+    # "grapple",
+    "modelcluster",
+    "taggit",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'cas.middleware.CASMiddleware',
-
-    'wagtail.core.middleware.SiteMiddleware',
-    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "cas.middleware.CASMiddleware",
+    "wagtail.core.middleware.SiteMiddleware",
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'cas.backends.CASBackend',
+    "django.contrib.auth.backends.ModelBackend",
+    "cas.backends.CASBackend",
 )
 
-ROOT_URLCONF = 'app.urls'
+ROOT_URLCONF = "app.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ]
         },
-    },
+    }
 ]
 
-WSGI_APPLICATION = 'app.wsgi.application'
+WSGI_APPLICATION = "app.wsgi.application"
 
 
 # Password validation
@@ -129,26 +123,20 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Europe/Stockholm'
+TIME_ZONE = "Europe/Stockholm"
 
 USE_I18N = True
 
@@ -162,37 +150,33 @@ USE_TZ = True
 
 # PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
 
 # used by cms for uploads
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'app', 'static'),
-)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
 # CAS (system for LiU authentication)
 CAS_SERVER_URL = "https://login.liu.se/cas/"
 CAS_LOGOUT_COMPLETELY = True
 CAS_PROVIDE_URL_TO_LOGOUT = True
-CAS_RESPONSE_CALLBACKS = (
-    'account.user.cas_callback',
-)
+CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
 # User roles, these users are always admins.
 SYSTEM_ADMINS = [
-    'patsl736',
-    'samjo788',
-    'anglo547',
-    'jeswr740',
-    'ludfo119',
-    'fremo917',
-    'emini757',
+    "patsl736",
+    "samjo788",
+    "anglo547",
+    "jeswr740",
+    "ludfo119",
+    "fremo917",
+    "emini757",
 ]
 
 # User configuration sheet (for getting user info from a google docs sheet)
@@ -207,20 +191,27 @@ SYSTEM_ADMINS = [
 # Django REST Framework
 REST_FRAMEWORK = {
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
-    'DEFAULT_PERMISSION_CLASSES': (
-        'app.permissions.AllowOptionsAuthentication',
-    ),
+    "DEFAULT_PERMISSION_CLASSES": ("app.permissions.AllowOptionsAuthentication",),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
 }
 
-# GraphQL configuration, right now only used in CMS.
-GRAPHENE = {
-    'SCHEMA': 'cms.graphql.schema.schema',
-}
+# # GraphQL configuration, right now only used in CMS.
+GRAPHENE = {"SCHEMA": "cms.graphql.schema.schema"}
+
+# GRAPHENE = {"SCHEMA": "grapple.schema.schema"}
+# GRAPPLE_APPS = {
+#     "misc": "",
+#     "home": "",
+#     "infomail": "",
+#     "infopage": "",
+#     "snippets": "",
+#     "post": "",
+# }
 
 
 # Wagtail config, used in cms
@@ -232,33 +223,36 @@ WAGTAIL_ALLOW_UNICODE_SLUGS = False
 
 
 # TODO: remove, these services are discontinued.
-STUDENT_PORTAL_SERVICE_KEY = os.getenv('STUDENT_PORTAL_SERVICE_KEY')
-KOBRA_TOKEN = os.getenv('KOBRA_TOKEN')
+STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
+KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
 
 
-NETLIGHT_API_URL = 'https://api.gluehome.com/api/Hubs/047223e2-ab81-4d21-992c-4c4afffdbd1d/Commands'
-NETLIGHT_API_KEY = os.getenv('NETLIGHT_API_KEY')
-NETLIGHT_LOCK_ID = os.getenv('NETLIGHT_LOCK_ID')
-NETLIGHT_AUTHORIZATION = os.getenv('NETLIGHT_AUTHORIZATION')
+NETLIGHT_API_URL = (
+    "https://api.gluehome.com/api/Hubs/047223e2-ab81-4d21-992c-4c4afffdbd1d/Commands"
+)
+NETLIGHT_API_KEY = os.getenv("NETLIGHT_API_KEY")
+NETLIGHT_LOCK_ID = os.getenv("NETLIGHT_LOCK_ID")
+NETLIGHT_AUTHORIZATION = os.getenv("NETLIGHT_AUTHORIZATION")
 
-GATSBY_MANAGER_URL = os.getenv('GATSBY_MANAGER_URL')
+GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
 
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=5),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=15),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=5),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),
 }
 
-LOGIN_URL = '/account/login/'
+LOGIN_URL = "/account/login/"
 
 # Websocket channels configuration
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "asgiref.inmemory.ChannelLayer",
         "ROUTING": "voting.sockets.channel_routing",
-    },
+    }
 }
 
-TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+

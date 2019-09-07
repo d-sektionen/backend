@@ -1,12 +1,14 @@
 from rest_framework.permissions import BasePermission
 from membership.utils import check_membership
 
+
 class IsUser(BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.user:
+        if request.user and request.user.is_authenticated:
             return obj == request.user
         else:
             return False
+
 
 class AllowMembers(BasePermission):
     def has_permission(self, request, view):

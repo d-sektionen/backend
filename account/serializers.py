@@ -17,7 +17,7 @@ class CommitteeSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ("liu_card_id",)
+        fields = ("liu_card_id", "infomail_subscriber")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -92,6 +92,9 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         profile.liu_card_id = profile_data.get("liu_card_id", profile.liu_card_id)
+        profile.infomail_subscriber = profile_data.get(
+            "infomail_subscriber", profile.infomail_subscriber
+        )
 
         profile.save()
 
@@ -110,3 +113,9 @@ class SimpleUserSerializer(UserSerializer):
         fields = ("id", "username", "first_name", "last_name", "pretty_name")
         read_only_fields = ("id", "username", "first_name", "last_name", "pretty_name")
 
+
+class InfomailUserSerializer(UserSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "pretty_name")
+        read_only_fields = ("id", "username", "email", "pretty_name")
