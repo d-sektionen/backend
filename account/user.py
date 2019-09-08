@@ -10,6 +10,8 @@ be assumed that the user exist in these callbacks. Also note that the incoming
 tree object may be modified in place, but only contains one thing: the username
 accessed at tree[0][0].text.
 """
+
+
 def cas_callback(tree):
     # Normalize the username to lower-case letters.
     # This ensures that a single student only has one Django account,
@@ -20,13 +22,16 @@ def cas_callback(tree):
 
     # Set email on all cas logins if email is not set to something else.
     if not len(user.email):
-        user.email = username + '@student.liu.se'
+        user.email = username + "@student.liu.se"
         user.save()
+
 
 """
 Sets the name of a user based on data in the Membership database.
 Will only be set if not previously set.
 """
+
+
 def set_name(user):
     if not (len(user.first_name) or len(user.last_name)):
         first, last = get_name(user.username)
@@ -36,26 +41,30 @@ def set_name(user):
             user.last_name = last
             user.save()
 
+
 """
 Sets a user to admin if declared as such in django settings.
 """
+
+
 def apply_admin_permissions(user):
     if user.username in settings.SYSTEM_ADMINS:
         user.is_staff = True
         user.is_superuser = True
         user.save()
 
+
 """
 Creates a user with the given username (usually liu_id)
 The user gets privileges and their name set.
 """
+
+
 def get_or_create_user(username):
     # "if student" must've gone somewhere
     user, created = User.objects.get_or_create(username=username)
 
     apply_admin_permissions(user)
     set_name(user)
-    if created:
-        print('Created non-existing user')
 
     return user, created
