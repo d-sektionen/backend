@@ -5,7 +5,6 @@ from channels.sessions import channel_session
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from rest_framework.exceptions import ValidationError
-from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 
 from voting.models import Meeting, MadeVote, Attendant
 from voting.serializers import VoteDetailsSerializer, AttendantSerializer
@@ -19,32 +18,34 @@ def ws_connect(message):
     client to updates to meeting votes.
     """
 
-    path = message['path']
-    if path.startswith('/meeting/'):
-        meeting_id = path.split('/')[2]
+    path = message["path"]
+    if path.startswith("/meeting/"):
+        meeting_id = path.split("/")[2]
 
         try:
             meeting = Meeting.objects.get(pk=meeting_id)
-            meeting_id = str(meeting.id)  # Filter value to ensure it has consistent format
+            meeting_id = str(
+                meeting.id
+            )  # Filter value to ensure it has consistent format
         except Meeting.DoesNotExist:
             # This error message gives information of which meetings does or does not exist,
             # as it is sent before authenticating the user. We ignore this security flaw as
             # we do not considered meeting ids to be sensitive information.
-            reject(message, 'Meeting does not exist')
+            reject(message, "Meeting does not exist")
             return
 
         user = user_from_token(message)
         if has_sufficient_privileges(user, meeting):
             # Subscribe websocket to update channel
-            Group('meeting-' + meeting_id).add(message.reply_channel)
-            message.channel_session['meeting'] = meeting_id
+            Group("meeting-" + meeting_id).add(message.reply_channel)
+            message.channel_session["meeting"] = meeting_id
 
             # Accept the connection
             message.reply_channel.send({"accept": True})
         else:
-            reject(message, 'Not permitted')
+            reject(message, "Not permitted")
     else:
-        reject(message, 'Unrecognized path requested')
+        reject(message, "Unrecognized path requested")
 
 
 @receiver(post_save, sender=MadeVote)
@@ -58,10 +59,12 @@ def vote_was_made(sender, instance, created, **kwargs):
 
     if created:
         response = {
-            'type': 'vote_details',
-            'data': VoteDetailsSerializer(instance.vote).data
+            "type": "vote_details",
+            "data": VoteDetailsSerializer(instance.vote).data,
         }
-        Group('meeting-' + str(instance.vote.meeting.id)).send({'text': json.dumps(response)})
+        Group("meeting-" + str(instance.vote.meeting.id)).send(
+            {"text": json.dumps(response)}
+        )
 
 
 @receiver(post_save, sender=Attendant)
@@ -75,10 +78,11 @@ def attendants_list_changed(sender, instance, *args, **kwargs):
     """
 
     response = {
-        'type': 'attendants_list',
-        'data': AttendantSerializer(instance.meeting.attendant_set, many=True).data
+        "type": "attendants_list",
+        "data": AttendantSerializer(instance.meeting.attendant_set, many=True).data,
     }
-    Group('meeting-' + str(instance.meeting.id)).send({'text': json.dumps(response)})
+    Group("meeting-" + str(instance.meeting.id)).send({"text": json.dumps(response)})
+
 
 ## Should be reimplemented with Doorkeepers
 
@@ -106,39 +110,36 @@ def ws_disconnect(message):
     further updates to the meeting it was previously subscribed to.
     """
 
-    meeting_id = message.channel_session.get('meeting')
+    meeting_id = message.channel_session.get("meeting")
     if meeting_id is not None:
-        Group('meeting-' + meeting_id).discard(message.reply_channel)
+        Group("meeting-" + meeting_id).discard(message.reply_channel)
 
 
 def reject(message, reason):
-    response = {
-        'type': 'error',
-        'data': reason
-    }
+    response = {"type": "error", "data": reason}
 
     message.reply_channel.send({"text": json.dumps(response)})
     message.reply_channel.send({"close": True})
 
 
 def has_sufficient_privileges(user, meeting):
-    return meeting.section.is_admin(user) # outdated
+    return meeting.section.is_admin(user)  # outdated
 
 
 def user_from_token(message):
-    query_string = message['query_string']
+    query_string = message["query_string"]
     if isinstance(query_string, str):
         path = query_string
     else:
-        path = query_string.decode('utf-8')
+        path = query_string.decode("utf-8")
 
-    key = 'token='
+    key = "token="
     if key in path:
-        token = path[path.index(key) + len(key):]
+        token = path[path.index(key) + len(key) :]
 
         try:
-            data = VerifyJSONWebTokenSerializer().validate({'token': token})
-            return data['user']
+            data = VerifyJSONWebTokenSerializer().validate({"token": token})
+            return data["user"]
         except ValidationError:
             return None
 
@@ -146,6 +147,6 @@ def user_from_token(message):
 
 
 channel_routing = {
-    'websocket.connect': ws_connect,
-    'websocket.disconnect': ws_disconnect,
+    "websocket.connect": ws_connect,
+    "websocket.disconnect": ws_disconnect,
 }
