@@ -10,6 +10,8 @@ class ProgramRegistrationAdminInline(admin.TabularInline):
 
 class MemberAdmin(admin.ModelAdmin):
     list_display = ("liu_id", "membership_type", "first_name", "last_name")
+    list_filter = ("membership_type",)
+    search_fields = ("first_name", "last_name", "liu_id")
     inlines = (ProgramRegistrationAdminInline,)
 
 
@@ -71,6 +73,8 @@ class RequestAdmin(admin.ModelAdmin):
         "message",
         "timestamp",
     )
+    search_fields = ("username", "first_name", "last_name", "message")
+    list_filter = ("program", "starting_year", "timestamp")
     actions = [accept_request]
 
 
