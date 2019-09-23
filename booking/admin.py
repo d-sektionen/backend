@@ -16,7 +16,7 @@ class BookingAdmin(admin.ModelAdmin):
 
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ("name", "description")
+    list_display = ("name", "description", "terms")
 
 
 admin.site.register(Item, ItemAdmin)
