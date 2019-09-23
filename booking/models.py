@@ -7,7 +7,7 @@ from datetime import timedelta
 
 class Item(models.Model):
     name = models.CharField(max_length=32, unique=True)
-    description = models.TextField(max_length=128)
+    description = models.TextField(max_length=512)
     terms = models.FileField(null=True, blank=True, upload_to="booking_terms")
 
     def __str__(self):
