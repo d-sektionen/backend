@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from membership.utils import check_membership
+from .utils import in_string_list
 
 
 class Occurrence(Event):
@@ -12,8 +13,17 @@ class Occurrence(Event):
 
     members_only = models.BooleanField(default=False)
     clear_data = models.DateField()
-    attendant_limit = models.IntegerField(default=0)
+    attendant_limit = models.IntegerField(
+        default=0, help_text="For no limit the value should be 0."
+    )
     attendants = models.ManyToManyField(User, related_name="+", blank=True)
+    whitelist = models.TextField(
+        blank=True,
+        help_text="Separate using space, line-break or comma. Leave empty for no whitelist.",
+    )
+    blacklist = models.TextField(
+        blank=True, help_text="Separate using space, line-break or comma."
+    )
 
     def on_register(self, user, action):
         already_registered = self.attendants.filter(pk=user.pk).exists()
@@ -40,6 +50,18 @@ class Occurrence(Event):
         if self.members_only and not check_membership(user.username):
             return Response(
                 {"detail": "User is not a member of D-sektionen."},
+                status.HTTP_400_BAD_REQUEST,
+            )
+
+        if in_string_list(self.blacklist, user.username):
+            return Response(
+                {"detail": "User is on the blacklist of this event."},
+                status.HTTP_400_BAD_REQUEST,
+            )
+
+        if self.whitelist and not in_string_list(self.whitelist, user.username):
+            return Response(
+                {"detail": "User is not on the whitelist of this event."},
                 status.HTTP_400_BAD_REQUEST,
             )
 
