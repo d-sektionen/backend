@@ -65,10 +65,18 @@ class UserSerializer(serializers.ModelSerializer):
             "doorkeeper": Doorkeeper.objects.filter(user=obj).exists(),
             "attendance_admin": obj.has_perms(
                 (
-                    "booking.add_booking",
-                    "booking.change_booking",
-                    "booking.delete_booking",
-                    "booking.view_booking",
+                    "attendance.add_occurrence",
+                    "attendance.change_occurrence",
+                    "attendance.delete_occurrence",
+                    "attendance.view_occurrence",
+                )
+            ),
+            "voting_admin": obj.has_perms(
+                (
+                    "voting.add_meeting",
+                    "voting.change_meeting",
+                    "voting.delete_meeting",
+                    "voting.view_meeting",
                 )
             ),
             "member": check_membership(obj.username),
