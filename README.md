@@ -53,6 +53,8 @@ Start the Django development server and begin developing:
 ./manage.py runserver
 ```
 
+If you're using MAC OS, check out: https://stackoverflow.com/a/53310545/9966843
+
 ## Accessing content
 
 For now, the only way to access content is to visit the Django admin

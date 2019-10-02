@@ -170,13 +170,8 @@ CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
 # User roles, these users are always admins.
 SYSTEM_ADMINS = [
-    "patsl736",
-    "samjo788",
-    "anglo547",
-    "jeswr740",
-    "ludfo119",
-    "fremo917",
     "emini757",
+    "svama961",
 ]
 
 # User configuration sheet (for getting user info from a google docs sheet)
@@ -255,4 +250,3 @@ CHANNEL_LAYERS = {
 }
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
-
