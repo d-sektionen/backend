@@ -15,12 +15,11 @@ A guideline is that **a normal visitor should not see `backend.d-sektionen.se` i
 
 Create a virtualenv with a Python 3 interpreter and activate it:
 
-```sh
-# Install virtualenv if not already installed
-pip install virtualenv
+Should be at least python version 3.7.
 
+```sh
 # Setup and activate virtualenv
-virtualenv -p python3 .venv
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 
