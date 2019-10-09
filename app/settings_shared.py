@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "wagtail.admin",
     "wagtail.core",
     "wagtail.api.v2",
+    "wagtail.contrib.search_promotions",
     # "grapple",
     "modelcluster",
     "taggit",
