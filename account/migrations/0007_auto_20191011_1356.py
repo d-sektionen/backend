@@ -4,7 +4,7 @@ from django.db import migrations, models
 from account.models import Profile
 
 
-def fix_liu_id():
+def fix_liu_id(ignored, ignored2):
     for profile in Profile.objects.all():
         try:
             int(profile.liu_card_id)
@@ -14,7 +14,7 @@ def fix_liu_id():
         profile.save()
 
 
-def fix_zero():
+def fix_zero(ignored, ignored2):
     for profile in Profile.objects.all():
         if profile.liu_card_id == 0:
             profile.liu_card_id = None
