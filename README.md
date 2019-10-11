@@ -15,13 +15,26 @@ A guideline is that **a normal visitor should not see `backend.d-sektionen.se` i
 
 Create a virtualenv with a Python 3 interpreter and activate it:
 
-```sh
-# Install virtualenv if not already installed
-pip install virtualenv
+Should be at least python version 3.7.
 
-# Setup and activate virtualenv
-virtualenv -p python3 .venv
+Setup and activate virtualenv
+
+### Linux/Mac
+```sh
+python3 -m venv .venv
 source .venv/bin/activate
+```
+
+### Windows
+Open Powershell as Administer 
+```
+set-executionpolicy remotesigned
+```
+
+In repository root folder
+```
+python -m venv .venv
+.venv/Scripts/activate
 ```
 
 **Note: All the following commands assume that you have activated the
@@ -52,6 +65,8 @@ Start the Django development server and begin developing:
 ```sh
 ./manage.py runserver
 ```
+
+If you're using MAC OS, check out: https://stackoverflow.com/a/53310545/9966843
 
 ## Accessing content
 
