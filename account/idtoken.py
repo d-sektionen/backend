@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.signing import Signer
 
 import datetime
-import jwt
 
 def generate_id_token(user):
   """
@@ -10,17 +10,21 @@ def generate_id_token(user):
   """
   expiry = datetime.datetime.utcnow() + datetime.timedelta(days=10)
   expiry = expiry.replace(second=0, microsecond=0, minute=0, hour=6)
-  return jwt.encode({'u': user.id, 'exp': expiry}, settings.SECRET_KEY, algorithm='HS256')
+  signer = Signer()
+  encoded = signer.sign(str(int(expiry.timestamp())) + "," + str(user.id))
+  return encoded
 
 def read_id_token(token):
   """
   Reads an identification token and returns the user it was generated for.
   """
+  signer = Signer()
+  data = signer.unsign(token).split(",")
+  now = datetime.datetime.utcnow().timestamp()
+  if now > int(data[0]):
+    return None
   try:
-    data = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-    user = User.objects.get(id=data['u'])
-    return user
-  except jwt.ExpiredSignatureError:
-    return None
+    return User.objects.get(id=data[1])
   except User.DoesNotExist:
-    return None
+      return None
+
