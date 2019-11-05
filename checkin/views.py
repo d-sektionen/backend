@@ -77,7 +77,7 @@ class RegisterViewSet(viewsets.ViewSet):
             if identifier.isnumeric():
                 # Checks if card id by checking if identifier is numeric. Could be improved.
                 identifier_type = "CI"
-            elif len(identifier) > 80:
+            elif "," in identifier:
                 # Checks if idtoken by checking if identifier is long, also a bad solution since usernames can be up to 150 chars.
                 identifier_type = "IT"
             else:
