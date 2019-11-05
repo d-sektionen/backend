@@ -17,10 +17,24 @@ Create a virtualenv with a Python 3 interpreter and activate it:
 
 Should be at least python version 3.7.
 
+Setup and activate virtualenv
+
+### Linux/Mac
 ```sh
-# Setup and activate virtualenv
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+### Windows
+Open Powershell as Administer 
+```
+set-executionpolicy remotesigned
+```
+
+In repository root folder
+```
+python -m venv .venv
+.venv/Scripts/activate
 ```
 
 **Note: All the following commands assume that you have activated the
