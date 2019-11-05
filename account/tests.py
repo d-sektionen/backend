@@ -18,11 +18,12 @@ def create_user():
     client = APIClient()
     client.login(username=user.username, password='Password123')
 
-    token_response = client.get('/account/token')
+    # vet inte om mina ändringar är vettiga
+    token_response = client.get('/account/token/')
     token_data = json.loads(token_response.content.decode('utf-8'))
 
     client.logout()
-    client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['token'])
+    client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['access'])
 
     return user, client
 
