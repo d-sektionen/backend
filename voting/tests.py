@@ -1,14 +1,14 @@
-#import json
-#
-#from channels.test import ChannelTestCase, WSClient
-#from django.contrib.auth.models import User
-#from django.test import TestCase
-#
-#from account.tests import AuthenticatedTestCase, create_admin, create_user
-#from .models import Meeting, Vote, Alternative, Scanner, Attendant, MadeVote
-#
-#
-## --- Reoccurring operations ---
+import json
+
+from channels.test import ChannelTestCase, WSClient
+from django.contrib.auth.models import User
+from django.test import TestCase
+
+from account.tests import AuthenticatedTestCase, create_admin, create_user
+from .models import Meeting, Vote, Alternative, Attendant, MadeVote
+
+
+# --- Reoccurring operations ---
 #def parse(response):
 #        return json.loads(response.content.decode('utf-8'))
 #
@@ -214,48 +214,6 @@
 #        self.alternative2 = Alternative.objects.create(text='Alternative 2', vote=self.vote)
 #        Attendant.objects.create(meeting=meeting, user=self.admin)
 #
-## TODO: Move to checkin
-##class ScannerTest(AuthenticatedTestCase):
-##    def setUp(self):
-##        self.section = create_section('Section')
-##        self.admin, self.client = create_admin([self.section])
-##
-##    def test_list(self):
-##        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-##        other_meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-##        user, user_client = create_user([self.section])
-##        Scanner.objects.create(user=user, meeting=meeting)
-##        Scanner.objects.create(user=user, meeting=other_meeting)
-##
-##        response = self.client.get('/voting/scanners/?meeting=' + str(meeting.id))
-##        data = json.loads(response.content.decode('utf-8'))
-##
-##        self.assertEqual(response.status_code, 200)
-##        self.assertEqual(len(data), 1)
-##        self.assertEqual(data[0]['user']['id'], user.id)
-##        self.assertEqual(data[0]['meeting']['id'], meeting.id)
-##        self.assertEqual(data[0]['meeting']['section']['id'], self.section.id)
-##
-##    def test_create(self):
-##        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-##        user, user_client = create_user([self.section])
-##
-##        response = self.client.post('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
-##        data = json.loads(response.content.decode('utf-8'))
-##
-##        self.assertEqual(response.status_code, 201)
-##        self.assertEqual(data['user']['id'], user.id)
-##        self.assertEqual(data['meeting']['id'], meeting.id)
-##
-##    def test_destroy(self):
-##        meeting = Meeting.objects.create(name='Meeting 1', section=self.section)
-##        user, user_client = create_user([self.section])
-##        Scanner.objects.create(user=user, meeting=meeting)
-##
-##        response = self.client.delete('/voting/scanners/', {'username': user.username, 'meeting': meeting.id})
-##        self.assertEqual(response.status_code, 200)
-##        self.assertEqual(meeting.scanner_set.count(), 0)
-#
 #
 #class AttendantTest(AuthenticatedTestCase):
 #
@@ -301,7 +259,7 @@
 #    @classmethod
 #    def setUpTestData(self):
 #        self.users = [create_user() for _ in range(5)]
-#        self.scanners = [create_user() for _ in range(2)]
+##        self.scanners = [create_user() for _ in range(2)]
 #        self.admin, self.admin_client = create_admin()
 #
 #    def test_creation(self):
@@ -310,27 +268,27 @@
 #        self.assertEqual(response.status_code, 201)
 #
 #
-#    def test_perfect_meeting(self):       
-#        
-#        admin_create_meeting(self, self.admin_client)
-#
-#        def admin_add_scanners(self):
-#            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
-#
-#            for scanner in self.scanners:
-#                scanner_res = self.admin_client.post('/voting/scanners/', {'username': scanner[0].username, 'meeting': meeting_id})
-#                self.assertEqual(scanner_res.status_code, 201)
-#        
-#        admin_add_scanners(self)
-#
-#        def scanner_add_attendants(self):
-#            meeting_id = parse(self.scanners[1][1].get('/voting/scanners/'))[0]['meeting']['id']
-#
-#            for user in self.users:
-#                attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
-#                self.assertEqual(attendant_res.status_code, 201)
-#        
-#        scanner_add_attendants(self)
+##    def test_perfect_meeting(self):       
+##        
+##        admin_create_meeting(self, self.admin_client)
+##
+##        def admin_add_scanners(self):
+##            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+##
+##            for scanner in self.scanners:
+##                scanner_res = self.admin_client.post('/voting/scanners/', {'username': scanner[0].username, 'meeting': meeting_id})
+##                self.assertEqual(scanner_res.status_code, 201)
+##        
+##        admin_add_scanners(self)
+##
+##        def scanner_add_attendants(self):
+##            meeting_id = parse(self.scanners[1][1].get('/voting/scanners/'))[0]['meeting']['id']
+##
+##            for user in self.users:
+##                attendant_res = self.scanners[1][1].post('/voting/attendants/', {'username': user[0].username, 'meeting': meeting_id})
+##                self.assertEqual(attendant_res.status_code, 201)
+##        
+##        scanner_add_attendants(self)
 #			
 #        # Run vote
 #        def run_vote(self):
@@ -372,7 +330,7 @@
 #    @classmethod
 #    def setUpTestData(self):
 #        self.users = [create_user() for _ in range(2)]
-#        self.scanner, self.scanner_client = create_user()
+##        self.scanner, self.scanner_client = create_user()
 #        self.admin, self.admin_client = create_admin()
 #        
 #    def test_leave(self):
@@ -399,7 +357,7 @@
 #    @classmethod
 #    def setUpTestData(self):
 #        self.user, self.user_client = create_user()
-#        self.scanner, self.scanner_client  = create_user()
+##        self.scanner, self.scanner_client  = create_user()
 #        self.admin, self.admin_client = create_admin()
 #
 #    def test_break_after_vote(self):
@@ -411,14 +369,14 @@
 #            response = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
 #            self.assertEqual(response.status_code, 201)
 #
-#        def scanner_add_attendants(self):
-#            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
-#            self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-#        
-#        def scanner_drop_attendant(self):
-#            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
-#            user_drop_response = self.scanner_client.delete('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
-#            self.assertEqual(user_drop_response.status_code, 200)
+##        def scanner_add_attendants(self):
+##            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+##            self.scanner_client.post('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+##        
+##        def scanner_drop_attendant(self):
+##            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+##            user_drop_response = self.scanner_client.delete('/voting/attendants/', {'username': self.user.username, 'meeting': meeting_id})
+##            self.assertEqual(user_drop_response.status_code, 200)
 #        
 #        def attendant_vote_fail(self):
 #            vote_obj = parse(self.user_client.get('/voting/votes/?current=true'))[0]
@@ -429,11 +387,11 @@
 #
 #        admin_create_meeting(self, self.admin_client)
 #        admin_actions(self)
-#        scanner_add_attendants(self)
+##        scanner_add_attendants(self)
 #        attendant_votes(self, 0, 0, self.user_client)
-#        scanner_drop_attendant(self)
-#        scanner_add_attendants(self)
-#        attendant_vote_fail(self)
+##        scanner_drop_attendant(self)
+##        scanner_add_attendants(self)
+##        attendant_vote_fail(self)
 #
 #class ForgotLiUCard(TestCase):
 #    @classmethod
@@ -472,7 +430,7 @@
 #        section = 'D-sektionen'
 #        self.section = create_section(name=section)
 #        self.section2 = create_section(name="Test-sektionen")
-#        self.scanner, self.scanner_client = create_user([self.section2])
+##        self.scanner, self.scanner_client = create_user([self.section2])
 #        self.user, self.user_client = create_user([self.section])
 #        self.admin, self.admin_client = create_admin([self.section])
 #
@@ -480,19 +438,19 @@
 #        # Create meeting
 #        
 #        # Make Scanner
-#        def admin_add_scanners(self):
-#            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
-#            scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
-#            self.assertEqual(scanner_res.status_code, 201)
+##        def admin_add_scanners(self):
+##            meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
+##            scanner_res = self.admin_client.post('/voting/scanners/', {'username': self.scanner.username, 'meeting': meeting_id})
+##            self.assertEqual(scanner_res.status_code, 201)
 #
 #        #Scanner adds himself, should fail since scanner is member of the wrong section
-#        def scanner_add_self(self):
-#            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
-#            add_user_fail_response = self.scanner_client.post('/voting/attendants/', {'username': self.scanner.username, 'meeting': meeting_id})
-#            self.assertEqual(add_user_fail_response.status_code, 400)
-#
-#            vote_res = parse(self.scanner_client.get('/voting/votes/'))
-#            self.assertEqual(vote_res, [])    
+##        def scanner_add_self(self):
+##            meeting_id = parse(self.scanner_client.get('/voting/scanners/'))[0]['meeting']['id']
+##            add_user_fail_response = self.scanner_client.post('/voting/attendants/', {'username': self.scanner.username, 'meeting': meeting_id})
+##            self.assertEqual(add_user_fail_response.status_code, 400)
+##
+##            vote_res = parse(self.scanner_client.get('/voting/votes/'))
+##            self.assertEqual(vote_res, [])    
 #        
 #        #def admin_check_attendants(self):
 #        #    meeting_id = parse(self.admin_client.get('/voting/meetings/'))[0]['id']
@@ -501,7 +459,7 @@
 #        #       print(attendant)
 #
 #        admin_create_meeting(self, self.admin_client, self.section.id)
-#        admin_add_scanners(self)
+##        admin_add_scanners(self)
 #        scanner_add_self(self)
 #
 #class PizzaBreak(TestCase):
@@ -602,7 +560,7 @@
 #        self.assertEqual(scanner_res.status_code, 400)
 #
 #    def test_duplicate_attendant(self):
-#        Scanner.objects.create(user=self.user, meeting=self.meeting)
+##        Scanner.objects.create(user=self.user, meeting=self.meeting)
 #
 #        attendant, attendant_client = create_user([self.section])
 #        attendant_res = self.user_client.post('/voting/attendants/', {'username': attendant.username, 'meeting': self.meeting.id})
@@ -636,12 +594,12 @@
 #        self.users = {
 #            ADMIN: create_admin([self.own_section]),
 #            USER: create_user([self.own_section]),
-#            SCANNER: create_user([self.own_section]),
+##            SCANNER: create_user([self.own_section]),
 #            OLD_SCANNER: create_user([self.own_section]),
 #            ATTENDANT: create_user([self.own_section]),
 #            OTHER_ADMIN: create_admin([self.other_section]),
 #            OTHER_USER: create_user([self.other_section]),
-#            OTHER_SCANNER: create_user([self.other_section]),
+##            OTHER_SCANNER: create_user([self.other_section]),
 #            OTHER_ATTENDANT: create_user([self.other_section]),
 #        }
 #
@@ -649,9 +607,9 @@
 #        self.old_meeting = Meeting.objects.create(name='Old meeting', section=self.own_section)
 #        self.other_meeting = Meeting.objects.create(name='Other meeting', section=self.other_section)
 #
-#        Scanner.objects.create(meeting=self.own_meeting, user=self.users[SCANNER][0])
-#        Scanner.objects.create(meeting=self.old_meeting, user=self.users[OLD_SCANNER][0])
-#        Scanner.objects.create(meeting=self.other_meeting, user=self.users[OTHER_SCANNER][0])
+##        Scanner.objects.create(meeting=self.own_meeting, user=self.users[SCANNER][0])
+##        Scanner.objects.create(meeting=self.old_meeting, user=self.users[OLD_SCANNER][0])
+##        Scanner.objects.create(meeting=self.other_meeting, user=self.users[OTHER_SCANNER][0])
 #
 #        Attendant.objects.create(meeting=self.own_meeting, user=self.users[ATTENDANT][0])
 #        Attendant.objects.create(meeting=self.other_meeting, user=self.users[OTHER_ATTENDANT][0])
@@ -764,7 +722,7 @@
 #        self.assertIsNone(client.receive())
 #
 #        # Test addition of scanners
-#        scanner = Scanner.objects.create(user=user, meeting=meeting)
+##        scanner = Scanner.objects.create(user=user, meeting=meeting)
 #        message = client.receive(json=True)
 #        self.assertEqual('scanner_list', message['type'])
 #        self.assertEqual(1, len(message['data']))
@@ -813,4 +771,5 @@
 #
 #        message = context.exception.args[0]
 #        self.assertTrue('Not permitted' in message)
+#
 #
