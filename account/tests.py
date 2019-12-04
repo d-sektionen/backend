@@ -52,8 +52,3 @@ def _next_username():
     global num_users
     num_users += 1
     return 'user' + str(num_users)
-
-
-class AuthenticatedTestCase(TestCase):
-    def setUp(self):
-        self.user, self.client = create_user()
