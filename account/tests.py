@@ -30,11 +30,23 @@ def create_user():
 
 def create_admin():
     # TODO: should probably be a specific admin type.
-    user, client = create_user()
+    #user, client = create_user()
     # TODO: Make the dude an admin.
+    #return user, client
+
+    user = User.objects.create_superuser(username=_next_username(), email=None, password='Password123')
+
+    client = APIClient()
+    client.login(username=user.username, password='Password123')
+
+    # vet inte om mina ändringar är vettiga
+    token_response = client.get('/account/token/')
+    token_data = json.loads(token_response.content.decode('utf-8'))
+
+    client.logout()
+    client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['access'])
 
     return user, client
-
 
 def _next_username():
     global num_users
