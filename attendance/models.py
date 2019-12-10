@@ -12,7 +12,6 @@ class Occurrence(Event):
     ACTIONS = ["Registrera"]
 
     members_only = models.BooleanField(default=False)
-    clear_data = models.DateField()
     attendant_limit = models.IntegerField(
         default=0, help_text="For no limit the value should be 0."
     )

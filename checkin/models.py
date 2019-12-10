@@ -9,7 +9,7 @@ class Event(models.Model):
 
   name = models.CharField(max_length=64)
   archived = models.BooleanField(default=False)
-
+  clear_data = models.DateField()
   ACTIONS = []
 
   def __str__(self):
