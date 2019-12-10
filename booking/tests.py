@@ -15,30 +15,25 @@ class BookingTest(AuthenticatedTestCase):
         Item.objects.create(name="item1", description="test-item1")
         Item.objects.create(name="item2", description="test-item2")
 
-        
-    def testItems(self):
-        item1 = Item.objects.get(name="item1")
-        item2 = Item.objects.get(name="item2")
-
-        self.assertTrue(item1.description, "test-item1")
-        self.assertTrue(item2.description, "test-item2")
-
     def testBooking(self):
-        item1 = Item.objects.get(name="item1")
+        users = [create_admin() for _ in range(5)]
 
-        admin, client = create_admin()
+        Booking.objects.create(item=Item.objects.get(name='item1', description='test-item1'),
+                               start=dt.datetime.now(),end=dt.datetime.now() +\
+                               dt.timedelta(days=1), user=users[0][0])
 
-        Booking.objects.create(item=item1,start=dt.datetime.now(),end=dt.datetime.now() +\
-                               dt.timedelta(days=1), user=admin)
-        booking = Booking.objects.get(item=item1)
+        users[0][1].login(username=users[0][0].username, password="Password123")
+        response = users[0][1].get("/booking/bookings/")
+        data = json.loads(response.content.decode('utf-8'))
+        users[0][1].logout()
 
-#    def testTodoComeUpWithAName(self):
-#        users = [create_admin() for _ in range(5)]
-#        for identifier, (user, client) in users.items():
-#            print("identifier: " + identifier)
-#            print("user, client tuple: " + (user, client))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data[0]['item']['name'], 'item1')
+        self.assertEqual(data[0]['user']['username'], users[0][0].username)
 
-
-
-
-        
+        '''
+        self.client.login(username=self.admin.username, password="Password123")
+        response = self.client.get('/checkin/doorkeepers/', {"user_username":self.admin.username, "event_id":str(meeting.id)})
+        data = json.loads(response.content.decode('utf-8'))
+        self.client.logout()
+        '''
