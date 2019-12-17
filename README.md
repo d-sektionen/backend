@@ -73,6 +73,11 @@ If you're using MAC OS, check out: https://stackoverflow.com/a/53310545/9966843
 For now, the only way to access content is to visit the Django admin
 site. This can be found at http://127.0.0.1:8000/admin.
 
+If you are denied access to anything, try running the following in your terminal:
+```sh
+./manage.py add_super_user <username>
+```
+
 # Documentation
 
 ## Account

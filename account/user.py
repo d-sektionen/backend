@@ -43,18 +43,6 @@ def set_name(user):
 
 
 """
-Sets a user to admin if declared as such in django settings.
-"""
-
-
-def apply_admin_permissions(user):
-    if user.username in settings.SYSTEM_ADMINS:
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
-
-
-"""
 Creates a user with the given username (usually liu_id)
 The user gets privileges and their name set.
 """
@@ -64,7 +52,6 @@ def get_or_create_user(username):
     # "if student" must've gone somewhere
     user, created = User.objects.get_or_create(username=username)
 
-    apply_admin_permissions(user)
     set_name(user)
 
     return user, created
