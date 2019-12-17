@@ -173,6 +173,7 @@ CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 SYSTEM_ADMINS = [
     "emini757",
     "svama961",
+    "ivaka037",
 ]
 
 # User configuration sheet (for getting user info from a google docs sheet)

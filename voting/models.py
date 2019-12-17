@@ -23,21 +23,39 @@ class Meeting(Event):
     def on_register(self, user, action):
         if action == "0":
             if not check_membership(user.username):
-                return Response({"detail": 'User is not a member of D-sektionen.'}, status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": 'User is not a member of D-sektionen.',
+                    "status_message": self.get_status_message()},
+                    status.HTTP_400_BAD_REQUEST)
             
             attendant, created = Attendant.objects.get_or_create(user=user, meeting=self)
             if not created:
-                return Response({"detail": user.username + ' is already registered on the meeting.'}, status.HTTP_400_BAD_REQUEST)
-            return Response({"detail": user.username + ' was successfully registered.', 'icon': 'FiUserCheck'}, status.HTTP_200_OK)
+                return Response({"detail": user.username + ' is already registered on the meeting.',
+                    "status_message": self.get_status_message()},
+                    status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": user.username + ' was successfully registered.', 'icon': 'FiUserCheck',
+                    "status_message": self.get_status_message()},
+                status.HTTP_200_OK)
             
         elif action == "1":
             attendant = Attendant.objects.filter(user=user, meeting=self).first()
             if attendant is not None:
                 attendant.delete()
-                return Response({'detail': user.username + ' was successfully unregistered.', 'icon': 'FiUserX'}, status.HTTP_200_OK)
-            return Response({"detail": user.username + ' is not registered on the meeting.'}, status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': user.username + ' was successfully unregistered.', 'icon': 'FiUserX',
+                    "status_message": self.get_status_message()},
+                    status.HTTP_200_OK)
+            return Response({"detail": user.username + ' is not registered on the meeting.', 
+                    "status_message": self.get_status_message()},
+                status.HTTP_400_BAD_REQUEST)
 
-        return Response({"detail": 'Unknown action'}, status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": 'Unknown action', 
+                    "status_message": self.get_status_message()},
+            status.HTTP_400_BAD_REQUEST)
+
+    def get_status_message(self):
+        attendee_count = Attendant.objects.filter(meeting__id=self.id).count()
+        count_str = f"{attendee_count}"
+        status_str = f"Meeting currently has {count_str} registered attendees."
+        return status_str
 
 class Attendant(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)

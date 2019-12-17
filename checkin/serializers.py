@@ -17,14 +17,18 @@ class RegisterSerializer(serializers.Serializer):
 
 class EventSerializer(serializers.ModelSerializer):
   actions = serializers.SerializerMethodField()
+  status_message = serializers.SerializerMethodField()
+
+  def get_status_message(self, obj):
+      return obj.get_status_message()
 
   def get_actions(self, obj):
     return obj.ACTIONS
 
   class Meta:
     model = Event
-    fields = ('id', 'name', 'archived', 'actions')
-    read_only_fields = ('id', 'name', 'archived', 'actions')
+    fields = ('id', 'name', 'archived', 'actions', 'status_message')
+    read_only_fields = ('id', 'name', 'archived', 'actions', 'status_message')
 
 class DoorkeeperSerializer(serializers.ModelSerializer):
     user_username = serializers.SlugRelatedField(slug_field='username', write_only=True, queryset=User.objects.all(), source="user")

@@ -31,7 +31,8 @@ class Occurrence(Event):
 
         if already_registered:
             return Response(
-                {"detail": user.username + " is already registered."},
+                {"detail": user.username + " is already registered.",
+                    "status_message": self.get_status_message()},
                 status.HTTP_400_BAD_REQUEST,
             )
 
@@ -41,26 +42,30 @@ class Occurrence(Event):
                 {
                     "detail": "Limit of "
                     + str(self.attendant_limit)
-                    + " users has been reached."
+                    + " users has been reached.",
+                    "status_message": self.get_status_message()
                 },
                 status.HTTP_400_BAD_REQUEST,
             )
 
         if self.members_only and not check_membership(user.username):
             return Response(
-                {"detail": "User is not a member of D-sektionen."},
+                {"detail": "User is not a member of D-sektionen.",
+                    "status_message": self.get_status_message()},
                 status.HTTP_400_BAD_REQUEST,
             )
 
         if in_string_list(self.blacklist, user.username):
             return Response(
-                {"detail": "User is on the blacklist of this event."},
+                {"detail": "User is on the blacklist of this event.",
+                    "status_message": self.get_status_message()},
                 status.HTTP_400_BAD_REQUEST,
             )
 
         if self.whitelist and not in_string_list(self.whitelist, user.username):
             return Response(
-                {"detail": "User is not on the whitelist of this event."},
+                {"detail": "User is not on the whitelist of this event.",
+                    "status_message": self.get_status_message()},
                 status.HTTP_400_BAD_REQUEST,
             )
 
@@ -69,7 +74,18 @@ class Occurrence(Event):
             {
                 "detail": user.username + " was successfully registered.",
                 "icon": "FiUserCheck",
+                "status_message": self.get_status_message(),
             },
             status.HTTP_200_OK,
         )
+
+    def get_status_message(self):
+        attendee_count = self.attendants.count()
+        count_str = f"{attendee_count}"
+
+        if self.attendant_limit:
+            count_str = f"{attendee_count} out of {self.attendant_limit}"
+
+        status_str = f"Event currently has {count_str} registered attendees."
+        return status_str
 

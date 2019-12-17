@@ -19,6 +19,10 @@ class Event(models.Model):
   def on_register(self, user, action):
     return Response({"detail": 'You can not register someone on a plain Event, the Event class should be extended.'}, status.HTTP_400_BAD_REQUEST)
 
+  # TODO: Define get_event_status
+  def get_status_message(self):
+    return ""
+
 class Doorkeeper(models.Model):
   user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
   event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
