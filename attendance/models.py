@@ -1,5 +1,5 @@
 from django.db import models
-from checkin.models import Event
+from checkin.models import EventBase
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,7 +8,7 @@ from membership.utils import check_membership
 from .utils import in_string_list
 
 
-class Occurrence(Event):
+class Occurrence(EventBase):
     ACTIONS = ["Registrera"]
 
     members_only = models.BooleanField(default=False)

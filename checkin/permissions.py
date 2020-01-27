@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 from django.contrib.contenttypes.models import ContentType
-from .models import Event, Doorkeeper
+from .models import EventBase, Doorkeeper
 
 class OnlyDoorkeepersRegister(BasePermission):
     def has_permission(self, request, view):
@@ -11,7 +11,7 @@ class OnlyDoorkeepersRegister(BasePermission):
 
       if request.user:
         try:
-          event = Event.objects.get(pk=request.data['event'])
+          event = EventBase.objects.get(pk=request.data['event'])
         except:
           return False
         return Doorkeeper.objects.filter(user=request.user, event=event).exists()
@@ -33,12 +33,12 @@ class DoorkeeperPermission(BasePermission):
           return request.user.has_perm('checkin.view_doorkeeper') if request.method == 'GET' else True
         
         try:
-          event = Event.objects.get_subclass(pk=event_id)
-        except Event.DoesNotExist:
+          event = EventBase.objects.get_subclass(pk=event_id)
+        except EventBase.DoesNotExist:
           return True
 
         # Create permission string for subclass of event
-        # It will check if a user has permission to manipulate the Event type instead of a Doorkeeper.
+        # It will check if a user has permission to manipulate the EventBase type instead of a Doorkeeper.
         # Which is not entirely correct but should be fine.
         event_meta = ContentType.objects.get_for_model(event)
         event_permission = lambda t: event_meta.app_label + '.' + t + '_' + event_meta.model
@@ -51,10 +51,10 @@ class DoorkeeperPermission(BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        event = Event.objects.get_subclass(pk=obj.event.id)
+        event = EventBase.objects.get_subclass(pk=obj.event.id)
 
         # Create permission string for subclass of event
-        # It will check if a user has permission to manipulate the Event type instead of a Doorkeeper.
+        # It will check if a user has permission to manipulate the EventBase type instead of a Doorkeeper.
         # Which is not entirely correct but should be fine.
         event_meta = ContentType.objects.get_for_model(event)
         event_permission = lambda t: event_meta.app_label + '.' + t + '_' + event_meta.model

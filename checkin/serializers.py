@@ -3,10 +3,10 @@ from django.contrib.auth.models import User
 
 from account.serializers import SimpleUserSerializer
 
-from .models import Event, Doorkeeper
+from .models import EventBase, Doorkeeper
 
 class RegisterSerializer(serializers.Serializer):
-  event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all())
+  event = serializers.PrimaryKeyRelatedField(queryset=EventBase.objects.all())
   identifier = serializers.CharField(max_length=200)
   identifier_type = serializers.ChoiceField([
     ('AU', 'Automatic'),
@@ -15,7 +15,7 @@ class RegisterSerializer(serializers.Serializer):
   ], default="AU")
   action = serializers.CharField(max_length=24)
 
-class EventSerializer(serializers.ModelSerializer):
+class EventBaseSerializer(serializers.ModelSerializer):
   actions = serializers.SerializerMethodField()
   status_message = serializers.SerializerMethodField()
 
@@ -26,15 +26,15 @@ class EventSerializer(serializers.ModelSerializer):
     return obj.ACTIONS
 
   class Meta:
-    model = Event
+    model = EventBase
     fields = ('id', 'name', 'archived', 'actions', 'status_message')
     read_only_fields = ('id', 'name', 'archived', 'actions', 'status_message')
 
 class DoorkeeperSerializer(serializers.ModelSerializer):
     user_username = serializers.SlugRelatedField(slug_field='username', write_only=True, queryset=User.objects.all(), source="user")
     user = SimpleUserSerializer(read_only=True)
-    event_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Event.objects.all(), source='event')
-    event = EventSerializer(read_only=True)
+    event_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=EventBase.objects.all(), source='event')
+    event = EventBaseSerializer(read_only=True)
 
     class Meta:
         model = Doorkeeper
