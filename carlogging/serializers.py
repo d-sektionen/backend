@@ -10,10 +10,10 @@ class LoggSerializer(serializers.ModelSerializer):
         read_only_fields = ("cost", "user")
     
     cost = serializers.SerializerMethodField()
-    user = SimpleUserSerializer(read_only=True)
-    #user = serializers.HiddenField(
-    #    default=serializers.CurrentUserDefault(),
-    #)
+    #user = SimpleUserSerializer(read_only=True)
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+    )
     def get_cost(self, obj):
         return obj.calc_cost()
 
