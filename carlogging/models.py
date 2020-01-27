@@ -13,7 +13,6 @@ class Logg(models.Model):
     trailer_days = models.IntegerField(null=True)
     active_member = models.BooleanField(default=False)
 
-    @property
     def calc_cost(self):
         trailer_daily_cost = 100
         cost_per_km = 3 if self.active_member else (4 if check_membership(self.user.username) else 6)
@@ -26,7 +25,7 @@ class Logg(models.Model):
         cost = 0
         if self.trailer:
             cost += trailer_daily_cost*self.trailer_days
-        cost += (self.end_km - self.start_km) * cost_per_km + self.car_days * start_cost
+        cost += (self.end_km - self.start_km) * cost_per_km + (self.car_days-1) * start_cost
         return cost
         
         
