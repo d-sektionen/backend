@@ -1,14 +1,19 @@
 from rest_framework import serializers
 from .models import Logg
+from account.serializers import SimpleUserSerializer
+from django.contrib.auth.models import User
 
 class LoggSerializer(serializers.ModelSerializer):
     class Meta:
         model = Logg
         fields = ("start_km", "end_km", "user", "cost", "trailer", "trailer_days", "car_days", "active_member")
-        read_only_fields = ("cost",)
+        read_only_fields = ("cost", "user")
     
     cost = serializers.SerializerMethodField()
-
+    user = SimpleUserSerializer(read_only=True)
+    #user = serializers.HiddenField(
+    #    default=serializers.CurrentUserDefault(),
+    #)
     def get_cost(self, obj):
         return obj.calc_cost()
 

@@ -16,7 +16,7 @@ class Logg(models.Model):
     def calc_cost(self):
         trailer_daily_cost = 100
         cost_per_km = 3 if self.active_member else (4 if check_membership(self.user.username) else 6)
-        start_cost = 0 if self.active_member or self.car_days==1 else 30
+        start_cost = 0 if self.active_member or self.car_days == 1 or self.car_days == 0 else 30
 
         if self.start_km is None or self.end_km is None:
             if not self.trailer:
