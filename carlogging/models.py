@@ -14,6 +14,8 @@ class Logg(models.Model):
     active_member = models.BooleanField(default=False)
 
     def calc_cost(self):
+        if self.user is None:
+            return 0
         trailer_daily_cost = 100
         cost_per_km = 3 if self.active_member else (4 if check_membership(self.user.username) else 6)
         start_cost = 0 if self.active_member or self.car_days == 1 or self.car_days == 0 else 30
