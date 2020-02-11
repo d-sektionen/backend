@@ -38,6 +38,15 @@ class BookingSerializer(serializers.ModelSerializer):
             "description",
         )
 
+    def validate_user_id(self, value):
+        user = self.context["request"].user
+
+        if (not user.has_perm("booking.add_booking")) and user.id != value.id:
+            raise serializers.ValidationError(
+                "You are only allowed to book for yourself."
+            )
+        return value
+
     def validate(self, attrs):
         # Start should be before end
         if attrs["start"] > attrs["end"]:
