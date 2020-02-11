@@ -28,11 +28,11 @@ class AttendantSerializer(serializers.ModelSerializer):
     )
     meeting = MeetingSerializer(read_only=True)
 
-    def validate_user_id(self, value):
+    def validate_user_username(self, value):
         """
         Validate that user is a member.
         """
-        user = User.objects.get(id=value)
+        user = User.objects.get(username=value)
         if not check_membership(user.get_username()):
             raise serializers.ValidationError("User is not a member")
         return value
