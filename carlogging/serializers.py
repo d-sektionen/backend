@@ -11,9 +11,15 @@ class LoggSerializer(serializers.ModelSerializer):
     
     cost = serializers.SerializerMethodField()
     user = SimpleUserSerializer(read_only=True)
+    
     #user = serializers.HiddenField(
     #    default=serializers.CurrentUserDefault(),
     #)
+
+    def create(self, validated_data, **kwargs):
+        validated_data['user'] = self.context['request'].user
+        return Logg.objects.create(**validated_data)
+
     def get_cost(self, obj):
         return obj.calc_cost()
 
