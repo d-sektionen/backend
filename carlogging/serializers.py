@@ -9,7 +9,6 @@ class LoggSerializer(serializers.ModelSerializer):
         fields = ("start_km", "end_km", "user", "cost", "trailer", "trailer_days", "car_days", "active_member")
         read_only_fields = ("cost", "user")
     
-    cost = serializers.SerializerMethodField()
     user = SimpleUserSerializer(read_only=True)
     
     #user = serializers.HiddenField(
@@ -19,9 +18,6 @@ class LoggSerializer(serializers.ModelSerializer):
     def create(self, validated_data, **kwargs):
         validated_data['user'] = self.context['request'].user
         return Logg.objects.create(**validated_data)
-
-    def get_cost(self, obj):
-        return obj.calc_cost()
 
     def validate(self, attrs):
         if attrs['start_km'] == None:

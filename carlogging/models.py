@@ -13,6 +13,10 @@ class Logg(models.Model):
     trailer_days = models.IntegerField(null=True)
     active_member = models.BooleanField(default=False)
 
+    def save(self, *args, **kwarg):
+        self.cost = self.calc_cost()
+        super(Logg, self).save(*args, **kwarg)
+    
     def calc_cost(self):
         if self.user is None:
             return 0
