@@ -112,3 +112,11 @@ class Alternative(models.Model):
 class MadeVote(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
+
+
+class SpeakerRequest(models.Model):
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'meeting')

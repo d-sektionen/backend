@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from voting.models import Meeting, Attendant, Vote, Alternative, MadeVote
+from voting.models import Meeting, Attendant, Vote, Alternative, MadeVote, SpeakerRequest
 
 
 class MeetingAdmin(admin.ModelAdmin):
@@ -11,6 +11,9 @@ class AttendantAdmin(admin.ModelAdmin):
 
 class VoteAdmin(admin.ModelAdmin):
     list_display = ('question', 'meeting', 'open')
+
+class SpeakerRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'meeting')
 
 
 class AlternativeAdmin(admin.ModelAdmin):
@@ -27,3 +30,4 @@ admin.site.register(Attendant, AttendantAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(Alternative, AlternativeAdmin)
 admin.site.register(MadeVote, MadeVoteAdmin)
+admin.site.register(SpeakerRequest, SpeakerRequestAdmin)

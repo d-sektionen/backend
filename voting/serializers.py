@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from membership.utils import check_membership
 from account.serializers import SimpleUserSerializer
 
-from .models import Meeting, Attendant, Vote, MadeVote, Alternative
+from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 
 
 class MeetingSerializer(serializers.ModelSerializer):
@@ -79,3 +79,13 @@ class MadeVoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = MadeVote
         fields = ("id", "user", "vote")
+
+
+class SpeakerRequestSerializer(serializers.ModelSerializer):
+    meeting_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=Meeting.objects.all(), source="meeting"
+    )
+    user = SimpleUserSerializer(read_only=True)
+    class Meta:
+        model = SpeakerRequest
+        fields = ("id", "user", "meeting_id")

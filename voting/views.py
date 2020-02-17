@@ -3,16 +3,19 @@ from django.db.models import F, Q
 from rest_framework import mixins, viewsets, status, serializers, exceptions
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
+from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
 from .permissions import VotePermission
 
-from .models import Meeting, Attendant, Vote, MadeVote, Alternative
+from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 from .serializers import (
     MeetingSerializer,
     AttendantSerializer,
     VoteListSerializer,
     VoteDetailsSerializer,
+    SpeakerRequestSerializer
 )
 
 
@@ -30,6 +33,42 @@ class MeetingViewSet(NoDeleteViewSet):
     queryset = Meeting.objects.filter(archived=False)
     serializer_class = MeetingSerializer
     permission_classes = (FixedDjangoModelPermissions,)
+
+
+class SpeakerRequestView(
+        mixins.CreateModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.ListModelMixin,
+        GenericAPIView):
+
+    queryset = SpeakerRequest.objects.all()
+    serializer_class = SpeakerRequestSerializer
+
+    #TODO: Add error handling for missing meeting parameter.
+    def get_queryset(self):
+        queryset = SpeakerRequest.objects.all()
+        queryset = queryset.filter(meeting_id=self.request.query_params.get("meeting_id", None))
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_object(self):
+        queryset = self.get_queryset()
+
+        obj = get_object_or_404(queryset, user=self.request.user)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    #TODO: Allow admin to destroy any
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 
 class AttendantViewSet(

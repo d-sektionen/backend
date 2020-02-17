@@ -11,4 +11,5 @@ router.register(r'made_votes', views.MadeVoteViewSet, base_name='made_vote')
 
 urlpatterns = [
     url(r'^', include(router.urls)),
+    url(r"speakers/", views.SpeakerRequestView.as_view())
 ]
