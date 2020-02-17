@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "logger",
     "checkin",
     "attendance",
+    "carlogging",
     # ---
     # Django related
     # ---
