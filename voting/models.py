@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from membership.utils import check_membership
-from checkin.models import Event
+from checkin.models import EventBase
 
-class Meeting(Event):
+class Meeting(EventBase):
     ACTIONS = ['Lägg till deltagare', 'Ta bort deltagare']
 
     current_vote = models.ForeignKey('Vote', blank=True, null=True, related_name='+', on_delete=models.CASCADE)

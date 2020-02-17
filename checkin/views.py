@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from account.models import Profile
 from account.idtoken import read_id_token
 from . import serializers
-from .models import Event, Doorkeeper
+from .models import EventBase, Doorkeeper
 from .permissions import OnlyDoorkeepersRegister, DoorkeeperPermission
 
 
@@ -32,13 +32,13 @@ class DoorkeeperViewSet(
             return Doorkeeper.objects.all()
 
 
-class EventViewSet(viewsets.ReadOnlyModelViewSet):
+class EventBaseViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows Events where the user is a doorkeeper items to be viewed.
     """
 
-    queryset = Event.objects.all().select_subclasses()
-    serializer_class = serializers.EventSerializer
+    queryset = EventBase.objects.all().select_subclasses()
+    serializer_class = serializers.EventBaseSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -50,7 +50,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RegisterViewSet(viewsets.ViewSet):
     """
-  Viewset with only POST for Doorkeepers to do an action for people to an Event.
+  Viewset with only POST for Doorkeepers to do an action for people to an EventBase.
   """
 
     serializer_class = serializers.RegisterSerializer
@@ -103,7 +103,7 @@ class RegisterViewSet(viewsets.ViewSet):
             )
 
         action = serializer.data["action"]
-        event = Event.objects.get_subclass(pk=serializer.data["event"])
+        event = EventBase.objects.get_subclass(pk=serializer.data["event"])
 
         return event.on_register(
             user, action

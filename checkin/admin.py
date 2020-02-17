@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import Event, Doorkeeper
+from .models import EventBase, Doorkeeper
 
 
-class EventAdmin(admin.ModelAdmin):
+class EventBaseAdmin(admin.ModelAdmin):
     list_display = ("name", "archived")
     list_filter = ("archived",)
     search_fields = ("name",)
@@ -20,5 +20,5 @@ class DoorkeeperAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Event, EventAdmin)
+admin.site.register(EventBase, EventBaseAdmin)
 admin.site.register(Doorkeeper, DoorkeeperAdmin)

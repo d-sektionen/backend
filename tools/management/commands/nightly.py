@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from checkin.models import Event
+from checkin.models import EventBase
 import datetime
 
 class Command(BaseCommand):
@@ -10,7 +10,7 @@ class Command(BaseCommand):
         """
         Deletes all events where the clear_data date has passed
         """
-        events = Event.objects.all()
+        events = EventBase.objects.all()
         d = datetime.date.today()
         for event in events:
             if event.clear_data < d:

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Item, Booking
+from .models import Item, Booking, Blacklisted
 
 
 class BookingAdmin(admin.ModelAdmin):
@@ -19,5 +19,10 @@ class ItemAdmin(admin.ModelAdmin):
     list_display = ("name", "description", "terms")
 
 
+class BlacklistedAdmin(admin.ModelAdmin):
+    list_display = ("user", "time", "expires")
+
+
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Booking, BookingAdmin)
+admin.site.register(Blacklisted, BlacklistedAdmin)

@@ -5,7 +5,7 @@ from . import views
 
 router = routers.DefaultRouter()
 router.register(r'register', views.RegisterViewSet, base_name='register')
-router.register(r'events', views.EventViewSet, base_name='event')
+router.register(r'events', views.EventBaseViewSet, base_name='event')
 router.register(r'doorkeepers', views.DoorkeeperViewSet, base_name='doorkeeper')
 # router.register(r'attendants', views.AttendantViewSet)
 # router.register(r'votes', views.VoteViewSet, base_name='vote')

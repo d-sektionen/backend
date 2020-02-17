@@ -5,6 +5,12 @@ from django.core.exceptions import ValidationError
 from datetime import timedelta
 
 
+class Blacklisted(models.Model):
+    user = models.OneToOneField(User, null=False, on_delete=models.CASCADE)
+    time = models.DateTimeField(auto_now_add=True)
+    expires = models.DateTimeField(null=True, blank=True)
+
+
 class Item(models.Model):
     name = models.CharField(max_length=32, unique=True)
     description = models.TextField(max_length=512)
