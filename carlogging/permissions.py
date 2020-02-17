@@ -10,7 +10,7 @@ class LoggingPermissions(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        if request.user is not obj.user:
+        if request.user.id is not obj.user.id:
             return False
         
         return True

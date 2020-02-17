@@ -6,7 +6,7 @@ from .permissions import LoggingPermissions
 
 
 class LoggingViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
     ):
     serializer_class = LoggSerializer
     permission_classes = (LoggingPermissions,)
