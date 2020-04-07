@@ -8,11 +8,26 @@ from account.serializers import SimpleUserSerializer
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 
 
+class MeetingAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meeting
+        fields = (
+            "id",
+            "name",
+            "current_vote",
+            "clear_data",
+            "archived",
+            "open_attendance",
+            "enable_speaker_requests",
+        )
+        read_only_fields = ("current_vote",)
+
+
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
-        fields = ("id", "name", "current_vote", "clear_data", "archived")
-        read_only_fields = ("current_vote",)
+        fields = ("id", "name", "open_attendance", "enable_speaker_requests")
+        read_only_fields = ("id", "name", "open_attendance", "enable_speaker_requests")
 
 
 class AttendantSerializer(serializers.ModelSerializer):
@@ -26,7 +41,7 @@ class AttendantSerializer(serializers.ModelSerializer):
     meeting_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Meeting.objects.all(), source="meeting"
     )
-    meeting = MeetingSerializer(read_only=True)
+    meeting = MeetingAdminSerializer(read_only=True)
 
     def validate_user_username(self, value):
         """
@@ -86,6 +101,7 @@ class SpeakerRequestSerializer(serializers.ModelSerializer):
         write_only=True, queryset=Meeting.objects.all(), source="meeting"
     )
     user = SimpleUserSerializer(read_only=True)
+
     class Meta:
         model = SpeakerRequest
         fields = ("id", "user", "meeting_id")

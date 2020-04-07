@@ -79,7 +79,7 @@ def attendants_list_changed(sender, instance, *args, **kwargs):
 
     response = {
         "type": "attendants_list",
-        "data": AttendantSerializer(instance.meeting.attendant_set, many=True).data,
+        "data": AttendantSerializer(instance.meeting.attendants, many=True).data,
     }
     Group("meeting-" + str(instance.meeting.id)).send({"text": json.dumps(response)})
 

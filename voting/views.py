@@ -7,15 +7,17 @@ from rest_framework.generics import GenericAPIView
 from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
-from .permissions import VotePermission
+from account.permissions import AllowMembers
+from .permissions import VotePermission  # , OpenAttendanceMeeting
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 from .serializers import (
     MeetingSerializer,
+    MeetingAdminSerializer,
     AttendantSerializer,
     VoteListSerializer,
     VoteDetailsSerializer,
-    SpeakerRequestSerializer
+    SpeakerRequestSerializer,
 )
 
 
@@ -29,25 +31,41 @@ class NoDeleteViewSet(
     pass
 
 
-class MeetingViewSet(NoDeleteViewSet):
+class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Meeting.objects.filter(archived=False)
     serializer_class = MeetingSerializer
+    permission_classes = (AllowMembers,)
+
+    def get_queryset(self):
+
+        queryset = Meeting.objects.filter(archived=False).filter(
+            Q(attendants__user=self.request.user) | Q(open_attendance=True)
+        )
+        return queryset
+
+
+class MeetingAdminViewSet(NoDeleteViewSet):
+    queryset = Meeting.objects.filter(archived=False)
+    serializer_class = MeetingAdminSerializer
     permission_classes = (FixedDjangoModelPermissions,)
 
 
 class SpeakerRequestView(
-        mixins.CreateModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.ListModelMixin,
-        GenericAPIView):
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericAPIView,
+):
 
     queryset = SpeakerRequest.objects.all()
     serializer_class = SpeakerRequestSerializer
 
-    #TODO: Add error handling for missing meeting parameter.
+    # TODO: Add error handling for missing meeting parameter.
     def get_queryset(self):
         queryset = SpeakerRequest.objects.all()
-        queryset = queryset.filter(meeting_id=self.request.query_params.get("meeting_id", None))
+        queryset = queryset.filter(
+            meeting_id=self.request.query_params.get("meeting_id", None)
+        )
         return queryset
 
     def perform_create(self, serializer):
@@ -66,9 +84,26 @@ class SpeakerRequestView(
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-    #TODO: Allow admin to destroy any
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class SpeakerRequestDetailView(
+    mixins.DestroyModelMixin, mixins.RetrieveModelMixin, GenericAPIView
+):
+    """
+    Allows an admin to delete any SpeakerRequest.
+    """
+
+    queryset = SpeakerRequest.objects.all()
+    serializer_class = SpeakerRequestSerializer
+    permission_classes = (FixedDjangoModelPermissions,)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
 
 class AttendantViewSet(
@@ -79,7 +114,7 @@ class AttendantViewSet(
 ):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
-    permission_classes = (FixedDjangoModelPermissions,)
+    permission_classes = (FixedDjangoModelPermissions,)  # | OpenAttendanceMeeting,)
 
     def get_queryset(self, meeting_specific=False):
         if self.request.method == "GET" or meeting_specific:
@@ -124,7 +159,7 @@ class VoteViewSet(NoDeleteViewSet):
             "current" in request.query_params
             and request.query_params["current"] == "true"
         ):
-            meetings = Meeting.objects.filter(attendant__user__in=[user])
+            meetings = Meeting.objects.filter(attendants__user__in=[user])
             vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
             votes = Vote.objects.filter(id__in=vote_ids).order_by("-id")
         elif user.has_perm("voting.view_vote"):
