@@ -59,6 +59,7 @@ class SpeakerRequestView(
 
     queryset = SpeakerRequest.objects.all()
     serializer_class = SpeakerRequestSerializer
+    # TODO: Permission require user to be attendant?
 
     # TODO: Add error handling for missing meeting parameter.
     def get_queryset(self):
