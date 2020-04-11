@@ -25,12 +25,20 @@ class MeetingAdminSerializer(serializers.ModelSerializer):
 
 
 class MeetingSerializer(serializers.ModelSerializer):
+
+    attending = serializers.SerializerMethodField()
+
+    def get_attending(self, obj):
+        current_user = self.context["request"].user
+        return Attendant.objects.filter(user=current_user, meeting=obj).exists()
+
     class Meta:
         model = Meeting
         fields = (
             "id",
             "name",
             "description",
+            "attending",
             "open_attendance",
             "enable_speaker_requests",
         )
@@ -38,6 +46,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "attending",
             "open_attendance",
             "enable_speaker_requests",
         )
@@ -68,6 +77,23 @@ class AttendantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendant
         fields = ("id", "user", "meeting", "user_username", "meeting_id")
+
+
+class SelfAttendSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer(read_only=True)
+    meeting_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=Meeting.objects.all(), source="meeting"
+    )
+    meeting = MeetingSerializer(read_only=True)
+
+    def validate_meeting_id(self, value):
+        if value.open_attendance:
+            return value
+        raise serializers.ValidationError("Meeting is not open")
+
+    class Meta:
+        model = Attendant
+        fields = ("id", "user", "meeting", "meeting_id")
 
 
 class PublicAlternativeSerializer(serializers.ModelSerializer):

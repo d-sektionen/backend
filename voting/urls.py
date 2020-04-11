@@ -15,4 +15,5 @@ urlpatterns = [
     path(r"", include(router.urls)),
     path(r"speakers/<pk>", views.SpeakerRequestDetailView.as_view()),
     path(r"speakers/", views.SpeakerRequestView.as_view()),
+    path(r"attend/", views.SelfAttendView.as_view()),
 ]

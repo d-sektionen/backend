@@ -8,12 +8,13 @@ from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
 from account.permissions import AllowMembers
-from .permissions import VotePermission  # , OpenAttendanceMeeting
+from .permissions import VotePermission, OpenAttendancePermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 from .serializers import (
     MeetingSerializer,
     MeetingAdminSerializer,
+    SelfAttendSerializer,
     AttendantSerializer,
     VoteListSerializer,
     VoteDetailsSerializer,
@@ -107,6 +108,36 @@ class SpeakerRequestDetailView(
         return self.retrieve(request, *args, **kwargs)
 
 
+class SelfAttendView(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericAPIView):
+    queryset = Attendant.objects.all()
+    serializer_class = SelfAttendSerializer
+    permission_classes = (OpenAttendancePermission,)
+
+    def get_queryset(self):
+        if "meeting_id" not in self.request.query_params:
+            raise exceptions.ParseError(
+                detail='Missing required parameter "meeting_id"'
+            )
+        meeting_id = self.request.query_params["meeting_id"]
+        return Attendant.objects.filter(meeting_id=meeting_id)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_object(self):
+        queryset = self.get_queryset()
+
+        obj = get_object_or_404(queryset, user=self.request.user)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
 class AttendantViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -115,7 +146,7 @@ class AttendantViewSet(
 ):
     queryset = Attendant.objects.all()
     serializer_class = AttendantSerializer
-    permission_classes = (FixedDjangoModelPermissions,)  # | OpenAttendanceMeeting,)
+    permission_classes = (FixedDjangoModelPermissions,)
 
     def get_queryset(self, meeting_specific=False):
         if self.request.method == "GET" or meeting_specific:
