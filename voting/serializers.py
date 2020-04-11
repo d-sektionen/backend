@@ -14,6 +14,7 @@ class MeetingAdminSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "description",
             "current_vote",
             "clear_data",
             "archived",
@@ -26,8 +27,20 @@ class MeetingAdminSerializer(serializers.ModelSerializer):
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
-        fields = ("id", "name", "open_attendance", "enable_speaker_requests")
-        read_only_fields = ("id", "name", "open_attendance", "enable_speaker_requests")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "open_attendance",
+            "enable_speaker_requests",
+        )
+        read_only_fields = (
+            "id",
+            "name",
+            "description",
+            "open_attendance",
+            "enable_speaker_requests",
+        )
 
 
 class AttendantSerializer(serializers.ModelSerializer):

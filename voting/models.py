@@ -12,6 +12,7 @@ from checkin.models import EventBase
 class Meeting(EventBase):
     ACTIONS = ["Lägg till deltagare", "Ta bort deltagare"]
 
+    description = models.TextField(max_length=512, blank=True)
     current_vote = models.ForeignKey(
         "Vote", blank=True, null=True, related_name="+", on_delete=models.CASCADE
     )
@@ -153,6 +154,7 @@ class MadeVote(models.Model):
 class SpeakerRequest(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
+    prioritized = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("user", "meeting")
