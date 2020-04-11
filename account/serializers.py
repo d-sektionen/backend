@@ -80,6 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
                 )
             ),
             "member": check_membership(obj.username),
+            "staff": obj.is_staff,
         }
 
     def update(self, instance, validated_data):
