@@ -68,7 +68,7 @@ class SpeakerRequestView(
         queryset = queryset.filter(
             meeting_id=self.request.query_params.get("meeting_id", None)
         )
-        queryset = queryset.order_by("-prioritized")
+        queryset = queryset.order_by("-prioritized", "id")
         return queryset
 
     def perform_create(self, serializer):
