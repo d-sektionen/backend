@@ -68,6 +68,7 @@ class SpeakerRequestView(
         queryset = queryset.filter(
             meeting_id=self.request.query_params.get("meeting_id", None)
         )
+        queryset = queryset.order_by("-prioritized")
         return queryset
 
     def perform_create(self, serializer):
@@ -76,7 +77,10 @@ class SpeakerRequestView(
     def get_object(self):
         queryset = self.get_queryset()
 
-        obj = get_object_or_404(queryset, user=self.request.user)
+        prioritized = "prioritized" in self.request.query_params
+        obj = get_object_or_404(
+            queryset, user=self.request.user, prioritized=prioritized
+        )
         self.check_object_permissions(self.request, obj)
         return obj
 

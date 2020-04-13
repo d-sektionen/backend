@@ -157,4 +157,4 @@ class SpeakerRequest(models.Model):
     prioritized = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ("user", "meeting")
+        unique_together = ("user", "meeting", "prioritized")

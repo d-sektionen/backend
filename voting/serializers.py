@@ -143,4 +143,4 @@ class SpeakerRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SpeakerRequest
-        fields = ("id", "user", "meeting_id")
+        fields = ("id", "user", "meeting_id", "prioritized")
