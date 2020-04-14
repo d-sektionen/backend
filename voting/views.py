@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
 from account.permissions import AllowMembers
-from .permissions import VotePermission, OpenAttendancePermission
+from .permissions import OpenAttendancePermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 from .serializers import (
@@ -38,7 +38,7 @@ class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (AllowMembers,)
 
     def get_queryset(self):
-
+        # TODO: fix duplicates
         queryset = Meeting.objects.filter(archived=False).filter(
             Q(attendants__user=self.request.user) | Q(open_attendance=True)
         )
@@ -61,6 +61,8 @@ class SpeakerRequestView(
     queryset = SpeakerRequest.objects.all()
     serializer_class = SpeakerRequestSerializer
     # TODO: Permission require user to be attendant?
+
+    # TODO: Require meeting to have speaker requests enabled.
 
     # TODO: Add error handling for missing meeting parameter.
     def get_queryset(self):
@@ -173,39 +175,30 @@ class AttendantViewSet(
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class VoteViewSet(NoDeleteViewSet):
+class VoteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = VoteListSerializer
     queryset = Vote.objects.all()
-    permission_classes = (VotePermission,)
+
+    def get_queryset(self):
+        user = self.request.user
+        if "meeting_id" not in self.request.query_params:
+            raise exceptions.ParseError(
+                detail='Missing required parameter "meeting_id"'
+            )
+        meeting_id = self.request.query_params["meeting_id"]
+        if Meeting.objects.filter(id=meeting_id, attendants__user__in=[user]).exists():
+            return Vote.objects.filter(meeting_id=meeting_id, open=True)
+        return Vote.objects.none()
+
+
+class VoteAdminViewSet(NoDeleteViewSet):
+    serializer_class = VoteListSerializer
+    queryset = Vote.objects.all()
+    permission_classes = (FixedDjangoModelPermissions,)
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = VoteDetailsSerializer
         return super(VoteViewSet, self).retrieve(request, *args, **kwargs)
-
-    def list(self, request, *args, **kwargs):
-        """
-        This solution is very ugly but makes sure that we return a QuerySet. This
-        is needed for the retrieval of individual vote objects to work correctly.
-
-        It might be better to replace this with a raw SQL query.
-        """
-
-        user = self.request.user
-        if (
-            "current" in request.query_params
-            and request.query_params["current"] == "true"
-        ):
-            meetings = Meeting.objects.filter(attendants__user__in=[user])
-            vote_ids = [x.id for x in filter(None, [x.current_vote for x in meetings])]
-            votes = Vote.objects.filter(id__in=vote_ids).order_by("-id")
-        elif user.has_perm("voting.view_vote"):
-            # Show everything for an admin
-            votes = Vote.objects.all()
-        else:
-            votes = Vote.objects.none()
-
-        serializer = self.get_serializer(votes, many=True)
-        return Response(serializer.data)
 
 
 class MadeVoteViewSet(viewsets.ViewSet):

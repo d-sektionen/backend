@@ -16,14 +16,3 @@ class OpenAttendancePermission(BasePermission):
         if not request.user:
             return False
         return obj.meeting.open_attendance
-
-
-class VotePermission(RestPermission):
-    def has_action_permission(self, request, view, action):
-        if action == "CREATE":
-            return request.user.has_perm("voting.add_vote")
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        # Could be split up to different methods
-        return request.user.has_perms(["voting.change_vote", "voting.view_vote"])
