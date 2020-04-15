@@ -196,9 +196,10 @@ class VoteAdminViewSet(NoDeleteViewSet):
     queryset = Vote.objects.all()
     permission_classes = (FixedDjangoModelPermissions,)
 
-    def retrieve(self, request, *args, **kwargs):
-        self.serializer_class = VoteDetailsSerializer
-        return super(VoteViewSet, self).retrieve(request, *args, **kwargs)
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return VoteDetailsSerializer
+        return VoteListSerializer
 
 
 class MadeVoteViewSet(viewsets.ViewSet):
