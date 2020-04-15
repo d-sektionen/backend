@@ -39,8 +39,10 @@ class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
         # TODO: fix duplicates
-        queryset = Meeting.objects.filter(archived=False).filter(
-            Q(attendants__user=self.request.user) | Q(open_attendance=True)
+        queryset = (
+            Meeting.objects.filter(archived=False)
+            .filter(Q(attendants__user=self.request.user) | Q(open_attendance=True))
+            .distinct()
         )
         return queryset
 
