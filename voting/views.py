@@ -172,7 +172,8 @@ class AttendantViewSet(
     def clear(self, request, pk=None):
         attendants = self.get_queryset(meeting_specific=True)
         attendants.delete()
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class VoteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
