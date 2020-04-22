@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
 from account.permissions import AllowMembers
-from .permissions import OpenAttendancePermission
+from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 from .serializers import (
@@ -38,7 +38,6 @@ class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (AllowMembers,)
 
     def get_queryset(self):
-        # TODO: fix duplicates
         queryset = (
             Meeting.objects.filter(archived=False)
             .filter(Q(attendants__user=self.request.user) | Q(open_attendance=True))
@@ -59,9 +58,9 @@ class SpeakerRequestView(
     mixins.ListModelMixin,
     GenericAPIView,
 ):
-
     queryset = SpeakerRequest.objects.all()
     serializer_class = SpeakerRequestSerializer
+    permission_classes = (SpeakerRequestPermission,)
     # TODO: Permission require user to be attendant?
 
     # TODO: Require meeting to have speaker requests enabled.

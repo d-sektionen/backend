@@ -141,6 +141,17 @@ class SpeakerRequestSerializer(serializers.ModelSerializer):
     )
     user = SimpleUserSerializer(read_only=True)
 
+    def validate_meeting_id(self, value):
+        if not value.enable_speaker_requests:
+            raise serializers.ValidationError(
+                "Speaker requests are disabled for this meeting."
+            )
+        current_user = self.context["request"].user
+        if not Attendant.objects.filter(user=current_user, meeting=value).exists():
+            raise serializers.ValidationError("You are not attending this meeting.")
+
+        return value
+
     class Meta:
         model = SpeakerRequest
         fields = ("id", "user", "meeting_id", "prioritized")
