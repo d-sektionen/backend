@@ -3,8 +3,11 @@ from rest_framework import routers
 
 from . import views
 
+
+router = routers.DefaultRouter()
+router.register(r"netlight", views.NetlightViewSet, base_name="netlight")
+
 urlpatterns = [
-    url(r'calendar', views.section_calendar),
-    url(r'netlight', views.netlight),
-    url(r'nginx-member-protect', views.member_only_accel_redirect)
+    url(r"^", include(router.urls)),
+    url(r"calendar", views.section_calendar),
 ]

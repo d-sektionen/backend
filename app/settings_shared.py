@@ -170,12 +170,6 @@ CAS_LOGOUT_COMPLETELY = True
 CAS_PROVIDE_URL_TO_LOGOUT = True
 CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
-# User roles, these users are always admins.
-SYSTEM_ADMINS = [
-    "emini757",
-    "svama961",
-    "ivaka037",
-]
 
 # User configuration sheet (for getting user info from a google docs sheet)
 # TODO: this is outdated, look into this and remove.
@@ -225,10 +219,9 @@ STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
 KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
 
 
-NETLIGHT_API_URL = (
-    "https://api.gluehome.com/api/Hubs/047223e2-ab81-4d21-992c-4c4afffdbd1d/Commands"
-)
+NETLIGHT_API_URL = "https://api.gluehome.com/api"
 NETLIGHT_API_KEY = os.getenv("NETLIGHT_API_KEY")
+NETLIGHT_HUB_ID = os.getenv("NETLIGHT_HUB_ID")
 NETLIGHT_LOCK_ID = os.getenv("NETLIGHT_LOCK_ID")
 NETLIGHT_AUTHORIZATION = os.getenv("NETLIGHT_AUTHORIZATION")
 
