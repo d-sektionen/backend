@@ -1,17 +1,22 @@
 from django.shortcuts import render
-from .models import Logg
+from .models import LogEntry
 from rest_framework import viewsets, mixins
-from .serializers import LoggSerializer
+from .serializers import LogEntrySerializer
 from .permissions import LoggingPermissions
 
 
-class LoggingViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
-    ):
-    serializer_class = LoggSerializer
+class LogEntryViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = LogEntrySerializer
     permission_classes = (LoggingPermissions,)
-    queryset = Logg.objects.all()
-    
+    queryset = LogEntry.objects.all()
+
     def get_queryset(self):
-        return Logg.objects.filter(user=self.request.user)
-    
+        return LogEntry.objects.filter(user=self.request.user)
+

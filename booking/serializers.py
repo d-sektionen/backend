@@ -6,10 +6,12 @@ from datetime import timedelta
 
 
 class ItemSerializer(serializers.ModelSerializer):
+    image_processed = serializers.ImageField(read_only=True)
+
     class Meta:
         model = Item
-        fields = ("id", "name", "description", "terms")
-        read_only_fields = ("id", "name", "description", "terms")
+        fields = ("id", "name", "description", "terms", "image_processed")
+        read_only_fields = ("id", "name", "description", "terms", "image_processed")
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -68,4 +70,3 @@ class BookingSerializer(serializers.ModelSerializer):
         if overlap_query.exists():
             raise serializers.ValidationError("Booking overlaps with another booking.")
         return attrs
-

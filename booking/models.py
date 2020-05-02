@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from .validators import validate_datetime_future, validate_datetime_within_year
 from django.core.exceptions import ValidationError
 from datetime import timedelta
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill
 
 
 class Blacklisted(models.Model):
@@ -15,6 +17,13 @@ class Item(models.Model):
     name = models.CharField(max_length=32, unique=True)
     description = models.TextField(max_length=512)
     terms = models.FileField(null=True, blank=True, upload_to="booking_terms")
+    image = models.ImageField(null=True, blank=True, upload_to="booking_images")
+    image_processed = ImageSpecField(
+        source="image",
+        processors=[ResizeToFill(960, 400)],
+        format="JPEG",
+        options={"quality": 80},
+    )
 
     def __str__(self):
         return self.name
@@ -48,4 +57,3 @@ class Booking(models.Model):
     #     .filter(start__lte=self.end, end__gte=self.start)\
     #     .exists():
     #     raise ValidationError('Booking overlaps with another booking.')
-

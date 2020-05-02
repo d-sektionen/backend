@@ -4,8 +4,7 @@ from rest_framework import routers
 from carlogging import views
 
 router = routers.DefaultRouter()
-router.register(r'loggs', views.LoggingViewSet, base_name='loggs')
+router.register(r"entries", views.LogEntryViewSet, base_name="entries")
 
-urlpatterns = [
-    url(r'^', include(router.urls)),
-]
+urlpatterns = [url(r"^", include(router.urls))]
+
