@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Profile
+from .models import Profile, CalendarSubscription
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -15,4 +15,14 @@ class ProfileAdmin(admin.ModelAdmin):
     )
 
 
+class CalendarSubscriptionAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "include_bookings",
+        "include_events_attending",
+        "include_events_not_attending",
+    )
+
+
+admin.site.register(CalendarSubscription, CalendarSubscriptionAdmin)
 admin.site.register(Profile, ProfileAdmin)

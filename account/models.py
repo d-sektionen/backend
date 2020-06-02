@@ -2,6 +2,7 @@ from django.contrib.auth.models import Group, User
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+import uuid
 
 # Can be moved if you cba.
 def is_user_in_group(group, user):
@@ -35,3 +36,11 @@ def save_user_profile(sender, instance, **kwargs):
 def post_delete_user(sender, instance, *args, **kwargs):
     if instance.user:
         instance.user.delete()
+
+
+class CalendarSubscription(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    include_bookings = models.BooleanField(default=True)
+    include_events_attending = models.BooleanField(default=True)
+    include_events_not_attending = models.BooleanField(default=True)

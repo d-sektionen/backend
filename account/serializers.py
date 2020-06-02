@@ -1,10 +1,11 @@
 from django.contrib.auth.models import Group, User
+from django.urls import reverse
 from rest_framework import serializers
 
 from membership.utils import check_membership
 from checkin.models import Doorkeeper
 
-from .models import Profile
+from .models import Profile, CalendarSubscription
 from . import user
 
 
@@ -128,3 +129,24 @@ class InfomailUserSerializer(UserSerializer):
         model = User
         fields = ("id", "username", "email", "pretty_name")
         read_only_fields = ("id", "username", "email", "pretty_name")
+
+
+class CalendarSubscriptionSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+        return self.context["request"].build_absolute_uri(
+            reverse("calendar_feed", kwargs={"pk": obj.id})
+        )
+
+    class Meta:
+        model = CalendarSubscription
+        fields = (
+            "id",
+            "url",
+            "user",
+            "include_bookings",
+            "include_events_attending",
+            "include_events_not_attending",
+        )
+        read_only_fields = ("id", "user", "url")
