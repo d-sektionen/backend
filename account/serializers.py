@@ -16,12 +16,28 @@ class CommitteeSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source="user.first_name")
+    last_name = serializers.CharField(source="user.last_name")
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user")
+        instance.user.first_name = user_data.get("first_name", instance.user.first_name)
+        instance.user.last_name = user_data.get("last_name", instance.user.last_name)
+        instance.user.save()
+
+        instance.liu_card_id = validated_data.get("liu_card_id", instance.liu_card_id)
+        instance.infomail_subscriber = validated_data.get(
+            "infomail_subscriber", instance.infomail_subscriber
+        )
+        instance.save()
+        return instance
+
     class Meta:
         model = Profile
-        fields = ("liu_card_id", "infomail_subscriber")
+        fields = ("first_name", "last_name", "liu_card_id", "infomail_subscriber")
 
 
-class UserSerializer(serializers.ModelSerializer):
+class MeSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     pretty_name = serializers.SerializerMethodField()
@@ -84,47 +100,15 @@ class UserSerializer(serializers.ModelSerializer):
             "staff": obj.is_staff,
         }
 
-    def update(self, instance, validated_data):
-        profile_data = validated_data.pop("profile")
-        # Unless the application properly enforces that this field is
-        # always set, the follow could raise a `DoesNotExist`, which
-        # would need to be handled.
-        profile = ""
-        if hasattr(instance, "profile"):
-            profile = instance.profile
-        else:
-            profile = Profile()
 
-        # instance.username = validated_data.get('username', instance.username) # Username should never be updated
-        instance.email = validated_data.get("email", instance.email)
-        instance.first_name = validated_data.get("first_name", instance.first_name)
-        instance.last_name = validated_data.get("last_name", instance.last_name)
-        instance.save()
-
-        profile.liu_card_id = profile_data.get("liu_card_id", profile.liu_card_id)
-        profile.infomail_subscriber = profile_data.get(
-            "infomail_subscriber", profile.infomail_subscriber
-        )
-
-        profile.save()
-
-        return instance
-
-    def create(self, validated_data):
-        profile_data = validated_data.pop("profile")
-        user = User.objects.create(**validated_data)
-        Profile.objects.create(user=user, **profile_data)
-        return user
-
-
-class SimpleUserSerializer(UserSerializer):
+class SimpleUserSerializer(MeSerializer):
     class Meta:
         model = User
         fields = ("id", "username", "first_name", "last_name", "pretty_name")
         read_only_fields = ("id", "username", "first_name", "last_name", "pretty_name")
 
 
-class InfomailUserSerializer(UserSerializer):
+class InfomailUserSerializer(MeSerializer):
     class Meta:
         model = User
         fields = ("id", "username", "email", "pretty_name")

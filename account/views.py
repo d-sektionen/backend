@@ -5,7 +5,9 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django_ical.views import ICalFeed
 from django.utils.timezone import get_current_timezone
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, viewsets, status, exceptions
+from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.decorators import list_route, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,10 +17,11 @@ from booking.models import Booking
 
 
 from .serializers import (
-    UserSerializer,
+    MeSerializer,
     SimpleUserSerializer,
     InfomailUserSerializer,
     CalendarSubscriptionSerializer,
+    ProfileSerializer,
 )
 from .permissions import IsUser
 from .idtoken import generate_id_token, read_id_token
@@ -42,45 +45,76 @@ def generate_token(request):
         )
 
 
-class UserViewSet(
-    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
-    serializer_class = UserSerializer
+class MeView(mixins.RetrieveModelMixin, GenericAPIView):
+    serializer_class = MeSerializer
     queryset = User.objects.all()
-    permission_classes = (
-        IsUser,
-    )  # Add IsAdminUser too if you want, not really needed though
 
     def get_object(self):
-        return self.request.user if self.kwargs["pk"] == "me" else super().get_object()
+        return self.request.user
 
-    @action(detail=False, methods=["get", "post"], permission_classes=(IsUser,))
-    def identification_token(self, request):
-        """
-        Returns a jwt token, for identifying a user, NOT to be used for auth.
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
-        Currently used to enable user identifying QR codes for the checkin app.
-        (The QR codes are generated and read client side)
+
+class IdentificationTokenView(APIView):
+    """
+    Returns a jwt token, for identifying a user, NOT to be used for auth.
+
+    Currently used to enable user identifying QR codes for the checkin app.
+    (The QR codes are generated and read client side)
+
+    """
+
+    def get(self, request, *args, **kwargs):
+        token = generate_id_token(request.user)
+        return Response({"token": token}, status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
         """
-        if request.method == "GET":
-            token = generate_id_token(request.user)
-            return Response({"token": token}, status.HTTP_200_OK)
-        elif request.method == "POST":
-            # TODO: validate that token param exists
+        Verify a token (returns a user)
+        
+        example input:
+        ```
+        {
+            "token": "string"
+        }
+        ```
+        """
+        try:
             user = read_id_token(request.data["token"])
-            return Response(SimpleUserSerializer(user).data, status.HTTP_200_OK)
+        except:
+            raise exceptions.ParseError(detail="Token is invalid.")
 
-    @action(
-        detail=False, methods=["get"], permission_classes=[FixedDjangoModelPermissions]
-    )
-    def infomail_subscribers(self, request):
-        """
-        Returns all users who are infomail subscribers.
-        """
-        users = User.objects.filter(profile__infomail_subscriber=True)
-        return Response(
-            InfomailUserSerializer(users, many=True).data, status.HTTP_200_OK
-        )
+        return Response(SimpleUserSerializer(user).data, status.HTTP_200_OK)
+
+
+class InfomailSubscriberView(mixins.ListModelMixin, GenericAPIView):
+    """
+    Returns all users who are infomail subscribers.
+    """
+
+    permission_classes = [FixedDjangoModelPermissions]
+    queryset = User.objects.filter(profile__infomail_subscriber=True)
+    serializer_class = InfomailUserSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class ProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, GenericAPIView):
+    serializer_class = ProfileSerializer
+
+    def get_object(self):
+        return self.request.user.profile
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
 
 class CalendarSubscriptionViewSet(viewsets.ModelViewSet):

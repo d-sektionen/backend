@@ -12,7 +12,6 @@ from account import views
 import cas.views
 
 router = routers.DefaultRouter()
-router.register(r"user", views.UserViewSet, base_name="user")
 router.register(
     r"calendar-subscriptions",
     views.CalendarSubscriptionViewSet,
@@ -20,12 +19,19 @@ router.register(
 )
 
 urlpatterns = [
+    # Router paths
     path(r"", include(router.urls)),
+    # User related
+    path(r"me/", views.MeView.as_view()),
+    path(r"profile/", views.ProfileView.as_view()),
+    path(r"identification-token/", views.IdentificationTokenView.as_view()),
+    path(r"infomail-subscribers/", views.InfomailSubscriberView.as_view()),
+    # JWT Login
     path(r"token/", views.generate_token),
     path(r"token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path(r"calendar/<uuid:pk>", views.CalendarFeed(), name="calendar_feed"),
-    # Login with credentials
+    # Login with credentials, also returns JWT
     path(r"credential-login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path(r"calendar/<uuid:pk>", views.CalendarFeed(), name="calendar_feed"),
     # CAS
     path(r"login/", cas.views.login, name="login"),
     path(r"logout/", cas.views.logout, name="logout"),
