@@ -41,4 +41,4 @@ class Command(BaseCommand):
                 'last_name': member['last_name']
               }
             )
-            ProgramRegistration.objects.create(member=obj, registration=program)
+            ProgramRegistration.objects.get_or_create(member=obj, registration=program)

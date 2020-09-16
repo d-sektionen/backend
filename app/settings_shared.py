@@ -220,6 +220,7 @@ STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
 KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
 
 
+# some of these IDs can be found at: https://api.gluehome.com/api/Hubs
 NETLIGHT_API_URL = "https://api.gluehome.com/api"
 NETLIGHT_API_KEY = os.getenv("NETLIGHT_API_KEY")
 NETLIGHT_HUB_ID = os.getenv("NETLIGHT_HUB_ID")
