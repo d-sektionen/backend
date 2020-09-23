@@ -1,10 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.generics import GenericAPIView
 from rest_framework import mixins, viewsets, status
 from django.contrib.auth.models import User
 
-from account.models import Profile
-from account.idtoken import read_id_token
+
 from . import serializers
 from .models import EventBase, Doorkeeper
 from .permissions import OnlyDoorkeepersRegister, DoorkeeperPermission
@@ -48,15 +48,15 @@ class EventBaseViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class RegisterViewSet(viewsets.ViewSet):
+class RegisterView(GenericAPIView):
     """
-  Viewset with only POST for Doorkeepers to do an action for people to an EventBase.
-  """
+    View with only POST for Doorkeepers to do an action for users to an EventBase.
+    """
 
     serializer_class = serializers.RegisterSerializer
     permission_classes = (OnlyDoorkeepersRegister,)
 
-    def create(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = serializers.RegisterSerializer(data=request.data)
 
         if not serializer.is_valid():
@@ -69,33 +69,7 @@ class RegisterViewSet(viewsets.ViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        identifier = serializer.data["identifier"]
-        identifier_type = serializer.data["identifier_type"]
-
-        if identifier_type == "AU":
-            if identifier.isnumeric():
-                # Checks if card id by checking if identifier is numeric. Could be improved.
-                identifier_type = "CI"
-            elif "," in identifier:
-                # Checks if idtoken by checking if identifier is long, also a bad solution since usernames can be up to 150 chars.
-                identifier_type = "IT"
-            else:
-                # else it's a username.
-                identifier_type = "UN"
-
-        user = None
-        try:
-            if identifier_type == "CI":
-                user = Profile.objects.get(liu_card_id=identifier).user
-            elif identifier_type == "UN":
-                user = User.objects.get(username__iexact=identifier)
-            elif identifier_type == "IT":
-                user = read_id_token(identifier)
-        except:
-            return Response(
-                {"detail": "User not found."}, status=status.HTTP_400_BAD_REQUEST
-            )
+        user = serializer.validated_data["user"]
 
         if user is None:
             return Response(
