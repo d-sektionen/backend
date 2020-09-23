@@ -1,12 +1,23 @@
 from django.db import models
+from django.core.validators import ValidationError
 from django.contrib.auth.models import User
+import re
+
+
+def is_color_validator(value):
+    if not len(value) in [7, 4]:
+        raise ValidationError("Must be 7 or 4 characters.")
+    pattern = re.compile("#[A-F0-9]*")
+    if not pattern.fullmatch(value.upper()):
+        raise ValidationError("Must only contain 0-9 or A-F, and start with '#'")
+
 
 # Create your models here.
 class Key(models.Model):
     name = models.CharField(max_length=64)
     description = models.TextField(blank=True)
     order = models.IntegerField(unique=True)
-    color = models.CharField(max_length=64)
+    color = models.CharField(max_length=64, validators=[is_color_validator])
 
     def status(self):
         le = LogEntry.objects.filter(
@@ -33,3 +44,8 @@ class LogEntry(models.Model):
     )
     returned_successfully = models.BooleanField(default=False)
 
+    def __str__(self):
+        if not self.taken_by:
+            return "Taken by unknown"
+
+        return f"Taken by {self.taken_by.username}"
