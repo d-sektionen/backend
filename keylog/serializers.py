@@ -38,4 +38,4 @@ class KeySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Key
-        fields = ("name", "description", "status", "color", "order")
+        fields = ("id", "name", "description", "status", "color", "order")
