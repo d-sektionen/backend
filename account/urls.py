@@ -15,7 +15,7 @@ router = routers.DefaultRouter()
 router.register(
     r"calendar-subscriptions",
     views.CalendarSubscriptionViewSet,
-    base_name="calendar-subscription",
+    basename="calendar-subscription",
 )
 
 urlpatterns = [

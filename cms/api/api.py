@@ -8,17 +8,16 @@ Basic documentation: http://docs.wagtail.io/en/stable/advanced_topics/api/index.
 """
 
 from django.db.models import Model
-
-from wagtail.api.v2.endpoints import PagesAPIEndpoint, BaseAPIEndpoint
+from wagtail.api.v2.views import PagesAPIViewSet, BaseAPIViewSet
 from wagtail.api.v2.router import WagtailAPIRouter
 from wagtail.api.v2.serializers import PageSerializer
-from wagtail.images.api.v2.endpoints import ImagesAPIEndpoint
-from wagtail.documents.api.v2.endpoints import DocumentsAPIEndpoint
+from wagtail.images.api.v2.views import ImagesAPIViewSet
+from wagtail.documents.api.v2.views import DocumentsAPIViewSet
 from rest_framework.fields import Field
 from rest_framework.permissions import AllowAny
 from wagtail.core.models import Page
 
-# Extend PagesAPIEndpoint
+
 class PageUrlField(Field):
     """
     Serializes the "url" field for pages.
@@ -34,20 +33,21 @@ class PageUrlField(Field):
 class ExtendedPageSerializer(PageSerializer):
     url = PageUrlField(read_only=True)
 
-class ExtendedPagesAPIEndpoint(PagesAPIEndpoint):
+# Extend PagesAPIViewSet
+class ExtendedPagesAPIViewSet(PagesAPIViewSet):
     model = Page
     base_serializer_class = ExtendedPageSerializer
     authentication_classes = []
     permission_classes = (AllowAny,)
-    meta_fields = PagesAPIEndpoint.meta_fields + [
+    meta_fields = PagesAPIViewSet.meta_fields + [
        'url'
     ]
 
-class ExtendedImagesAPIEndpoint(ImagesAPIEndpoint):
+class ExtendedImagesAPIViewSet(ImagesAPIViewSet):
     authentication_classes = []
     permission_classes = (AllowAny,)
 
-class ExtendedDocumentsAPIEndpoint(DocumentsAPIEndpoint):
+class ExtendedDocumentsAPIViewSet(DocumentsAPIViewSet):
     authentication_classes = []
     permission_classes = (AllowAny,)
 
@@ -58,7 +58,7 @@ api_router = WagtailAPIRouter('wagtailapi')
 # The first parameter is the name of the endpoint (eg. pages, images). This
 # is used in the URL of the endpoint
 # The second parameter is the endpoint class that handles the requests
-api_router.register_endpoint('pages', ExtendedPagesAPIEndpoint)
-api_router.register_endpoint('images', ExtendedImagesAPIEndpoint)
-api_router.register_endpoint('documents', ExtendedDocumentsAPIEndpoint)
-# api_router.register_endpoint('snippets', SnippetAPIEndpoint) // a custom snippet endpoint can be created by extending BaseAPIEndpoint
+api_router.register_endpoint('pages', ExtendedPagesAPIViewSet)
+api_router.register_endpoint('images', ExtendedImagesAPIViewSet)
+api_router.register_endpoint('documents', ExtendedDocumentsAPIViewSet)
+# api_router.register_endpoint('snippets', SnippetAPIViewSet) // a custom snippet endpoint can be created by extending BaseAPIViewSet

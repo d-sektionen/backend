@@ -5,7 +5,7 @@ from . import views
 
 
 router = routers.DefaultRouter()
-router.register(r"netlight", views.NetlightViewSet, base_name="netlight")
+router.register(r"netlight", views.NetlightViewSet, basename="netlight")
 
 urlpatterns = [
     url(r"^", include(router.urls)),

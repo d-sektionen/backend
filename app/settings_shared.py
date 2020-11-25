@@ -45,11 +45,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "cas",
-    "kronos",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-    "channels",
     "graphene_django",
     "imagekit",
     # ---
@@ -92,7 +90,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "cas.middleware.CASMiddleware",
-    "wagtail.core.middleware.SiteMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 

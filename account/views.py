@@ -8,7 +8,6 @@ from django.utils.timezone import get_current_timezone
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
-from rest_framework.decorators import list_route, action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 

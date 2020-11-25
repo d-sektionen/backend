@@ -4,7 +4,7 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r'occurrences', views.OccurrenceViewSet, base_name='occurrence')
+router.register(r'occurrences', views.OccurrenceViewSet, basename='occurrence')
 
 urlpatterns = [
     url(r'^', include(router.urls)),

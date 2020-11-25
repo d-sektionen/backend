@@ -1,6 +1,6 @@
 import json
 
-from channels.test import ChannelTestCase, WSClient
+#from channels.test import ChannelTestCase, WSClient
 from django.contrib.auth.models import User
 from django.test import TestCase
 
