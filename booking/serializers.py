@@ -7,11 +7,19 @@ from datetime import timedelta
 
 class ItemSerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
+    category = serializers.StringRelatedField()
 
     class Meta:
         model = Item
-        fields = ("id", "name", "description", "terms", "image_processed")
-        read_only_fields = ("id", "name", "description", "terms", "image_processed")
+        fields = ("id", "name", "description", "category", "terms", "image_processed")
+        read_only_fields = (
+            "id",
+            "name",
+            "description",
+            "category",
+            "terms",
+            "image_processed",
+        )
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -38,7 +46,10 @@ class BookingSerializer(serializers.ModelSerializer):
             "item_id",
             "item",
             "description",
+            "confirmed",
+            "restricted_timeslot",  # Booking can be changed type by anyone, but will still be validated.
         )
+        read_only_fields = ("confirmed",)
 
     def validate_user_id(self, value):
         user = self.context["request"].user
@@ -50,18 +61,32 @@ class BookingSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        restricted_timeslot = attrs["restricted_timeslot"]
+
+        lower_duration = 2 * 24 if restricted_timeslot else 0.5
+        upper_duration = 30 * 24 if restricted_timeslot else 3 * 24
+
+        lower_timedelta = timedelta(hours=lower_duration)
+        upper_timedelta = timedelta(hours=upper_duration)
+
         # Start should be before end
         if attrs["start"] > attrs["end"]:
             raise serializers.ValidationError("Booking should start before it ends.")
         # Check lowest duration
-        if attrs["start"] + timedelta(minutes=30) > attrs["end"]:
-            raise serializers.ValidationError("Booking should be at least 30 minutes.")
+        if attrs["start"] + lower_timedelta > attrs["end"]:
+            raise serializers.ValidationError(
+                f"Booking should have a duration of at least {str(lower_timedelta)}."
+            )
         # Check longest duration
-        if attrs["start"] + timedelta(days=7) < attrs["end"]:
-            raise serializers.ValidationError("Booking should be at most 7 days.")
+        if attrs["start"] + upper_timedelta < attrs["end"]:
+            raise serializers.ValidationError(
+                f"Booking should have a duration of at most {str(upper_timedelta)}."
+            )
 
         # Check overlap
-        overlap_query = Booking.objects.filter(item=attrs["item"])
+        overlap_query = Booking.objects.filter(
+            item=attrs["item"], restricted_timeslot=restricted_timeslot
+        )
         if self.instance:
             overlap_query = overlap_query.exclude(pk=self.instance.id)
         overlap_query = overlap_query.filter(

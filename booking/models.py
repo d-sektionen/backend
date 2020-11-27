@@ -12,10 +12,23 @@ class Blacklisted(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     expires = models.DateTimeField(null=True, blank=True)
 
+    def __str__(self):
+        return self.user
+
+
+class ItemCategory(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+
+    def __str__(self):
+        return self.name
+
 
 class Item(models.Model):
     name = models.CharField(max_length=32, unique=True)
     description = models.TextField(max_length=512)
+    category = models.ForeignKey(
+        ItemCategory, null=True, blank=True, on_delete=models.SET_NULL
+    )
     terms = models.FileField(null=True, blank=True, upload_to="booking_terms")
     image = models.ImageField(null=True, blank=True, upload_to="booking_images")
     image_processed = ImageSpecField(
@@ -35,6 +48,8 @@ class Booking(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, null=False, on_delete=models.CASCADE)
     description = models.TextField()
+    confirmed = models.BooleanField(default=False)
+    restricted_timeslot = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
