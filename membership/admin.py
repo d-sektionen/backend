@@ -1,6 +1,7 @@
 from django.contrib import admin, messages
 
 from .models import Member, ProgramRegistration, Request
+from .utils import check_membership
 
 
 class ProgramRegistrationAdminInline(admin.TabularInline):
@@ -72,7 +73,15 @@ class RequestAdmin(admin.ModelAdmin):
         "starting_year",
         "message",
         "timestamp",
+        "get_is_member",
     )
+
+    def get_is_member(self, obj):
+        return check_membership(obj.username)
+
+    get_is_member.short_description = "Already member"
+    get_is_member.boolean = True
+
     search_fields = ("username", "first_name", "last_name", "message")
     list_filter = ("program", "starting_year", "timestamp")
     actions = [accept_request]
