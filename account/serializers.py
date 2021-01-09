@@ -37,6 +37,26 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ("first_name", "last_name", "liu_card_id", "infomail_subscriber")
 
 
+def check_voting_counter(obj):
+    """ Checks if the user obj is a voting counter. """
+    admin = obj.has_perms(
+        (
+            "voting.add_meeting",
+            "voting.change_meeting",
+            "voting.delete_meeting",
+            "voting.view_meeting",
+        )
+    )
+
+    counter = obj.has_perms(
+        (
+            "voting.view_meeting",
+        )
+    )
+
+    return not admin and counter
+
+
 class MeSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
@@ -96,6 +116,7 @@ class MeSerializer(serializers.ModelSerializer):
                     "voting.view_meeting",
                 )
             ),
+            "voting_counter": check_voting_counter(obj),
             "member": check_membership(obj.username),
             "staff": obj.is_staff,
         }
