@@ -7,7 +7,7 @@ from rest_framework.generics import GenericAPIView
 from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
-from account.permissions import AllowMembers
+from account.permissions import AllowMembers, AllowMembersAndAlumnis
 from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
@@ -35,7 +35,7 @@ class NoDeleteViewSet(
 class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Meeting.objects.filter(archived=False)
     serializer_class = MeetingSerializer
-    permission_classes = (AllowMembers,)
+    permission_classes = (AllowMembersAndAlumnis,)
 
     def get_queryset(self):
         queryset = (
@@ -205,7 +205,10 @@ class VoteAdminViewSet(NoDeleteViewSet):
 
 
 class MadeVoteViewSet(viewsets.ViewSet):
-    @transaction.atomic  # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it.
+    permission_classes = (AllowMembers,)
+
+    # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it:
+    @transaction.atomic
     def create(self, request):
         vote_id = request.data["vote_id"]
         alternative_id = request.data["alternative_id"]

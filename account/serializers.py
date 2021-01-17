@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework import serializers
 
-from membership.utils import check_membership
+from membership.utils import check_membership, check_alumnimembership
 from checkin.models import Doorkeeper
 
 from .models import Profile, CalendarSubscription
@@ -39,14 +39,15 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 def check_voting_counter(obj):
     """ Checks if the user obj is a voting counter. """
-    admin = obj.has_perms(
-        (
-            "voting.add_meeting",
-            "voting.change_meeting",
-            "voting.delete_meeting",
-            "voting.view_meeting",
-        )
-    )
+
+    #admin = obj.has_perms(
+    #    (
+    #        "voting.add_meeting",
+    #        "voting.change_meeting",
+    #        "voting.delete_meeting",
+    #        "voting.view_meeting",
+    #    )
+    #)
 
     counter = obj.has_perms(
         (
@@ -54,7 +55,8 @@ def check_voting_counter(obj):
         )
     )
 
-    return not admin and counter
+    return counter
+    # return counter and not admin
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -117,6 +119,7 @@ class MeSerializer(serializers.ModelSerializer):
                 )
             ),
             "voting_counter": check_voting_counter(obj),
+            "voting_guest": check_alumnimembership(obj.username),
             "member": check_membership(obj.username),
             "staff": obj.is_staff,
         }
