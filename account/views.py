@@ -100,6 +100,19 @@ class InfomailSubscriberView(mixins.ListModelMixin, GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
+class InfomailEveryoneView(mixins.ListModelMixin, GenericAPIView):
+    """
+    Returns all users 
+    """
+
+    permission_classes = [FixedDjangoModelPermissions]
+    queryset = User.objects.all()
+    serializer_class = InfomailUserSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
 class ProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, GenericAPIView):
     serializer_class = ProfileSerializer
 

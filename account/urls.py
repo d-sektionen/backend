@@ -26,6 +26,7 @@ urlpatterns = [
     path(r"profile/", views.ProfileView.as_view()),
     path(r"identification-token/", views.IdentificationTokenView.as_view()),
     path(r"infomail-subscribers/", views.InfomailSubscriberView.as_view()),
+    path(r"infomail-everyone/", views.InfomailEveryoneView.as_view()),
     # JWT Login
     path(r"token/", views.generate_token),
     path(r"token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
