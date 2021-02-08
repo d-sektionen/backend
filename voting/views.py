@@ -234,7 +234,7 @@ class MadeVoteViewSet(viewsets.ViewSet):
             )
 
         # Make sure that no one can make a vote after the meeting's voting admins have set the Vote to inactive:
-        if vote.meeting.current_vote.id != vote.id or not vote.open:
+        if vote.meeting.current_vote.id != vote.id or not vote.meeting.current_vote.open:
             return Response(
                 {"error": "Den här omröstningen är inte aktiv"},
                 status=status.HTTP_403_FORBIDDEN,
