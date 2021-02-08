@@ -207,6 +207,9 @@ class VoteAdminViewSet(NoDeleteViewSet):
 class MadeVoteViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
 
+    # Make sure that no one can make a vote after the meeting's voting admins have set the Vote to inactive:
+
+
     # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it:
     @transaction.atomic
     def create(self, request):
@@ -221,11 +224,19 @@ class MadeVoteViewSet(viewsets.ViewSet):
             )
 
         vote = Vote.objects.get(id=vote_id)
+
         if not Attendant.objects.filter(
             meeting=vote.meeting, user=request.user
         ).exists():
             return Response(
                 {"error": "Du måste närvara på mötet för att få rösta"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Make sure that no one can make a vote after the meeting's voting admins have set the Vote to inactive:
+        if vote.meeting.current_vote.id != vote.id or not vote.open:
+            return Response(
+                {"error": "Den här omröstningen är inte aktiv"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
