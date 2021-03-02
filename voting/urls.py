@@ -6,6 +6,7 @@ from voting import views
 
 router = routers.DefaultRouter()
 router.register(r"meetings", views.MeetingViewSet, basename="meeting")
+router.register(r"guest-meetings", views.MeetingGuestViewSet, basename="guest-meeting")
 router.register(r"admin-meetings", views.MeetingAdminViewSet, basename="admin-meeting")
 router.register(r"attendants", views.AttendantViewSet)
 router.register(r"votes", views.VoteViewSet, basename="vote")

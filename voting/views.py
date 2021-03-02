@@ -7,7 +7,7 @@ from rest_framework.generics import GenericAPIView
 from django.shortcuts import get_object_or_404
 
 from app.permissions import FixedDjangoModelPermissions
-from account.permissions import AllowMembers, AllowMembersAndAlumnis
+from account.permissions import AllowMembers
 from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
@@ -20,6 +20,8 @@ from .serializers import (
     VoteDetailsSerializer,
     SpeakerRequestSerializer,
 )
+
+from membership.utils import check_membership
 
 
 class NoDeleteViewSet(
@@ -35,13 +37,26 @@ class NoDeleteViewSet(
 class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Meeting.objects.filter(archived=False)
     serializer_class = MeetingSerializer
-    permission_classes = (AllowMembersAndAlumnis,)
+    permission_classes = (AllowMembers,)
 
     def get_queryset(self):
         queryset = (
             Meeting.objects.filter(archived=False)
             .filter(Q(attendants__user=self.request.user) | Q(open_attendance=True))
             .distinct()
+        )
+        return queryset
+
+
+class MeetingGuestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Meeting.objects.filter(archived=False)
+    serializer_class = MeetingSerializer
+    # permission_classes = (AllowMembers,)
+
+    def get_queryset(self):
+        queryset = (
+            Meeting.objects.filter(archived=False)
+            .filter(Q(attendants__user=self.request.user))
         )
         return queryset
 
@@ -155,6 +170,18 @@ class AttendantViewSet(
     serializer_class = AttendantSerializer
     permission_classes = (FixedDjangoModelPermissions,)
 
+
+
+    # OBS: hantera i denna så att en person som inte har 
+    # voting rights inte räknas in här. Den ska istället räknas
+    # till guests eller liknande...
+
+    # denna kanske kan innehålla member_attendants och
+    # guest_attendants som skickas till frontenden 
+    # genom att serializern separerar dem i två olika 
+    # dictionaries...? 
+
+
     def get_queryset(self, meeting_specific=False):
         if self.request.method == "GET" or meeting_specific:
             if "meeting_id" not in self.request.query_params:
@@ -172,7 +199,13 @@ class AttendantViewSet(
     @action(detail=False, methods=["delete"])
     def clear(self, request, pk=None):
         attendants = self.get_queryset(meeting_specific=True)
-        attendants.delete()
+
+        for attendant in attendants:
+            # do not remove guests from meeting:
+            if check_membership(attendant.user.username):
+                attendant.delete()
+                
+        # attendants.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -206,9 +239,6 @@ class VoteAdminViewSet(NoDeleteViewSet):
 
 class MadeVoteViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
-
-    # Make sure that no one can make a vote after the meeting's voting admins have set the Vote to inactive:
-
 
     # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it:
     @transaction.atomic

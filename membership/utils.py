@@ -19,19 +19,6 @@ def check_membership(liu_id):
 
 
 """
-Checks if a liu_id is an alumni member. Returns True if alumni member, otherwise False
-"""
-def check_alumnimembership(liu_id):
-  member = None
-  try: 
-    member = Member.objects.get(liu_id=liu_id)
-  except Member.DoesNotExist:
-    return False
-
-  return member.membership_type == 'A'
-
-
-"""
 Gets the first_name and last_name of a liu_id.
 
 If the member does not exist it returns (None, None)

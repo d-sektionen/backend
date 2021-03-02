@@ -64,19 +64,33 @@ class AttendantSerializer(serializers.ModelSerializer):
         write_only=True, queryset=Meeting.objects.all(), source="meeting"
     )
     meeting = MeetingAdminSerializer(read_only=True)
+    has_voting_rights = serializers.BooleanField(required=True)
 
     def validate_user_username(self, value):
         """
-        Validate that user is a member.
+        Validate that user and voting_rights are an allowed combination
         """
         user = User.objects.get(username=value)
-        if not check_membership(user.get_username()):
-            raise serializers.ValidationError("User is not a member")
+        is_member = check_membership(user.get_username())
+        requested_voting_rights = self.initial_data.get("has_voting_rights")
+        
+        if not is_member and requested_voting_rights == True:
+            raise serializers.ValidationError(
+                "User is not a member and voting rights were requested to be set to True"
+            )
+        elif is_member and requested_voting_rights == False:
+            raise serializers.ValidationError(
+                "User is a member and voting rights were requested to be set to False"
+            )
+        elif not isinstance(requested_voting_rights, bool):
+            raise serializers.ValidationError("Invalid data")
+
         return value
 
     class Meta:
         model = Attendant
-        fields = ("id", "user", "meeting", "user_username", "meeting_id")
+        fields = ("id", "user", "meeting", "user_username", "meeting_id", 
+                  "has_voting_rights")
 
 
 class SelfAttendSerializer(serializers.ModelSerializer):
