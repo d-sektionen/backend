@@ -170,18 +170,6 @@ class AttendantViewSet(
     serializer_class = AttendantSerializer
     permission_classes = (FixedDjangoModelPermissions,)
 
-
-
-    # OBS: hantera i denna så att en person som inte har 
-    # voting rights inte räknas in här. Den ska istället räknas
-    # till guests eller liknande...
-
-    # denna kanske kan innehålla member_attendants och
-    # guest_attendants som skickas till frontenden 
-    # genom att serializern separerar dem i två olika 
-    # dictionaries...? 
-
-
     def get_queryset(self, meeting_specific=False):
         if self.request.method == "GET" or meeting_specific:
             if "meeting_id" not in self.request.query_params:
@@ -244,16 +232,44 @@ class MadeVoteViewSet(viewsets.ViewSet):
     @transaction.atomic
     def create(self, request):
         vote_id = request.data["vote_id"]
-        alternative_id = request.data["alternative_id"]
+        alternative_ids = request.data["alternative_id"]
 
-        alternative = Alternative.objects.get(id=alternative_id)
-        if str(alternative.vote_id) != str(vote_id):
+        # måste dubbekolla att denna Vote tillåter multi choices ! ! ! ! ! ! ! ! och att det är rätt antal (maxantal) eller < maxantal
+
+        if not isinstance(alternative_ids, list):
             return Response(
-                {"error": "Omröstningen hittades inte"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Felaktig indata"},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
+        for alternative_id in alternative_ids:
+            if not isinstance(alternative_id, int):
+                return Response(
+                    {"error": "Felaktig indata på val"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            alternative = Alternative.objects.get(id=alternative_id)
+            if str(alternative.vote_id) != str(vote_id):
+                return Response(
+                    {"error": "Omröstningen hittades inte"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            
         vote = Vote.objects.get(id=vote_id)
+
+
+        #print("============================")
+        #print(vote.number_of_selectable_alternatives)
+        #print("============================")
+
+
+        # Check so that the user chooses the correct number of alternatives:
+        if not len(alternative_ids) == vote.number_of_selectable_alternatives:
+            return Response(
+                {"error": "Felaktigt antal val"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         if not Attendant.objects.filter(
             meeting=vote.meeting, user=request.user
@@ -276,9 +292,14 @@ class MadeVoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Update the reference by performing the addition directly in the database (using reference F)
-        alternative.num_votes = F("num_votes") + 1
-        alternative.save()
+
+        for alternative_id in alternative_ids:
+            alternative = Alternative.objects.get(id=alternative_id)
+            
+            # Update the reference by performing the addition directly in the database (using reference F)
+            alternative.num_votes = F("num_votes") + 1
+            alternative.save()
+        
 
         MadeVote.objects.create(vote_id=vote_id, user=request.user)
 

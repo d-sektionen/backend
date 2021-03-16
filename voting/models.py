@@ -97,9 +97,7 @@ class Attendant(models.Model):
     meeting = models.ForeignKey(
         Meeting, null=False, related_name="attendants", on_delete=models.CASCADE
     )
-    has_voting_rights = models.BooleanField(default=True)  # OBS: se till att den sätts till False för personer som adjungeras in genom D-cide på medlemssidan.
-
-    # OBS: vad händer om en mötesadmin klickar på "Återställ deltagarlistan"...?
+    has_voting_rights = models.BooleanField(default=True)
 
     @staticmethod
     def get_model_name():
@@ -113,6 +111,7 @@ class Vote(models.Model):
     question = models.CharField(max_length=128)
     open = models.BooleanField(default=True)
     meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
+    number_of_selectable_alternatives = models.IntegerField(default=1)
 
     @staticmethod
     def get_model_name():

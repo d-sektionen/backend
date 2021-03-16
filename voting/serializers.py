@@ -128,7 +128,8 @@ class VoteListSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ("id", "question", "open", "alternatives", "meeting", "has_voted")
+        fields = ("id", "question", "open", "alternatives", "meeting", "has_voted",
+                  "number_of_selectable_alternatives")
 
     def get_has_voted(self, obj):
         current_user = self.context["request"].user
