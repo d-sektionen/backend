@@ -128,7 +128,20 @@ class VoteListSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ("id", "question", "open", "alternatives", "meeting", "has_voted")
+        fields = ("id", "question", "open", "alternatives", "meeting", "has_voted",
+                  "min_number_of_selectable_alternatives",
+                  "max_number_of_selectable_alternatives")
+
+    def validate_min_number_of_selectable_alternatives(self, value):
+        min_alternatives = self.initial_data.get("min_number_of_selectable_alternatives")
+        max_alternatives = self.initial_data.get("max_number_of_selectable_alternatives")
+
+        if min_alternatives > max_alternatives:
+            raise serializers.ValidationError(
+                "min_number_of_selectable_alternatives needs to be smaller or equal to max_number_of_selectable_alternatives"
+            )
+
+        return min_alternatives
 
     def get_has_voted(self, obj):
         current_user = self.context["request"].user
