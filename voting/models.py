@@ -111,7 +111,9 @@ class Vote(models.Model):
     question = models.CharField(max_length=128)
     open = models.BooleanField(default=True)
     meeting = models.ForeignKey(Meeting, null=False, on_delete=models.CASCADE)
-    number_of_selectable_alternatives = models.IntegerField(default=1)
+
+    min_number_of_selectable_alternatives = models.IntegerField(default=1)
+    max_number_of_selectable_alternatives = models.IntegerField(default=1)
 
     @staticmethod
     def get_model_name():

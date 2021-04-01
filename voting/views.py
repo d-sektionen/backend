@@ -234,8 +234,6 @@ class MadeVoteViewSet(viewsets.ViewSet):
         vote_id = request.data["vote_id"]
         alternative_ids = request.data["alternative_id"]
 
-        # måste dubbekolla att denna Vote tillåter multi choices ! ! ! ! ! ! ! ! och att det är rätt antal (maxantal) eller < maxantal
-
         if not isinstance(alternative_ids, list):
             return Response(
                 {"error": "Felaktig indata"},
@@ -258,14 +256,11 @@ class MadeVoteViewSet(viewsets.ViewSet):
             
         vote = Vote.objects.get(id=vote_id)
 
-
-        #print("============================")
-        #print(vote.number_of_selectable_alternatives)
-        #print("============================")
-
-
-        # Check so that the user chooses the correct number of alternatives:
-        if not len(alternative_ids) == vote.number_of_selectable_alternatives:
+        # Check so that the user chooses a correct amount of alternatives:
+        if (
+            (len(alternative_ids) < vote.min_number_of_selectable_alternatives) or
+            (len(alternative_ids) > vote.max_number_of_selectable_alternatives)
+        ):
             return Response(
                 {"error": "Felaktigt antal val"},
                 status=status.HTTP_403_FORBIDDEN,
