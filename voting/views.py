@@ -234,6 +234,7 @@ class MadeVoteViewSet(viewsets.ViewSet):
         vote_id = request.data["vote_id"]
         alternative_ids = request.data["alternative_id"]
 
+        # Validate input
         if not isinstance(alternative_ids, list):
             return Response(
                 {"error": "Felaktig indata"},
