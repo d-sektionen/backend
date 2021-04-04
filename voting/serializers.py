@@ -153,7 +153,7 @@ class VoteDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ("id", "question", "open", "alternatives")
+        fields = ("id", "question", "open", "alternatives", "attendants_voted")
 
 
 class MadeVoteSerializer(serializers.ModelSerializer):

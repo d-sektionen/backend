@@ -115,6 +115,8 @@ class Vote(models.Model):
     min_number_of_selectable_alternatives = models.IntegerField(default=1)
     max_number_of_selectable_alternatives = models.IntegerField(default=1)
 
+    attendants_voted = models.IntegerField(default=0)
+
     @staticmethod
     def get_model_name():
         return "Röst"

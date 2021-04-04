@@ -288,14 +288,16 @@ class MadeVoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-
         for alternative_id in alternative_ids:
             alternative = Alternative.objects.get(id=alternative_id)
             
             # Update the reference by performing the addition directly in the database (using reference F)
             alternative.num_votes = F("num_votes") + 1
             alternative.save()
-        
+
+        # Update the reference by performing the addition directly in the database (using reference F)
+        vote.attendants_voted = F("attendants_voted") + 1
+        vote.save()
 
         MadeVote.objects.create(vote_id=vote_id, user=request.user)
 
