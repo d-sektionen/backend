@@ -151,6 +151,9 @@ class Alternative(models.Model):
     def get_model_name():
         return "Alternativ"
 
+    class Meta:
+        ordering = ("id",)
+
 
 class MadeVote(models.Model):
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)

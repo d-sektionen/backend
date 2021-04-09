@@ -210,7 +210,7 @@ class VoteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             )
         meeting_id = self.request.query_params["meeting_id"]
         if Meeting.objects.filter(id=meeting_id, attendants__user__in=[user]).exists():
-            return Vote.objects.filter(meeting_id=meeting_id, open=True).order_by("id")
+            return Vote.objects.filter(meeting_id=meeting_id, open=True)
         return Vote.objects.none()
 
 
