@@ -248,6 +248,12 @@ class MadeVoteViewSet(viewsets.ViewSet):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
+            if alternative_ids.count(alternative_id) > 1:
+                return Response(
+                    {"error": "Alla val måste vara unika"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             alternative = Alternative.objects.get(id=alternative_id)
             if str(alternative.vote_id) != str(vote_id):
                 return Response(
