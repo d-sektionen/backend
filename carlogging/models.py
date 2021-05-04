@@ -3,10 +3,20 @@ from django.contrib.auth.models import User
 from membership.utils import check_membership
 
 
+class LogStart(models.Model):
+    user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts"
+    )
+    booking_liu_id = models.CharField(max_length=8, null=False)
+    start_km = models.IntegerField(null=False)
+    start_message = models.TextField(blank=False, max_length=200)
+    start_car_cleaned = models.BooleanField(null=False)
+    logging_finished = models.BooleanField(null=True)
+    logging_date = models.DateTimeField(auto_now_add=True)
+
+
 class LogEntry(models.Model):
-    start_km = models.IntegerField(null=True)
-    start_message = models.TextField(blank=True, max_length=200)
-    start_car_cleaned = models.BooleanField(null=True)
+    log_start = models.ForeignKey(LogStart, null=True, on_delete=models.CASCADE)
 
     car_days = models.IntegerField(null=True)
     user = models.ForeignKey(
@@ -25,6 +35,8 @@ class LogEntry(models.Model):
     end_message = models.TextField(blank=True, max_length=200, null=False)
     end_km = models.IntegerField(null=False)
     end_car_cleaned = models.BooleanField(null=False)
+
+    logging_date = models.DateTimeField(auto_now_add=True)
 
     def calc_cost(self):
         if self.user is None:
@@ -50,7 +62,7 @@ class LogEntry(models.Model):
         )
 
         # if user only used the trailer
-        if self.start_km is None or self.end_km is None:
+        if self.log_start.start_km is None or self.end_km is None:
             if not self.trailer:
                 return 0
             return trailer_daily_cost * self.trailer_days
@@ -60,7 +72,7 @@ class LogEntry(models.Model):
         if self.trailer:
             cost += trailer_daily_cost * self.trailer_days
 
-        km_travelled = self.end_km - self.start_km
+        km_travelled = self.end_km - self.log_start.start_km
         km_cost_sum = km_travelled * cost_per_km
 
         daily_cost_sum = (self.car_days - 1) * start_cost
@@ -69,13 +81,3 @@ class LogEntry(models.Model):
 
         cost += km_cost_sum + daily_cost_sum
         return cost
-
-
-class LogStart(models.Model):
-    user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts"
-    )
-    booking_liu_id = models.CharField(max_length=8, null=False)
-    start_km = models.IntegerField(null=False)
-    start_message = models.TextField(blank=False, max_length=200)
-    start_car_cleaned = models.BooleanField(null=False)

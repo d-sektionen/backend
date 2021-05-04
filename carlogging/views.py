@@ -21,7 +21,6 @@ class LogEntryViewSet(
         return LogEntry.objects.filter(user=self.request.user)
 
 
-
 class LogStartViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -36,6 +35,3 @@ class LogStartViewSet(
 
     def get_queryset(self):
         return LogStart.objects.filter(user=self.request.user)
-
-
-

@@ -5,7 +5,6 @@ from .models import LogEntry
 class LogEntryAdmin(admin.ModelAdmin):
     model = LogEntry
     list_display = (
-        "start_km",
         "end_km",
         "user",
         "calc_cost",

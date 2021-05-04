@@ -6,13 +6,51 @@ from django.contrib.auth.models import User
 from .utils import check_valid_booking
 
 
+class LogStartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogStart
+        fields = (
+            "start_km",
+            "start_message",
+            "user",
+            "booking_liu_id",
+            "start_car_cleaned",
+            "logging_finished",
+            "logging_date",
+        )
+        read_only_fields = ("user", "logging_finished", "logging_date")
+
+    user = SimpleUserSerializer(read_only=True)
+
+    def create(self, validated_data, **kwargs):
+        validated_data["user"] = self.context["request"].user
+
+        validated_data["logging_finished"] = False
+
+        check_valid_booking(validated_data)
+
+        booking_liu_id = validated_data["booking_liu_id"]
+        if LogStart.objects.filter(
+            booking_liu_id=booking_liu_id,
+            logging_finished=False
+        ).exists():
+            raise serializers.ValidationError(
+                "A LogStart object has already been created for this user"  # ändra lösning???
+            )
+
+        log_start = LogStart.objects.create(**validated_data)
+        #log_start.logging_finished = False
+
+        # log_start.save()   ???
+
+        return log_start
+
+
 class LogEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogEntry
         fields = (
-            "start_km",
-            "start_message",
-            "start_car_cleaned",
+            "log_start",
             "end_km",
             "end_message",
             "end_car_cleaned",
@@ -23,11 +61,12 @@ class LogEntrySerializer(serializers.ModelSerializer):
             "trailer_days",
             "car_days",
             "active_member",
+            "logging_date",
         )
-        read_only_fields = ("cost", "user", "start_km",
-                            "start_message", "start_car_cleaned")
+        read_only_fields = ("cost", "user", "log_start", "logging_date")
 
     user = SimpleUserSerializer(read_only=True)
+    log_start = LogStartSerializer(read_only=True)
 
     # user = serializers.HiddenField(
     #    default=serializers.CurrentUserDefault(),
@@ -39,28 +78,37 @@ class LogEntrySerializer(serializers.ModelSerializer):
         check_valid_booking(validated_data)
 
         booking_liu_id = validated_data["booking_liu_id"]
+        
         log_start_exists = LogStart.objects.filter(
-            booking_liu_id=booking_liu_id).exists()
+            booking_liu_id=booking_liu_id,
+            logging_finished=False
+        ).exists()
         if not log_start_exists:
             raise serializers.ValidationError(
                 "No LogStart object has been created for this booking"
             )
 
-        log_start = LogStart.objects.get(booking_liu_id=booking_liu_id)
+        log_start = LogStart.objects.get(
+            booking_liu_id=booking_liu_id, 
+            logging_finished=False
+        )
         if log_start.start_km > validated_data["end_km"]:
             raise serializers.ValidationError(
                 # kommer detta kunna ge någon valid http-response till frontenden ???
                 "Start kilometer should be less than end kilometer"
             )
 
+        print("\n\n\n")
+        print(log_start)
+        print("\n\n\n")
+
+        validated_data["log_start"] = log_start
         log_entry = LogEntry.objects.create(**validated_data)
         log_entry.cost = log_entry.calc_cost()
-        log_entry.start_km = log_start.start_km
-        log_entry.start_message = log_start.start_message
-        log_entry.start_car_cleaned = log_start.start_car_cleaned
-        log_start.delete()  # delete LogStart object so that a new one can be created
+        log_entry.save()
 
-        # kanske spara the User som skapade LogStart, i denna LogEntry?
+        log_start.logging_finished = True
+        log_start.save()
 
         return log_entry
 
@@ -79,32 +127,3 @@ class LogEntrySerializer(serializers.ModelSerializer):
             )
 
         return attrs
-
-
-class LogStartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LogStart
-        fields = (
-            "start_km",
-            "start_message",
-            "user",
-            "booking_liu_id",
-            "start_car_cleaned",
-        )
-        read_only_fields = ("user",)
-
-    user = SimpleUserSerializer(read_only=True)
-
-    def create(self, validated_data, **kwargs):
-        validated_data["user"] = self.context["request"].user
-
-        check_valid_booking(validated_data)
-
-        booking_liu_id = validated_data["booking_liu_id"]
-        if LogStart.objects.filter(booking_liu_id=booking_liu_id).exists():
-            raise serializers.ValidationError(
-                "A LogStart object has already been created for this user"  # ändra lösning???
-            )
-
-        log_start = LogStart.objects.create(**validated_data)
-        return log_start

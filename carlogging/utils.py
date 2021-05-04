@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
+from rest_framework import serializers
 from booking.models import Booking
+
 
 """
 Checks if the given data from the LogEntry or LogStart corresponds to an actual
