@@ -51,12 +51,3 @@ class LogStartAdmin(admin.ModelAdmin):
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(LogStart, LogStartAdmin)
-
-
-    
-
-
-
-
-
-  
