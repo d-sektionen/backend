@@ -1,22 +1,62 @@
 from django.contrib import admin
-from .models import LogEntry
+from .models import LogEntry, LogStart
 
+from django.urls import reverse
+from django.utils.html import format_html
 
 class LogEntryAdmin(admin.ModelAdmin):
     model = LogEntry
     list_display = (
-        "end_km",
         "logging_user",
-        "calc_cost",
-        "trailer",
-        "trailer_days",
+        "booking_liu_id",
+        "paid",
+        "link_to_logstart",
+        "end_km",
         "car_days",
+        "trailer_days",
+        "cost",
         "active_member",
+        "logging_date",
     )
-    list_filter = ("logging_user",)
-    search_fields = ("user__username", "user__first_name", "user__last_name")
+    list_filter = ("logging_user", "booking_liu_id")
+    search_fields = (
+        "logging_user__username", 
+        "logging_user__first_name", 
+        "logging_user__last_name"
+    )
+
+    def link_to_logstart(self, obj):
+        link = reverse("admin:carlogging_logstart_change", args=[obj.log_start.id])
+        return format_html('<a href="{}">View {}</a>', link, obj.log_start)
+
+    link_to_logstart.short_description = 'LogStart Object'
 
 
-# TODO: add LogStartAdmin
+class LogStartAdmin(admin.ModelAdmin):
+    model = LogStart
+    list_display = (
+        "logging_user",
+        "booking_liu_id",
+        "start_km",
+        "logging_finished",
+        "logging_date",
+    )
+    list_filter = ("logging_user", "booking_liu_id")
+    search_fields = (
+        "logging_user__username", 
+        "logging_user__first_name", 
+        "logging_user__last_name"
+    )
+
 
 admin.site.register(LogEntry, LogEntryAdmin)
+admin.site.register(LogStart, LogStartAdmin)
+
+
+    
+
+
+
+
+
+  
