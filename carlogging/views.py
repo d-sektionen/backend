@@ -18,7 +18,7 @@ class LogEntryViewSet(
     queryset = LogEntry.objects.all()
 
     def get_queryset(self):
-        return LogEntry.objects.filter(user=self.request.user)
+        return LogEntry.objects.filter(logging_user=self.request.user)
 
 
 class LogStartViewSet(
@@ -34,4 +34,4 @@ class LogStartViewSet(
     queryset = LogStart.objects.all()
 
     def get_queryset(self):
-        return LogStart.objects.filter(user=self.request.user)
+        return LogStart.objects.filter(logging_user=self.request.user)

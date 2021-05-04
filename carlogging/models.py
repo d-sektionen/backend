@@ -4,7 +4,7 @@ from membership.utils import check_membership
 
 
 class LogStart(models.Model):
-    user = models.ForeignKey(
+    logging_user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts"
     )
     booking_liu_id = models.CharField(max_length=8, null=False)
@@ -19,7 +19,7 @@ class LogEntry(models.Model):
     log_start = models.ForeignKey(LogStart, null=True, on_delete=models.CASCADE)
 
     car_days = models.IntegerField(null=True)
-    user = models.ForeignKey(
+    logging_user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries"
     )
 
@@ -39,7 +39,7 @@ class LogEntry(models.Model):
     logging_date = models.DateTimeField(auto_now_add=True)
 
     def calc_cost(self):
-        if self.user is None:
+        if self.logging_user is None:
             return 0
         # TODO: move magic numbers
         # Daily cost of trailer
@@ -48,7 +48,7 @@ class LogEntry(models.Model):
         # Cost of per kilometer travelled using the car, depending on user.
         cost_per_km = (
             3 if self.active_member
-            else (4 if check_membership(self.user.username) else 6)
+            else (4 if check_membership(self.logging_user.username) else 6)
         )
 
         # starting cost of using the car

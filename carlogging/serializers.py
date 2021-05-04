@@ -12,19 +12,18 @@ class LogStartSerializer(serializers.ModelSerializer):
         fields = (
             "start_km",
             "start_message",
-            "user",
+            "logging_user",
             "booking_liu_id",
             "start_car_cleaned",
             "logging_finished",
             "logging_date",
         )
-        read_only_fields = ("user", "logging_finished", "logging_date")
+        read_only_fields = ("logging_user", "logging_finished", "logging_date")
 
-    user = SimpleUserSerializer(read_only=True)
+    logging_user = SimpleUserSerializer(read_only=True)
 
     def create(self, validated_data, **kwargs):
-        validated_data["user"] = self.context["request"].user
-
+        validated_data["logging_user"] = self.context["request"].user
         validated_data["logging_finished"] = False
 
         check_valid_booking(validated_data)
@@ -39,9 +38,6 @@ class LogStartSerializer(serializers.ModelSerializer):
             )
 
         log_start = LogStart.objects.create(**validated_data)
-        #log_start.logging_finished = False
-
-        # log_start.save()   ???
 
         return log_start
 
@@ -54,7 +50,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             "end_km",
             "end_message",
             "end_car_cleaned",
-            "user",
+            "logging_user",
             "booking_liu_id",
             "cost",
             "trailer",
@@ -63,9 +59,9 @@ class LogEntrySerializer(serializers.ModelSerializer):
             "active_member",
             "logging_date",
         )
-        read_only_fields = ("cost", "user", "log_start", "logging_date")
+        read_only_fields = ("cost", "logging_user", "log_start", "logging_date")
 
-    user = SimpleUserSerializer(read_only=True)
+    logging_user = SimpleUserSerializer(read_only=True)
     log_start = LogStartSerializer(read_only=True)
 
     # user = serializers.HiddenField(
@@ -73,7 +69,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
     # )
 
     def create(self, validated_data, **kwargs):
-        validated_data["user"] = self.context["request"].user
+        validated_data["logging_user"] = self.context["request"].user
 
         check_valid_booking(validated_data)
 
@@ -97,10 +93,6 @@ class LogEntrySerializer(serializers.ModelSerializer):
                 # kommer detta kunna ge någon valid http-response till frontenden ???
                 "Start kilometer should be less than end kilometer"
             )
-
-        print("\n\n\n")
-        print(log_start)
-        print("\n\n\n")
 
         validated_data["log_start"] = log_start
         log_entry = LogEntry.objects.create(**validated_data)
