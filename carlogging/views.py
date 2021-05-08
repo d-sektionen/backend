@@ -5,6 +5,7 @@ from .serializers import LogEntrySerializer, LogStartSerializer
 from .permissions import LoggingPermissions
 from .utils import check_invalid_booking
 from rest_framework.response import Response
+from django.db.models import F, Q
 
 
 class LogEntryViewSet(
@@ -20,7 +21,10 @@ class LogEntryViewSet(
     queryset = LogEntry.objects.all()
 
     def get_queryset(self):
-        return LogEntry.objects.filter(logging_user=self.request.user)
+        return LogEntry.objects.filter(
+            Q(logging_user=self.request.user) |
+            Q(booking_liu_id=self.request.user)
+        )
 
     def create(self, request):
         error_response = check_invalid_booking(request.data)
@@ -50,15 +54,15 @@ class LogEntryViewSet(
         if request.data["trailer_days"] == None:
             request.data["trailer_days"] = 0
         if request.data["car_days"] == None:
-            request.data["car_days"] = 0
+            request.data["car_days"] = 1
         if request.data["trailer_days"] < 0:
             return Response(
                 {"error": "Days trailer is rented can't be less than 0!"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if request.data["car_days"] < 0:
+        if request.data["car_days"] < 1:
             return Response(
-                {"error": "Days car is rented can't be less than 0!"}, 
+                {"error": "Days car is rented can't be less than 1!"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -79,6 +83,11 @@ class LogEntryViewSet(
 
         log_start_obj.logging_finished = True
         log_start_obj.save()
+
+        return Response(
+            {"status": "ok"}, 
+            status=status.HTTP_200_OK
+        )
         
 
 class LogStartViewSet(
@@ -94,7 +103,10 @@ class LogStartViewSet(
     queryset = LogStart.objects.all()
 
     def get_queryset(self):
-        return LogStart.objects.filter(logging_user=self.request.user)
+        return LogStart.objects.filter(
+            Q(logging_user=self.request.user) |
+            Q(booking_liu_id=self.request.user)
+        )
 
     def create(self, request):
         error_response = check_invalid_booking(request.data)

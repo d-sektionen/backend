@@ -38,6 +38,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             "car_days",
             "active_member",
             "logging_date",
+            "paid",
         )
         read_only_fields = ("cost", "logging_user", "log_start", "logging_date")
 
