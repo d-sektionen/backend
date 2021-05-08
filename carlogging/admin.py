@@ -8,7 +8,7 @@ class LogEntryAdmin(admin.ModelAdmin):
     model = LogEntry
     list_display = (
         "logging_user",
-        "booking_liu_id",
+        "booking_user",
         "paid",
         "link_to_logstart",
         "end_km",
@@ -18,7 +18,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         "active_member",
         "logging_date",
     )
-    list_filter = ("logging_user", "booking_liu_id")
+    list_filter = ("logging_user", "booking_user")
     search_fields = (
         "logging_user__username", 
         "logging_user__first_name", 
@@ -36,12 +36,12 @@ class LogStartAdmin(admin.ModelAdmin):
     model = LogStart
     list_display = (
         "logging_user",
-        "booking_liu_id",
+        "booking_user",
         "start_km",
         "logging_finished",
         "logging_date",
     )
-    list_filter = ("logging_user", "booking_liu_id")
+    list_filter = ("logging_user", "booking_user")
     search_fields = (
         "logging_user__username", 
         "logging_user__first_name", 

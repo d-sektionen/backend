@@ -6,6 +6,7 @@ from .permissions import LoggingPermissions
 from .utils import check_invalid_booking
 from rest_framework.response import Response
 from django.db.models import F, Q
+from django.contrib.auth.models import User
 
 
 class LogEntryViewSet(
@@ -21,9 +22,9 @@ class LogEntryViewSet(
     queryset = LogEntry.objects.all()
 
     def get_queryset(self):
-        return LogEntry.objects.filter(
+        return LogEntry.objects.filter(  # filter matching logging_user OR booking_liu_id
             Q(logging_user=self.request.user) |
-            Q(booking_liu_id=self.request.user)
+            Q(booking_user=self.request.user)
         )
 
     def create(self, request):
@@ -32,7 +33,7 @@ class LogEntryViewSet(
             return error_response
 
         log_start_exists = LogStart.objects.filter(
-            booking_liu_id=request.data["booking_liu_id"],
+            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
             logging_finished=False
         ).exists()
         if not log_start_exists:
@@ -42,7 +43,7 @@ class LogEntryViewSet(
             )
 
         log_start_obj = LogStart.objects.get(
-            booking_liu_id=request.data["booking_liu_id"], 
+            booking_user=User.objects.get(username=request.data["booking_liu_id"]), 
             logging_finished=False
         )
         if log_start_obj.start_km > request.data["end_km"]:
@@ -70,7 +71,7 @@ class LogEntryViewSet(
             log_start=log_start_obj,
             car_days=request.data["car_days"],
             logging_user=request.user,
-            booking_liu_id=request.data["booking_liu_id"],
+            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
             trailer=request.data["trailer"],
             trailer_days=request.data["trailer_days"],
             active_member=request.data["active_member"],
@@ -103,9 +104,9 @@ class LogStartViewSet(
     queryset = LogStart.objects.all()
 
     def get_queryset(self):
-        return LogStart.objects.filter(
+        return LogStart.objects.filter(  # filter matching logging_user OR booking_liu_id
             Q(logging_user=self.request.user) |
-            Q(booking_liu_id=self.request.user)
+            Q(booking_user=self.request.user)
         )
 
     def create(self, request):
@@ -114,7 +115,7 @@ class LogStartViewSet(
             return error_response
 
         if LogStart.objects.filter(
-            booking_liu_id=request.data["booking_liu_id"],
+            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
             logging_finished=False
         ).exists():
             return Response(
@@ -124,7 +125,7 @@ class LogStartViewSet(
 
         LogStart.objects.create(
             logging_user=request.user,
-            booking_liu_id=request.data["booking_liu_id"],
+            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
             start_km=request.data["start_km"],
             start_message=request.data["start_message"],
             start_car_cleaned=request.data["start_car_cleaned"],

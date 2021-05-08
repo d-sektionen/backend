@@ -5,9 +5,11 @@ from membership.utils import check_membership
 
 class LogStart(models.Model):
     logging_user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts"
+        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts_logging"
     )
-    booking_liu_id = models.CharField(max_length=8, null=False)
+    booking_user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts_booking"
+    )
     start_km = models.IntegerField(null=False)
     start_message = models.TextField(blank=False, max_length=200)
     start_car_cleaned = models.BooleanField(null=False)
@@ -16,22 +18,20 @@ class LogStart(models.Model):
 
 
 class LogEntry(models.Model):
-    log_start = models.ForeignKey(LogStart, null=True, on_delete=models.CASCADE)
-
-    car_days = models.IntegerField(null=True)
     logging_user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries"
+        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries_logging"
     )
-
-    booking_liu_id = models.CharField(max_length=8, null=True)
-
+    booking_user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries_booking"
+    )
+    log_start = models.ForeignKey(LogStart, null=True, on_delete=models.CASCADE)
+    car_days = models.IntegerField(null=True)
     cost = models.IntegerField(null=True)
     trailer = models.BooleanField(default=False)
     trailer_days = models.IntegerField(null=True)
     active_member = models.BooleanField(default=False)  # sektionsaktiv
     # should be marked by the payment reciever as paid:
     paid = models.BooleanField(default=False)
-
     end_message = models.TextField(blank=True, max_length=200, null=False)
     end_km = models.IntegerField(null=False)
     end_car_cleaned = models.BooleanField(null=False)
