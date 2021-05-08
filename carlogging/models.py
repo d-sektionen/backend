@@ -49,17 +49,7 @@ class LogEntry(models.Model):
         cost_per_km = (
             3 if self.active_member
             else (4 if check_membership(self.logging_user.username) else 6)
-        )
-
-        # starting cost of using the car
-        start_cost = (
-            0 if (
-                self.active_member
-                or self.car_days == 1
-                or self.car_days == 0
-            )
-            else 30
-        )
+        )        
 
         # if user only used the trailer
         if self.log_start.start_km is None or self.end_km is None:
@@ -75,9 +65,8 @@ class LogEntry(models.Model):
         km_travelled = self.end_km - self.log_start.start_km
         km_cost_sum = km_travelled * cost_per_km
 
-        daily_cost_sum = (self.car_days - 1) * start_cost
-        # if self.car_days >= 1
-        # else 0                              # dubbelkolla detta... !!!
+        DAILY_COST = 30
+        daily_cost_sum = (self.car_days - 1) * DAILY_COST
 
         cost += km_cost_sum + daily_cost_sum
         return cost
