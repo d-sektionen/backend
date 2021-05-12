@@ -14,7 +14,8 @@ def check_invalid_booking(data):
     liu_id_exists = User.objects.filter(username=booking_liu_id).exists()
     if not liu_id_exists:
         return Response(
-            {"error": "User with that liu_id does not exist in the database"}, 
+            {"error": "User with that liu_id does not exist in the database",
+            "status_text": "Det finnns ingen användare med det LiU-ID:t."}, 
             status=status.HTTP_404_NOT_FOUND
         )
 
@@ -23,7 +24,8 @@ def check_invalid_booking(data):
 
     if not bookings_exist:
         return Response(
-            {"error": "No bookings for that liu_id exist"}, 
+            {"error": "No bookings for that liu_id exist",
+            "status_text": "Det finns inga bokningar för en användare med det LiU-ID:t."}, 
             status=status.HTTP_404_NOT_FOUND
         )
 
@@ -36,7 +38,8 @@ def check_invalid_booking(data):
 
     if not car_booking_exists:
         return Response(
-            {"error": "The user with the liu_id you entered does not have a car booking in the database"}, 
+            {"error": "The user with the liu_id you entered does not have a car booking in the database",
+            "status_text": "Det finns inget LiU-ID:t med en bokning av bilen."}, 
             status=status.HTTP_404_NOT_FOUND
         )
 

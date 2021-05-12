@@ -38,7 +38,8 @@ class LogEntryViewSet(
         ).exists()
         if not log_start_exists:
             return Response(
-                {"error": "No LogStart object has been created for this booking"}, 
+                {"error": "No LogStart object has been created for this booking",
+                "status_text": "Du måste påbörja en loggning innan du kan avsluta den."}, 
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -46,24 +47,27 @@ class LogEntryViewSet(
             booking_user=User.objects.get(username=request.data["booking_liu_id"]), 
             logging_finished=False
         )
-        if log_start_obj.start_km > request.data["end_km"]:
+        if log_start_obj.start_km >= request.data["end_km"]:
             return Response(
-                {"error": "Start kilometer should be less than end kilometer"}, 
+                {"error": "Start kilometer should be less than end kilometer",
+                "status_text" : f"Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start_obj.start_km} km."}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         if request.data["trailer_days"] == None:
-            request.data["trailer_days"] = 0
+            request.data["trailer_days"] = 1
         if request.data["car_days"] == None:
             request.data["car_days"] = 1
-        if request.data["trailer_days"] < 0:
+        if request.data["trailer_days"] < 1:
             return Response(
-                {"error": "Days trailer is rented can't be less than 0!"}, 
+                {"error": "Days trailer is rented can't be less than 1!", 
+                "status_text": "Antalet dagar för släpet får ej vara mindre än 1"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         if request.data["car_days"] < 1:
             return Response(
-                {"error": "Days car is rented can't be less than 1!"}, 
+                {"error": "Days car is rented can't be less than 1!",
+                "status_text": "Antalet dagar för bilen får ej vara mindre än 1"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -86,7 +90,8 @@ class LogEntryViewSet(
         log_start_obj.save()
 
         return Response(
-            {"status": "ok"}, 
+            {"status": "ok",
+            "status_text" : "Loggningen är nu avslutad."}, 
             status=status.HTTP_200_OK
         )
         
@@ -119,7 +124,8 @@ class LogStartViewSet(
             logging_finished=False
         ).exists():
             return Response(
-                {"error": "A LogStart object has already been created for this user"}, 
+                {"error": "A LogStart object has already been created for this user", 
+                "status_text" : "Det finns redan en påbörjad loggning för den här användaren, du måste avsluta den först."}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -133,7 +139,8 @@ class LogStartViewSet(
         )
 
         return Response(
-            {"status": "ok"}, 
+            {"status": "ok",
+            "status_text" : "Loggningen är nu påbörjad."}, 
             status=status.HTTP_200_OK
         )
 
