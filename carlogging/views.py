@@ -22,10 +22,17 @@ class LogEntryViewSet(
     queryset = LogEntry.objects.all()
 
     def get_queryset(self):
-        return LogEntry.objects.filter(  # filter matching logging_user OR booking_liu_id
+        entries = LogEntry.objects.filter(  # filter matching logging_user OR booking_liu_id
             Q(logging_user=self.request.user) |
             Q(booking_user=self.request.user)
         )
+        for entry in entries:
+            if entry.log_start.logging_user != self.request.user:
+                # hide the "personal data" of the person who created the 
+                # log_start, from the requesting user:
+                entry.log_start.logging_user = None
+                entry.log_start.start_message = None
+        return entries
 
     def create(self, request):
         error_response = check_invalid_booking(request.data)
@@ -143,4 +150,3 @@ class LogStartViewSet(
             "status_text" : "Loggningen är nu påbörjad."}, 
             status=status.HTTP_200_OK
         )
-
