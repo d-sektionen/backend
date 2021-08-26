@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from membership.utils import check_membership
 
+DAILY_COST = 30
+TRAILER_DAILY_COST = 100
+
 
 class LogStart(models.Model):
     logging_user = models.ForeignKey(
@@ -46,7 +49,6 @@ class LogEntry(models.Model):
             return 0
         # TODO: move magic numbers
         # Daily cost of trailer
-        trailer_daily_cost = 100
 
         # Cost of per kilometer travelled using the car, depending on user.
         cost_per_km = (
@@ -58,17 +60,16 @@ class LogEntry(models.Model):
         if self.log_start.start_km is None or self.end_km is None:
             if not self.trailer:
                 return 0
-            return trailer_daily_cost * self.trailer_days
+            return TRAILER_DAILY_COST * self.trailer_days
 
         # calculate cost of the car usage
         cost = 0
         if self.trailer:
-            cost += trailer_daily_cost * self.trailer_days
+            cost += TRAILER_DAILY_COST * self.trailer_days
 
         km_travelled = self.end_km - self.log_start.start_km
         km_cost_sum = km_travelled * cost_per_km
 
-        DAILY_COST = 30
         daily_cost_sum = (self.car_days - 1) * DAILY_COST
 
         cost += km_cost_sum + daily_cost_sum

@@ -13,3 +13,4 @@ graphene-django==2.13.0
 python-dotenv==0.15.0
 django-model-utils==4.0.0
 django-imagekit==4.0.2
+reportlab==3.6.1
