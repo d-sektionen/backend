@@ -24,12 +24,15 @@ class LogEntry(models.Model):
     booking_user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries_booking"
     )
-    log_start = models.ForeignKey(LogStart, null=True, on_delete=models.CASCADE)
+    log_start = models.ForeignKey(
+        LogStart, null=True, on_delete=models.CASCADE)
     car_days = models.IntegerField(null=True)
     cost = models.IntegerField(null=True)
     trailer = models.BooleanField(default=False)
     trailer_days = models.IntegerField(null=True)
     active_member = models.BooleanField(default=False)  # sektionsaktiv
+    member = models.BooleanField(default=False)  # sektionsmedlem
+
     # should be marked by the payment reciever as paid:
     paid = models.BooleanField(default=False)
     end_message = models.TextField(blank=True, max_length=200, null=False)
@@ -49,7 +52,7 @@ class LogEntry(models.Model):
         cost_per_km = (
             3 if self.active_member
             else (4 if check_membership(self.logging_user.username) else 6)
-        )        
+        )
 
         # if user only used the trailer
         if self.log_start.start_km is None or self.end_km is None:

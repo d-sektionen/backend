@@ -7,6 +7,7 @@ from .utils import check_invalid_booking
 from rest_framework.response import Response
 from django.db.models import F, Q
 from django.contrib.auth.models import User
+from membership.utils import check_membership
 
 
 class LogEntryViewSet(
@@ -28,7 +29,7 @@ class LogEntryViewSet(
         )
         for entry in entries:
             if entry.log_start.logging_user != self.request.user:
-                # hide the "personal data" of the person who created the 
+                # hide the "personal data" of the person who created the
                 # log_start, from the requesting user:
                 entry.log_start.logging_user = None
                 entry.log_start.start_message = None
@@ -40,24 +41,26 @@ class LogEntryViewSet(
             return error_response
 
         log_start_exists = LogStart.objects.filter(
-            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
+            booking_user=User.objects.get(
+                username=request.data["booking_liu_id"]),
             logging_finished=False
         ).exists()
         if not log_start_exists:
             return Response(
                 {"error": "No LogStart object has been created for this booking",
-                "status_text": "Du måste påbörja en loggning innan du kan avsluta den."}, 
+                 "status_text": "Du måste påbörja en loggning innan du kan avsluta den."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         log_start_obj = LogStart.objects.get(
-            booking_user=User.objects.get(username=request.data["booking_liu_id"]), 
+            booking_user=User.objects.get(
+                username=request.data["booking_liu_id"]),
             logging_finished=False
         )
         if log_start_obj.start_km >= request.data["end_km"]:
             return Response(
                 {"error": "Start kilometer should be less than end kilometer",
-                "status_text" : f"Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start_obj.start_km} km."}, 
+                 "status_text": f"Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start_obj.start_km} km."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -67,25 +70,30 @@ class LogEntryViewSet(
             request.data["car_days"] = 1
         if request.data["trailer_days"] < 1:
             return Response(
-                {"error": "Days trailer is rented can't be less than 1!", 
-                "status_text": "Antalet dagar för släpet får ej vara mindre än 1"}, 
+                {"error": "Days trailer is rented can't be less than 1!",
+                 "status_text": "Antalet dagar för släpet får ej vara mindre än 1"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         if request.data["car_days"] < 1:
             return Response(
                 {"error": "Days car is rented can't be less than 1!",
-                "status_text": "Antalet dagar för bilen får ej vara mindre än 1"}, 
+                 "status_text": "Antalet dagar för bilen får ej vara mindre än 1"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         log_entry = LogEntry.objects.create(
             log_start=log_start_obj,
             car_days=request.data["car_days"],
             logging_user=request.user,
-            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
+            booking_user=User.objects.get(
+                username=request.data["booking_liu_id"]
+            ),
             trailer=request.data["trailer"],
             trailer_days=request.data["trailer_days"],
             active_member=request.data["active_member"],
+            member=check_membership(
+                request.data["booking_liu_id"]
+            ),
             end_message=request.data["end_message"],
             end_km=request.data["end_km"],
             end_car_cleaned=request.data["end_car_cleaned"],
@@ -98,10 +106,10 @@ class LogEntryViewSet(
 
         return Response(
             {"status": "ok",
-            "status_text" : "Loggningen är nu avslutad."}, 
+             "status_text": "Loggningen är nu avslutad."},
             status=status.HTTP_200_OK
         )
-        
+
 
 class LogStartViewSet(
     mixins.ListModelMixin,
@@ -127,18 +135,20 @@ class LogStartViewSet(
             return error_response
 
         if LogStart.objects.filter(
-            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
+            booking_user=User.objects.get(
+                username=request.data["booking_liu_id"]),
             logging_finished=False
         ).exists():
             return Response(
-                {"error": "A LogStart object has already been created for this user", 
-                "status_text" : "Det finns redan en påbörjad loggning för den här användaren, du måste avsluta den först."}, 
+                {"error": "A LogStart object has already been created for this user",
+                 "status_text": "Det finns redan en påbörjad loggning för den här användaren, du måste avsluta den först."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         LogStart.objects.create(
             logging_user=request.user,
-            booking_user=User.objects.get(username=request.data["booking_liu_id"]),
+            booking_user=User.objects.get(
+                username=request.data["booking_liu_id"]),
             start_km=request.data["start_km"],
             start_message=request.data["start_message"],
             start_car_cleaned=request.data["start_car_cleaned"],
@@ -147,6 +157,6 @@ class LogStartViewSet(
 
         return Response(
             {"status": "ok",
-            "status_text" : "Loggningen är nu påbörjad."}, 
+             "status_text": "Loggningen är nu påbörjad."},
             status=status.HTTP_200_OK
         )
