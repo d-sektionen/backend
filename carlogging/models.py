@@ -73,3 +73,13 @@ class LogEntry(models.Model):
 
         cost += km_cost_sum + daily_cost_sum
         return cost
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # this is a new object:
+            return super(LogEntry, self).save(*args, **kwargs)
+        else:
+            # an existing object has been edited:
+            super(LogEntry, self).save(*args, **kwargs)
+            self.cost = self.calc_cost()
+            super(LogEntry, self).save(*args, **kwargs)
