@@ -14,6 +14,7 @@ import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
+from datetime import datetime
 
 
 class LogEntryViewSet(
@@ -194,15 +195,14 @@ class PdfExport(APIView):
         )
 
         lines = [
-            ("Starttid:", str(data.log_start.logging_date).split('.')[0]),
-            ("Sluttid:", str(data.logging_date).split('.')[0]),
+            ("Starttid (startloggning):", str(data.log_start.logging_date).split('.')[0]),
+            ("Sluttid (slutloggning):", str(data.logging_date).split('.')[0]),
             ("LiU-ID på bokningen:", username),
             ("Start:", f"{data.log_start.start_km} km"),
             ("Stopp:", f"{data.end_km} km"),
             "-"*60,
             ("Prisklass:", cost_type),
-            ("Antal km:", f"{data.end_km - data.log_start.start_km}km"),
-            ("kr/km:", cost_type.split(' ')[1]),
+            ("Antal km:", f"{data.end_km - data.log_start.start_km} km"),
             ("Påbörjade dygn:", data.car_days),
             (
                 "Dygnshyra:",
@@ -213,8 +213,10 @@ class PdfExport(APIView):
                 "Släpdygnshyra:",
                 f"{data.trailer_days * TRAILER_DAILY_COST} kr    ({TRAILER_DAILY_COST}kr/dygn)"
             ),
-            "-"*50,
+            "-"*60,
             ("Summa:", f"{data.cost} kr"),
+            "",
+            ("Denna PDF skapades:", str(datetime.now()).split(".")[0]),
         ]
 
         LEFT_COLUMN_LEN = 30
@@ -235,4 +237,4 @@ class PdfExport(APIView):
         c.save()
         buffer.seek(0)
 
-        return FileResponse(buffer, as_attachment=False, filename="temp-file.pdf")
+        return FileResponse(buffer, as_attachment=False, filename="car-logging.pdf")
