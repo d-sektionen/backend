@@ -119,12 +119,11 @@ class NetlightViewSet(viewsets.ViewSet):
 
         headers = {
             "Content-Type": "application/json",
-            "APIKey": NETLIGHT_API_KEY,
-            "Authorization": NETLIGHT_AUTHORIZATION,
+            "Authorization": NETLIGHT_API_KEY,
         }
         # TODO: Cache this request for a few minutes
         r = requests.get(
-            f"{NETLIGHT_API_URL}/Locks/{NETLIGHT_LOCK_ID}", headers=headers
+            f"{NETLIGHT_API_URL}/locks/{NETLIGHT_LOCK_ID}", headers=headers
         )
 
         if r.status_code == 200:
