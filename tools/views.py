@@ -168,10 +168,10 @@ class NetlightViewSet(viewsets.ViewSet):
 
         headers = {
             "Content-Type": "application/json",
-            "APIKey": NETLIGHT_API_KEY,
-            "Authorization": NETLIGHT_AUTHORIZATION,
+            "Cache-Control": "no-cache",
+            "Authorization": NETLIGHT_API_KEY,
         }
-        data = {"lockId": NETLIGHT_LOCK_ID, "hubCommand": hub_command}
+        data = {"type": command}
         now = datetime.datetime.now()
 
         # Limit time of day when people can unlock door, they should still be able to lock at any time.
@@ -194,7 +194,7 @@ class NetlightViewSet(viewsets.ViewSet):
         # Log action and send request
         if log(command, Entry.NETLIGHT, user=user):
             r = requests.post(
-                f"{NETLIGHT_API_URL}/Hubs/{NETLIGHT_HUB_ID}/Commands",
+                f"{NETLIGHT_API_URL}/locsk/{NETLIGHT_LOCK_ID}/operations",
                 data=json.dumps(data),
                 headers=headers,
             )
