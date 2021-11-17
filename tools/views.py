@@ -130,9 +130,9 @@ class NetlightViewSet(viewsets.ViewSet):
             data = r.json()
             return Response(
                 {
-                    "status": data["Status"],
-                    "battery_percentage": 100 * data["BatteryStatusAfter"] / 255,
-                    "last_opened": data["LastLockEventDate"],
+                    "status": data["connectionStatus"],
+                    "battery_percentage": data["batteryStatus"],
+                    "last_opened": data["lastLockEvent"]["eventTime"],
                 },
                 status=status.HTTP_200_OK,
             )
