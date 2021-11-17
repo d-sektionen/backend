@@ -194,7 +194,7 @@ class NetlightViewSet(viewsets.ViewSet):
         # Log action and send request
         if log(command, Entry.NETLIGHT, user=user):
             r = requests.post(
-                f"{NETLIGHT_API_URL}/locsk/{NETLIGHT_LOCK_ID}/operations",
+                f"{NETLIGHT_API_URL}/locks/{NETLIGHT_LOCK_ID}/operations",
                 data=json.dumps(data),
                 headers=headers,
             )
