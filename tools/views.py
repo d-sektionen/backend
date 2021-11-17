@@ -204,7 +204,7 @@ class NetlightViewSet(viewsets.ViewSet):
             )
 
         # Respond to success
-        if r.status_code == 200:
+        if r.status_code in [200, 201]:
             msg = "upplåst" if command == "unlock" else "låst"
             return Response(
                 {"detail": "Dörren är nu på väg att bli " + msg + "."},
