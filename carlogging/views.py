@@ -3,7 +3,7 @@ from .models import LogEntry, LogStart, DAILY_COST, TRAILER_DAILY_COST
 from rest_framework import viewsets, mixins, status
 from .serializers import LogEntrySerializer, LogStartSerializer
 from .permissions import LoggingAdminPermissions, LoggingPermissions
-from .utils import check_invalid_booking
+from .utils import check_invalid_booking, check_invalid_entry_data, check_invalid_start_data
 from rest_framework.response import Response
 from django.db.models import F, Q
 from django.contrib.auth.models import User
@@ -43,27 +43,24 @@ class LogEntryViewSet(
         return entries
 
     def create(self, request):
-        error_response = check_invalid_booking(request.data)
-        if error_response:
-            return error_response
+        invalid_data_response = check_invalid_entry_data(request.data)
+        if invalid_data_response:
+            return invalid_data_response
 
-        log_start_exists = LogStart.objects.filter(
-            booking_user=User.objects.get(
-                username=request.data["booking_liu_id"]),
-            logging_finished=False
-        ).exists()
-        if not log_start_exists:
+        invalid_booking_response = check_invalid_booking(request.data)
+        if invalid_booking_response:
+            return invalid_booking_response
+
+        booking_user = User.objects.get(username=request.data['booking_liu_id'])
+        log_start_obj = LogStart.objects.filter(booking_user=booking_user, logging_finished=False).first()
+
+        if log_start_obj is None:
             return Response(
                 {"error": "No LogStart object has been created for this booking",
                  "status_text": "Du måste påbörja en loggning innan du kan avsluta den."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        log_start_obj = LogStart.objects.get(
-            booking_user=User.objects.get(
-                username=request.data["booking_liu_id"]),
-            logging_finished=False
-        )
         if log_start_obj.start_km >= request.data["end_km"]:
             return Response(
                 {"error": "Start kilometer should be less than end kilometer",
@@ -71,20 +68,17 @@ class LogEntryViewSet(
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if request.data["trailer_days"] == None:
-            request.data["trailer_days"] = 1
-        if request.data["car_days"] == None:
-            request.data["car_days"] = 1
-        if request.data["trailer_days"] < 1:
-            return Response(
-                {"error": "Days trailer is rented can't be less than 1!",
-                 "status_text": "Antalet dagar för släpet får ej vara mindre än 1"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if request.data["car_days"] < 1:
+        if request.data['car_days'] < 1:
             return Response(
                 {"error": "Days car is rented can't be less than 1!",
                  "status_text": "Antalet dagar för bilen får ej vara mindre än 1"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if request.data['trailer_days'] < 1:
+            return Response(
+                {"error": "Days trailer is rented can't be less than 1!",
+                 "status_text": "Antalet dagar för släp får ej vara mindre än 1"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -92,9 +86,7 @@ class LogEntryViewSet(
             log_start=log_start_obj,
             car_days=request.data["car_days"],
             logging_user=request.user,
-            booking_user=User.objects.get(
-                username=request.data["booking_liu_id"]
-            ),
+            booking_user=booking_user,
             trailer=request.data["trailer"],
             trailer_days=request.data["trailer_days"],
             active_member=request.data["active_member"],
@@ -137,13 +129,18 @@ class LogStartViewSet(
         )
 
     def create(self, request):
+        invalid_data_response = check_invalid_start_data(request.data)
+        if invalid_data_response:
+            return invalid_data_response
+
         error_response = check_invalid_booking(request.data)
         if error_response:
             return error_response
 
+        booking_user = User.objects.get(username=request.data['booking_liu_id'])
+
         if LogStart.objects.filter(
-            booking_user=User.objects.get(
-                username=request.data["booking_liu_id"]),
+            booking_user=booking_user, 
             logging_finished=False
         ).exists():
             return Response(
@@ -154,8 +151,7 @@ class LogStartViewSet(
 
         LogStart.objects.create(
             logging_user=request.user,
-            booking_user=User.objects.get(
-                username=request.data["booking_liu_id"]),
+            booking_user=booking_user,
             start_km=request.data["start_km"],
             start_message=request.data["start_message"],
             start_car_cleaned=request.data["start_car_cleaned"],

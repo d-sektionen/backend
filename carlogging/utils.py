@@ -4,11 +4,11 @@ from booking.models import Booking
 from rest_framework.response import Response
 
 
-"""
-Checks if the given data from the LogEntry or LogStart corresponds to an actual
-instance of a Booking of a car in the database.
-"""
 def check_invalid_booking(data):
+    """
+    Checks if the given data from the LogEntry or LogStart corresponds to an actual
+    instance of a Booking of a car in the database.
+    """
     booking_liu_id = data["booking_liu_id"]
 
     liu_id_exists = User.objects.filter(username=booking_liu_id).exists()
@@ -42,5 +42,91 @@ def check_invalid_booking(data):
             "status_text": "Det finns inget LiU-ID:t med en bokning av bilen."}, 
             status=status.HTTP_404_NOT_FOUND
         )
+
+    return False
+
+
+def check_invalid_start_data(data):
+    '''Checks if the data of a LogStart is of the correct data type and if it exists.'''
+
+    essential_keys = [
+        'booking_liu_id',
+        'start_km',
+        'start_message',
+        'start_car_cleaned'
+    ]
+
+    missing_keys = []
+    for key in essential_keys:
+        if key not in data:
+            missing_keys.append(key)
+    if missing_keys:
+        return Response(
+            {'error': f'Data that is necessary to complete the request is missing: {missing_keys}',
+            'status_text': f'Det fattas data som krävs: {missing_keys}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    data_types = {
+        'booking_liu_id': str,
+        'start_km': int,
+        'start_message': str,
+        'start_car_cleaned': bool
+    }
+
+    for key, data_type in data_types.items():
+        if type(data[key]) != data_type:
+            return Response(
+                {'error': f'The request data "{key}" should be of type "{data_type}"!',
+                 'status_text': f'Datan "{key}" borde vara av typen "{data_type}"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    return False
+
+
+def check_invalid_entry_data(data):
+    '''Checks if the request data of a LogEntry is of the correct data type and if it exists.'''
+
+    essential_keys = [
+        'booking_liu_id',
+        'end_km',
+        'end_message',
+        'end_car_cleaned',
+        'car_days',
+        'trailer_days',
+        'trailer',
+        'active_member'
+    ]
+
+    missing_keys = []
+    for key in essential_keys:
+        if key not in data:
+            missing_keys.append(key)
+    if missing_keys:
+        return Response(
+            {'error': f'Data that is necessary to complete the request is missing: {missing_keys}',
+            'status_text': f'Det fattas data som krävs: {missing_keys}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    data_types = {
+        'booking_liu_id': str,
+        'end_km': int,
+        'end_message': str,
+        'end_car_cleaned': bool,
+        'car_days': int,
+        'trailer_days': int,
+        'trailer': bool,
+        'active_member': bool
+    }
+
+    for key, data_type in data_types.items():
+        if type(data[key]) != data_type:
+            return Response(
+                {'error': f'The request data "{key}" should be of type "{data_type}"!',
+                 'status_text': f'Datan "{key}" borde vara av typen "{data_type}"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     return False
