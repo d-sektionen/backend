@@ -30,6 +30,7 @@ import attendance.urls
 import membership.urls
 import carlogging.urls
 import keylog.urls
+import budgetportal.urls
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
@@ -71,6 +72,8 @@ urlpatterns = [
     url(r"^carlogging/", include(carlogging.urls)),
     # Keylog
     url(r"^keylog/", include(keylog.urls)),
+    # Keylog
+    url(r"^budget/", include(budgetportal.urls)),
     # CMS routes (Wagtail)
     url(r"^api/cms/", cms_api_router.urls),
     url(r"^cms/graphql", csrf_exempt(GraphQLView.as_view())),

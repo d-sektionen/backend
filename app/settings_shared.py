@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "attendance",
     "carlogging",
     "keylog",
+    "budgetportal",
     # ---
     # Django related
     # ---
