@@ -93,10 +93,7 @@ def check_invalid_entry_data(data):
         'end_km',
         'end_message',
         'end_car_cleaned',
-        'car_days',
-        'trailer_days',
-        'trailer',
-        'active_member'
+        'trailer'
     ]
 
     missing_keys = []
@@ -115,10 +112,7 @@ def check_invalid_entry_data(data):
         'end_km': int,
         'end_message': str,
         'end_car_cleaned': bool,
-        'car_days': int,
-        'trailer_days': int,
-        'trailer': bool,
-        'active_member': bool
+        'trailer': bool
     }
 
     for key, data_type in data_types.items():

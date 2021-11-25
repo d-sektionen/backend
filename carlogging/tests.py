@@ -35,8 +35,7 @@ class LogTestCase(TestCase):
             'end_car_cleaned': True,
             'car_days': 1,
             'trailer_days': 1,
-            'trailer': False,
-            'active_member': False
+            'trailer': False
         }
         self.invalid_entry_data = {
             'booking_liu_id': 'self.user.username',
@@ -45,8 +44,7 @@ class LogTestCase(TestCase):
             'end_car_cleaned': 'true',
             'car_days': '1',
             'trailer_days': '1',
-            'trailer': 'false',
-            'active_member': 'false'
+            'trailer': 'false'
         }
 
         self.client.login(username=self.user.username, password='Password123')

@@ -68,31 +68,17 @@ class LogEntryViewSet(
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if request.data['car_days'] < 1:
-            return Response(
-                {"error": "Days car is rented can't be less than 1!",
-                 "status_text": "Antalet dagar för bilen får ej vara mindre än 1"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if request.data['trailer_days'] < 1:
-            return Response(
-                {"error": "Days trailer is rented can't be less than 1!",
-                 "status_text": "Antalet dagar för släp får ej vara mindre än 1"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # TODO: calculate day car and trailer have been used here! 
+        car_days = 1
+        trailer_days = 1
 
         log_entry = LogEntry.objects.create(
             log_start=log_start_obj,
-            car_days=request.data["car_days"],
+            car_days=car_days,
             logging_user=request.user,
             booking_user=booking_user,
             trailer=request.data["trailer"],
-            trailer_days=request.data["trailer_days"],
-            active_member=request.data["active_member"],
-            member=check_membership(
-                request.data["booking_liu_id"]
-            ),
+            trailer_days=trailer_days,
             end_message=request.data["end_message"],
             end_km=request.data["end_km"],
             end_car_cleaned=request.data["end_car_cleaned"],
@@ -184,11 +170,7 @@ class PdfExport(APIView):
         data = LogEntry.objects.get(pk=log_entry_id)
 
         username = data.booking_user.username
-        cost_type = "Sektionsaktiv 3 kr/km" if data.active_member else (
-            "Sektionsmedlem 4 kr/km" if check_membership(username) else (
-                "Ej sektionsmedlem 6 kr/km"
-            )
-        )
+        cost_type = "Sektionsaktiv 3 kr/km"
 
         lines = [
             ("Starttid (startloggning):", str(data.log_start.logging_date).split('.')[0]),

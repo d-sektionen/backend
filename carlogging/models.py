@@ -33,8 +33,6 @@ class LogEntry(models.Model):
     cost = models.IntegerField(null=True)
     trailer = models.BooleanField(default=False)
     trailer_days = models.IntegerField(null=True)
-    active_member = models.BooleanField(default=False)  # sektionsaktiv
-    member = models.BooleanField(default=False)  # sektionsmedlem
 
     # should be marked by the payment reciever as paid:
     paid = models.BooleanField(default=False)
@@ -50,11 +48,7 @@ class LogEntry(models.Model):
         # TODO: move magic numbers
         # Daily cost of trailer
 
-        # Cost of per kilometer travelled using the car, depending on user.
-        cost_per_km = (
-            3 if self.active_member
-            else (4 if check_membership(self.logging_user.username) else 6)
-        )
+        cost_per_km = 3  # Cost per kilometer travelled using the car (for section members)
 
         # if user only used the trailer
         if self.log_start.start_km is None or self.end_km is None:

@@ -43,7 +43,6 @@ class LogEntrySerializer(serializers.ModelSerializer):
             "trailer",
             "trailer_days",
             "car_days",
-            "active_member",
             "logging_date",
             "paid",
         )
