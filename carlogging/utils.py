@@ -4,7 +4,7 @@ from booking.models import Booking
 from rest_framework.response import Response
 
 
-def get_booking(liu_id) -> Booking:
+def get_booking(liu_id, check_for_trailer=False) -> Booking:
     """
     Returns a booking that corresponds to a given LiU-ID if it exists.
     """
@@ -13,14 +13,16 @@ def get_booking(liu_id) -> Booking:
 
     for booking in bookings:
         # TODO: only check for **non-logged** bookings
-        # TODO: use item category + name to identify car vs. trailer
-        if booking.item.name == 'Kianu Revs':
+        if check_for_trailer and booking.item.name == 'Släp':
+            return booking
+        elif not check_for_trailer and booking.item.name != 'Släp' \
+                and booking.item.category.name == 'Bilrelaterat':
             return booking
 
     return None
 
 
-def validate_booking_user(liu_id):
+def validate_booking_user(liu_id, check_for_trailer=False):
     """
     Validate that there's a user that corresponds to a given LiU-ID.\n
     Returns an error response if invalid, otherwise False.
@@ -32,11 +34,18 @@ def validate_booking_user(liu_id):
             status=status.HTTP_404_NOT_FOUND
         )
         
-    booking = get_booking(liu_id)
+    booking = get_booking(liu_id, check_for_trailer)
     if booking is None:
+        if check_for_trailer:
+            return Response(
+                {'error': f'No trailer booking corresponds with the LiU-ID "{liu_id}"!',
+                 'status_text': f'Ingen släpbokning korresponderar med LiU-ID:t "{liu_id}"!'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
         return Response(
             {'error': f'No car booking corresponds with the LiU-ID "{liu_id}"!',
-             'status_text': f'Ingen bilboking korresponderar med LiU-ID:t "{liu_id}"!'}, 
+             'status_text': f'Ingen bilbokning korresponderar med LiU-ID:t "{liu_id}"!'}, 
             status=status.HTTP_404_NOT_FOUND
         )
 
