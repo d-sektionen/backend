@@ -4,123 +4,100 @@ from booking.models import Booking
 from rest_framework.response import Response
 
 
-def check_invalid_booking(data):
+def get_booking(liu_id) -> Booking:
     """
-    Checks if the given data from the LogEntry or LogStart corresponds to an actual
-    instance of a Booking of a car in the database.
+    Returns a booking that corresponds to a given LiU-ID if it exists.
     """
-    booking_liu_id = data["booking_liu_id"]
-
-    liu_id_exists = User.objects.filter(username=booking_liu_id).exists()
-    if not liu_id_exists:
-        return Response(
-            {"error": "User with that liu_id does not exist in the database",
-            "status_text": "Det finnns ingen användare med det LiU-ID:t."}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    booking_user = User.objects.get(username=booking_liu_id)
-    bookings_exist = Booking.objects.filter(user=booking_user).exists()
-
-    if not bookings_exist:
-        return Response(
-            {"error": "No bookings for that liu_id exist",
-            "status_text": "Det finns inga bokningar för en användare med det LiU-ID:t."}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    car_booking_exists = False
-    bookings = Booking.objects.filter(user=booking_user)
+    user = User.objects.get(username=liu_id)
+    bookings = Booking.objects.filter(user=user).order_by('start')
 
     for booking in bookings:
-        if booking.item.name == "Kianu Revs":  # improve this solution?
-            car_booking_exists = True
+        # TODO: only check for **non-logged** bookings
+        # TODO: use item category + name to identify car vs. trailer
+        if booking.item.name == 'Kianu Revs':
+            return booking
 
-    if not car_booking_exists:
+    return None
+
+
+def validate_booking_user(liu_id):
+    """
+    Validate that there's a user that corresponds to a given LiU-ID.\n
+    Returns an error response if invalid, otherwise False.
+    """
+    if not User.objects.filter(username=liu_id).exists():
         return Response(
-            {"error": "The user with the liu_id you entered does not have a car booking in the database",
-            "status_text": "Det finns inget LiU-ID:t med en bokning av bilen."}, 
+            {'error': f'User with the LiU-ID "{liu_id}" does not exist.',
+             'status_text': f'Det finns ingen användare med LiU-ID:t "{liu_id}".'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+        
+    booking = get_booking(liu_id)
+    if booking is None:
+        return Response(
+            {'error': f'No car booking corresponds with the LiU-ID "{liu_id}"!',
+             'status_text': f'Ingen bilboking korresponderar med LiU-ID:t "{liu_id}"!'}, 
             status=status.HTTP_404_NOT_FOUND
         )
 
     return False
 
 
-def check_invalid_start_data(data):
-    '''Checks if the data of a LogStart is of the correct data type and if it exists.'''
-
-    essential_keys = [
-        'booking_liu_id',
-        'start_km',
-        'start_message',
-        'start_car_cleaned'
-    ]
-
-    missing_keys = []
-    for key in essential_keys:
+def _validate_data(data, essential_key_types):
+    """
+    Validate the data of a generic POST request.\n
+    Returns an error response if invalid, otherwise False.
+    """
+    # Check for missing keys
+    missing_keys = list()
+    for key in essential_key_types:
         if key not in data:
             missing_keys.append(key)
     if missing_keys:
+        missing_keys_str = str(missing_keys)[1:-1]  # Removes the square brackets
         return Response(
-            {'error': f'Data that is necessary to complete the request is missing: {missing_keys}',
-            'status_text': f'Det fattas data som krävs: {missing_keys}'},
-            status=status.HTTP_400_BAD_REQUEST
+            {'error': f'The data {missing_keys_str} is missing!',
+             'status_text': f'Datan {missing_keys_str} fattas!'},
+            status.HTTP_400_BAD_REQUEST
         )
 
-    data_types = {
-        'booking_liu_id': str,
-        'start_km': int,
-        'start_message': str,
-        'start_car_cleaned': bool
-    }
-
-    for key, data_type in data_types.items():
-        if type(data[key]) != data_type:
+    # Check for invalid key types
+    for key, value in essential_key_types.items():
+        cmp_value = type(data[key])
+        if cmp_value != value:
             return Response(
-                {'error': f'The request data "{key}" should be of type "{data_type}"!',
-                 'status_text': f'Datan "{key}" borde vara av typen "{data_type}"'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': f'The data "{key}" should be of type "{value}", not "{cmp_value}"!',
+                'status_text': f'Datan "{key}" borde vara av typen "{value}", inte "{cmp_value}"!'},
+                status.HTTP_400_BAD_REQUEST
             )
-
+    
     return False
 
 
-def check_invalid_entry_data(data):
-    '''Checks if the request data of a LogEntry is of the correct data type and if it exists.'''
-
-    essential_keys = [
-        'booking_liu_id',
-        'end_km',
-        'end_message',
-        'end_car_cleaned',
-        'trailer'
-    ]
-
-    missing_keys = []
-    for key in essential_keys:
-        if key not in data:
-            missing_keys.append(key)
-    if missing_keys:
-        return Response(
-            {'error': f'Data that is necessary to complete the request is missing: {missing_keys}',
-            'status_text': f'Det fattas data som krävs: {missing_keys}'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    data_types = {
+def validate_start_data(data):
+    """
+    Validate the data of a LogStart POST request.\n
+    Returns an error response if invalid, otherwise False.
+    """
+    essential_key_types = {
         'booking_liu_id': str,
-        'end_km': int,
-        'end_message': str,
-        'end_car_cleaned': bool,
+        'kilometers': int,
+        'message': str,
+        'car_cleaned': bool
+    }
+    return _validate_data(data, essential_key_types)
+
+
+def validate_entry_data(data):
+    """
+    Validate the data of a LogEntry POST request.\n
+    Returns an error response if invalid, otherwise False.
+    """
+    essential_key_types = {
+        'booking_liu_id': str,
+        'kilometers': int,
+        'message': str,
+        'car_cleaned': bool,
         'trailer': bool
     }
-
-    for key, data_type in data_types.items():
-        if type(data[key]) != data_type:
-            return Response(
-                {'error': f'The request data "{key}" should be of type "{data_type}"!',
-                 'status_text': f'Datan "{key}" borde vara av typen "{data_type}"'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-    return False
+    return _validate_data(data, essential_key_types)

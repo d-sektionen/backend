@@ -17,33 +17,29 @@ class LogTestCase(TestCase):
         
         self.valid_start_data = {
             'booking_liu_id': self.user.username,
-            'start_km': 42069,
-            'start_message': 'this is a start message',
-            'start_car_cleaned': False
+            'kilometers': 42069,
+            'message': 'this is a start message',
+            'car_cleaned': False
         }
         self.invalid_start_data = {
             'booking_liu_id': 'self.user.username',
-            'start_km': '42069',
-            'start_message': 123,
-            'start_car_cleaned': 'false'
+            'kilometers': '42069',
+            'message': 123,
+            'car_cleaned': 'false'
         }
 
         self.valid_entry_data = {
             'booking_liu_id': self.user.username,
-            'end_km': 42070,
-            'end_message': 'this is an end message',
-            'end_car_cleaned': True,
-            'car_days': 1,
-            'trailer_days': 1,
+            'kilometers': 42070,
+            'message': 'this is an end message',
+            'car_cleaned': True,
             'trailer': False
         }
         self.invalid_entry_data = {
             'booking_liu_id': 'self.user.username',
-            'end_km': '42070',
-            'end_message': 32,
-            'end_car_cleaned': 'true',
-            'car_days': '1',
-            'trailer_days': '1',
+            'kilometers': '42070',
+            'message': 32,
+            'car_cleaned': 'true',
             'trailer': 'false'
         }
 
@@ -53,7 +49,7 @@ class LogTestCase(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['access'])
         # self.client.logout()
 
-        Item.objects.create(name="Kianu Revs", description="kianu-revs-1")
+        Item.objects.create(name='Kianu Revs', description='kianu-revs-1')
         Booking.objects.create(item=Item.objects.get(name='Kianu Revs', description='kianu-revs-1'),
                                start=dt.datetime.now(tz=timezone.utc),end=dt.datetime.now(tz=timezone.utc) +\
                                dt.timedelta(days=1), user=self.user)
@@ -110,10 +106,6 @@ class LogTestCase(TestCase):
             resp = self.client.post(self.entry_url, json.dumps(data_copy), content_type='application/json')
             self.assertEqual(resp.status_code, 400)
 
-        # Test invalid data values
+        # Test invalid data values (TODO: test LogEntry.kilometers being less than LogStart.kilometers)
         for key in self.valid_entry_data:
             data_copy = self.valid_entry_data.copy()
-            if key == 'car_days' or key == 'trailer_days':
-                data_copy[key] = 0
-                resp = self.client.post(self.entry_url, json.dumps(data_copy), content_type='application/json')
-                self.assertEqual(resp.status_code, 400)

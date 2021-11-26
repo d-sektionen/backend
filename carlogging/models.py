@@ -2,79 +2,59 @@ from django.db import models
 from django.contrib.auth.models import User
 from membership.utils import check_membership
 
-DAILY_COST = 30
+CAR_DAILY_COST = 30
 TRAILER_DAILY_COST = 100
+COST_PER_KM = 3  # For section members
 
 
 class LogStart(models.Model):
     logging_user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts_logging"
-    )
+        User, null=True, on_delete=models.SET_NULL, related_name='carlogging_starts_logging')
     booking_user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_starts_booking"
-    )
-    start_km = models.IntegerField(null=False)
-    start_message = models.TextField(blank=False, max_length=200)
-    start_car_cleaned = models.BooleanField(null=False)
-    logging_finished = models.BooleanField(null=True)
+        User, null=True, on_delete=models.SET_NULL, related_name='carlogging_starts_booking')
+    kilometers = models.IntegerField(null=False)
+    message = models.TextField(blank=True, max_length=200)
+    car_cleaned = models.BooleanField(null=False)
+    logging_finished = models.BooleanField(null=False, default=False)
     logging_date = models.DateTimeField(auto_now_add=True)
 
 
 class LogEntry(models.Model):
     logging_user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries_logging"
-    )
+        User, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_logging')
     booking_user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="carlogging_entries_booking"
-    )
+        User, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_booking')
     log_start = models.ForeignKey(
         LogStart, null=True, on_delete=models.CASCADE)
-    car_days = models.IntegerField(null=True)
-    cost = models.IntegerField(null=True)
-    trailer = models.BooleanField(default=False)
-    trailer_days = models.IntegerField(null=True)
-
-    # should be marked by the payment reciever as paid:
-    paid = models.BooleanField(default=False)
-    end_message = models.TextField(blank=True, max_length=200, null=False)
-    end_km = models.IntegerField(null=False)
-    end_car_cleaned = models.BooleanField(null=False)
-
+    kilometers = models.IntegerField(null=False)
+    message = models.TextField(blank=True, max_length=200)
+    car_cleaned = models.BooleanField(null=False)
     logging_date = models.DateTimeField(auto_now_add=True)
+    
+    car_days = models.IntegerField(null=False, default=1)
+    trailer = models.BooleanField(default=False)
+    trailer_days = models.IntegerField(null=False, default=1)
+    cost = models.IntegerField(null=True)
+    paid = models.BooleanField(default=False)  # Should be marked by the payment reciever as paid
 
     def calc_cost(self):
         if self.logging_user is None:
             return 0
-        # TODO: move magic numbers
-        # Daily cost of trailer
 
-        cost_per_km = 3  # Cost per kilometer travelled using the car (for section members)
-
-        # if user only used the trailer
-        if self.log_start.start_km is None or self.end_km is None:
-            if not self.trailer:
-                return 0
-            return TRAILER_DAILY_COST * self.trailer_days
-
-        # calculate cost of the car usage
-        cost = 0
+        km_cost = (self.kilometers - self.log_start.kilometers) * COST_PER_KM
+        car_cost = (self.car_days - 1) * CAR_DAILY_COST
+        trailer_cost = 0
         if self.trailer:
-            cost += TRAILER_DAILY_COST * self.trailer_days
+            trailer_cost = self.trailer_days * TRAILER_DAILY_COST
 
-        km_travelled = self.end_km - self.log_start.start_km
-        km_cost_sum = km_travelled * cost_per_km
-
-        daily_cost_sum = (self.car_days - 1) * DAILY_COST
-
-        cost += km_cost_sum + daily_cost_sum
-        return cost
+        return km_cost + car_cost + trailer_cost
 
     def save(self, *args, **kwargs):
         if not self.id:
-            # this is a new object:
+            # This is a new object
             return super(LogEntry, self).save(*args, **kwargs)
         else:
-            # an existing object has been edited:
+            # An existing object has been edited
             super(LogEntry, self).save(*args, **kwargs)
             self.cost = self.calc_cost()
             super(LogEntry, self).save(*args, **kwargs)

@@ -11,16 +11,21 @@ class LogStartSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogStart
         fields = (
-            "start_km",
-            "start_message",
-            "logging_user",
-            "booking_user",
-            "booking_liu_id",
-            "start_car_cleaned",    
-            "logging_finished",
-            "logging_date",
+            'logging_user',
+            'booking_user',
+            'booking_liu_id',
+            'kilometers',
+            'message',
+            'car_cleaned',
+            'logging_finished',
+            'logging_date'
         )
-        read_only_fields = ("logging_user", "logging_finished", "logging_date", "booking_user")
+        read_only_fields = (
+            'logging_user', 
+            'booking_user',
+            'logging_finished', 
+            'logging_date'
+        )
 
     logging_user = SimpleUserSerializer(read_only=True)
     booking_user = SimpleUserSerializer(read_only=True)
@@ -32,21 +37,28 @@ class LogEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogEntry
         fields = (
-            "log_start",
-            "end_km",
-            "end_message",
-            "end_car_cleaned",
-            "logging_user",
-            "booking_user",
-            "booking_liu_id",
-            "cost",
-            "trailer",
-            "trailer_days",
-            "car_days",
-            "logging_date",
-            "paid",
+            'logging_user',
+            'booking_user',
+            'booking_liu_id',
+            'log_start',
+            'kilometers',
+            'message',
+            'car_cleaned',
+            'logging_date',
+            'car_days',
+            'trailer',
+            'trailer_days',
+            'cost',
+            'paid'
         )
-        read_only_fields = ("cost", "logging_user", "log_start", "logging_date", "booking_user", "paid")
+        read_only_fields = (
+            'logging_user', 
+            'booking_user', 
+            'log_start', 
+            'logging_date', 
+            'cost', 
+            'paid'
+        )
 
     logging_user = SimpleUserSerializer(read_only=True)
     booking_user = SimpleUserSerializer(read_only=True)

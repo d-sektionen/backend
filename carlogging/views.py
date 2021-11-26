@@ -1,9 +1,12 @@
 from django.shortcuts import render
-from .models import LogEntry, LogStart, DAILY_COST, TRAILER_DAILY_COST
+
+from account import serializers
+from booking.models import Booking
+from .models import LogEntry, LogStart, CAR_DAILY_COST, TRAILER_DAILY_COST, COST_PER_KM
 from rest_framework import viewsets, mixins, status
 from .serializers import LogEntrySerializer, LogStartSerializer
 from .permissions import LoggingAdminPermissions, LoggingPermissions
-from .utils import check_invalid_booking, check_invalid_entry_data, check_invalid_start_data
+from .utils import validate_booking_user, get_booking, validate_start_data, validate_entry_data
 from rest_framework.response import Response
 from django.db.models import F, Q
 from django.contrib.auth.models import User
@@ -15,85 +18,6 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
 from datetime import datetime
-
-
-class LogEntryViewSet(
-    mixins.ListModelMixin,
-    # mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    serializer_class = LogEntrySerializer
-    permission_classes = (LoggingPermissions,)
-    queryset = LogEntry.objects.all()
-
-    def get_queryset(self):
-        entries = LogEntry.objects.filter(  # filter matching logging_user OR booking_liu_id
-            Q(logging_user=self.request.user) |
-            Q(booking_user=self.request.user)
-        )
-        for entry in entries:
-            if entry.log_start.logging_user != self.request.user:
-                # hide the "personal data" of the person who created the
-                # log_start, from the requesting user:
-                entry.log_start.logging_user = None
-                entry.log_start.start_message = None
-        return entries
-
-    def create(self, request):
-        invalid_data_response = check_invalid_entry_data(request.data)
-        if invalid_data_response:
-            return invalid_data_response
-
-        invalid_booking_response = check_invalid_booking(request.data)
-        if invalid_booking_response:
-            return invalid_booking_response
-
-        booking_user = User.objects.get(username=request.data['booking_liu_id'])
-        log_start_obj = LogStart.objects.filter(booking_user=booking_user, logging_finished=False).first()
-
-        if log_start_obj is None:
-            return Response(
-                {"error": "No LogStart object has been created for this booking",
-                 "status_text": "Du måste påbörja en loggning innan du kan avsluta den."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        if log_start_obj.start_km >= request.data["end_km"]:
-            return Response(
-                {"error": "Start kilometer should be less than end kilometer",
-                 "status_text": f"Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start_obj.start_km} km."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # TODO: calculate day car and trailer have been used here! 
-        car_days = 1
-        trailer_days = 1
-
-        log_entry = LogEntry.objects.create(
-            log_start=log_start_obj,
-            car_days=car_days,
-            logging_user=request.user,
-            booking_user=booking_user,
-            trailer=request.data["trailer"],
-            trailer_days=trailer_days,
-            end_message=request.data["end_message"],
-            end_km=request.data["end_km"],
-            end_car_cleaned=request.data["end_car_cleaned"],
-        )
-        log_entry.cost = log_entry.calc_cost()
-        log_entry.save()
-
-        log_start_obj.logging_finished = True
-        log_start_obj.save()
-
-        return Response(
-            {"status": "ok",
-             "status_text": "Loggningen är nu avslutad."},
-            status=status.HTTP_200_OK
-        )
 
 
 class LogStartViewSet(
@@ -109,50 +33,132 @@ class LogStartViewSet(
     queryset = LogStart.objects.all()
 
     def get_queryset(self):
-        return LogStart.objects.filter(  # filter matching logging_user OR booking_liu_id
+        return LogStart.objects.filter(
             Q(logging_user=self.request.user) |
             Q(booking_user=self.request.user)
         )
 
     def create(self, request):
-        invalid_data_response = check_invalid_start_data(request.data)
-        if invalid_data_response:
-            return invalid_data_response
+        data = request.data
+        data_resp = validate_start_data(data)
+        if data_resp:
+            return data_resp
 
-        error_response = check_invalid_booking(request.data)
-        if error_response:
-            return error_response
+        booking_user_id = data['booking_liu_id']
+        booking_user_resp = validate_booking_user(booking_user_id)
+        if booking_user_resp:
+            return booking_user_resp
 
-        booking_user = User.objects.get(username=request.data['booking_liu_id'])
-
+        booking_user = User.objects.get(username=booking_user_id)
         if LogStart.objects.filter(
-            booking_user=booking_user, 
+            booking_user=booking_user,
             logging_finished=False
         ).exists():
             return Response(
-                {"error": "A LogStart object has already been created for this user",
-                 "status_text": "Det finns redan en påbörjad loggning för den här användaren, du måste avsluta den först."},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': f'A LogStart object has already been created for "{booking_user_id}"!',
+                 'status_text': f'Det finns redan en oavslutad, påbörjad loggning för "{booking_user_id}"!'},
+                status.HTTP_400_BAD_REQUEST
             )
-
+            
         LogStart.objects.create(
             logging_user=request.user,
             booking_user=booking_user,
-            start_km=request.data["start_km"],
-            start_message=request.data["start_message"],
-            start_car_cleaned=request.data["start_car_cleaned"],
-            logging_finished=False,
+            kilometers=data['kilometers'],
+            message=data['message'],
+            car_cleaned=data['car_cleaned']
         )
 
         return Response(
-            {"status": "ok",
-             "status_text": "Loggningen är nu påbörjad."},
-            status=status.HTTP_200_OK
+            {'status_text': 'Loggningen är nu påbörjad.'},
+            status.HTTP_200_OK
+        )
+
+
+class LogEntryViewSet(
+    mixins.ListModelMixin,
+    # mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = LogEntrySerializer
+    permission_classes = (LoggingPermissions,)
+    queryset = LogEntry.objects.all()
+
+    def get_queryset(self):
+        entries = LogEntry.objects.filter(
+            Q(logging_user=self.request.user) |
+            Q(booking_user=self.request.user)
+        )
+        for entry in entries:
+            if entry.log_start.logging_user != self.request.user:
+                # Hide the "personal data" of the person who created the
+                # log_start, from the requesting user
+                entry.log_start.logging_user = None
+                entry.log_start.message = None
+        return entries
+
+    def create(self, request):
+        data = request.data
+        data_resp = validate_entry_data(data)
+        if data_resp:
+            return data_resp
+
+        booking_user_id = data['booking_liu_id']
+        booking_user_resp = validate_booking_user(booking_user_id)
+        if booking_user_resp:
+            return booking_user_resp
+            
+        booking_user = User.objects.get(username=request.data['booking_liu_id'])
+        log_start = LogStart.objects.filter(
+            booking_user=booking_user, 
+            logging_finished=False
+        ).first()
+
+        if log_start is None:
+            return Response(
+                {'error': f'No LogStart object has been created for "{booking_user_id}"!',
+                 'status_text': 'Du måste påbörja en loggning innan du kan avsluta den!'},
+                status.HTTP_404_NOT_FOUND
+            )
+
+        if log_start.kilometers >= data['kilometers']:
+            return Response(
+                {'error': 'Start kilometer should be less than end kilometer!',
+                 'status_text': f'Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start.kilometers} km.'},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        # TODO: calculate days car and trailer have been used here!
+        car_days = 1
+        trailer_days = 1
+
+        log_entry = LogEntry.objects.create(
+            logging_user=request.user,
+            booking_user=booking_user,
+            log_start=log_start,
+            kilometers=data['kilometers'],
+            message=data['message'],
+            car_cleaned=data['car_cleaned'],
+            car_days=car_days,
+            trailer=data['trailer'],
+            trailer_days=trailer_days
+        )
+        log_entry.cost = log_entry.calc_cost()
+        log_entry.save()
+
+        log_start.logging_finished = True
+        log_start.save()
+
+        return Response(
+            {'status_text': 'Loggningen är nu avslutad!'},
+            status.HTTP_200_OK
         )
 
 
 class PdfExport(APIView):
-    permission_classes = (LoggingAdminPermissions,)
+    permisson_classes = (LoggingAdminPermissions,)
 
     def get(self, request, *args, **kwargs):
         buffer = io.BytesIO()
@@ -160,45 +166,49 @@ class PdfExport(APIView):
 
         # print(c.getAvailableFonts())
 
+        log_entry_id = self.kwargs['entry_id']
+        log_entry = LogEntry.objects.get(pk=log_entry_id)
+
         textobj = c.beginText()
         textobj.setTextOrigin(inch, inch)
-        textobj.setFont("Courier", 18)
-
-        log_entry_id = self.kwargs["entry_id"]
-        textobj.textLine(f"Billoggning (id: {log_entry_id})")
-
-        data = LogEntry.objects.get(pk=log_entry_id)
-
-        username = data.booking_user.username
-        cost_type = "Sektionsaktiv 3 kr/km"
+        textobj.setFont('Courier', 18)
+        textobj.textLine(f'Billoggning (id: {log_entry_id})')
 
         lines = [
-            ("Starttid (startloggning):", str(data.log_start.logging_date).split('.')[0]),
-            ("Sluttid (slutloggning):", str(data.logging_date).split('.')[0]),
-            ("LiU-ID på bokningen:", username),
-            ("Start:", f"{data.log_start.start_km} km"),
-            ("Stopp:", f"{data.end_km} km"),
-            "-"*60,
-            ("Prisklass:", cost_type),
-            ("Antal km:", f"{data.end_km - data.log_start.start_km} km"),
-            ("Påbörjade dygn:", data.car_days),
+            ('Starttid (startloggning):', str(log_entry.log_start.logging_date).split('.')[0]),
+            ('Sluttid (slutloggning):', str(log_entry.logging_date).split('.')[0]),
+            ('LiU-ID på bokningen:', log_entry.booking_user.username),
+            ('Start:', f'{log_entry.log_start.kilometers} km'),
+            ('Stopp:', f'{log_entry.kilometers} km'),
+            '-'*64,
+            ('Pris per kilometer:', f'{COST_PER_KM} kr/km'),
+            ('Antal km:', f'{log_entry.kilometers - log_entry.log_start.kilometers} km'),
+            ('Dygn med bil:', log_entry.car_days),
             (
-                "Dygnshyra:",
-                f"{(data.car_days - 1) * DAILY_COST} kr    ({DAILY_COST}kr/dygn efter första)"
-            ),
-            ("Dygn med släp:", data.trailer_days),
-            (
-                "Släpdygnshyra:",
-                f"{data.trailer_days * TRAILER_DAILY_COST} kr    ({TRAILER_DAILY_COST}kr/dygn)"
-            ),
-            "-"*60,
-            ("Summa:", f"{data.cost} kr"),
-            "",
-            ("Denna PDF skapades:", str(datetime.now()).split(".")[0]),
+                'Dygnshyra:',
+                f'{(log_entry.car_days - 1) * CAR_DAILY_COST} kr    ({CAR_DAILY_COST}kr/dygn efter första)'
+            )
         ]
 
+        if log_entry.trailer:
+            lines += [
+                ('Dygn med släp:', log_entry.trailer_days),
+                (
+                    'Släpdygnshyra:',
+                    f'{log_entry.trailer_days * TRAILER_DAILY_COST} kr    ({TRAILER_DAILY_COST}kr/dygn)'
+                )
+            ]
+
+        lines += [
+            '-'*64,
+            ('Summa:', f'{log_entry.cost} kr'),
+            '',
+            ('Denna PDF skapades:', str(datetime.now()).split('.')[0])
+        ]
+
+        # Apply lines to text object
         LEFT_COLUMN_LEN = 30
-        textobj.setFont("Courier", 12)
+        textobj.setFont('Courier', 12)
         for line in lines:
             if isinstance(line, tuple):
                 left = line[0]
@@ -207,7 +217,7 @@ class PdfExport(APIView):
                 if len(left) < LEFT_COLUMN_LEN:
                     left += ' '*(LEFT_COLUMN_LEN - len(left))
 
-                line = f"{str(left) + str(right)}"
+                line = f'{str(left) + str(right)}'
             textobj.textLine(line)
 
         c.drawText(textobj)
@@ -215,4 +225,4 @@ class PdfExport(APIView):
         c.save()
         buffer.seek(0)
 
-        return FileResponse(buffer, as_attachment=False, filename="car-logging.pdf")
+        return FileResponse(buffer, as_attachment=False, filename='car-logging.pdf')
