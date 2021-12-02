@@ -9,6 +9,7 @@ def get_booking(liu_id, check_for_trailer=False) -> Booking:
     Returns a booking that corresponds to a given LiU-ID if it exists.
     """
     user = User.objects.get(username=liu_id)
+    # TODO: filter for bookings that have already started (to avoid logging for non-started bookings)
     bookings = Booking.objects.filter(user=user).order_by('start')
 
     for booking in bookings:

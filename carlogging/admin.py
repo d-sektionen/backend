@@ -14,6 +14,7 @@ class LogStartAdmin(admin.ModelAdmin):
         'id',
         'logging_user',
         'booking_user',
+        'link_to_car_booking',
         'kilometers',
         # 'message',
         'car_cleaned',
@@ -26,6 +27,13 @@ class LogStartAdmin(admin.ModelAdmin):
         'logging_user__first_name', 
         'logging_user__last_name'
     )
+
+    def link_to_car_booking(self, obj):
+        if obj.car_booking is None:
+            return 'NULL'
+        link = reverse('admin:booking_booking_change', args=[obj.car_booking.id])
+        return format_html('<a href="{}">Booking ({})</a>', link, obj.car_booking.id)
+    link_to_car_booking.short_description = 'Car Booking'
 
 
 @admin.register(LogEntry)
@@ -42,7 +50,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         'car_cleaned',
         'logging_date',
         'car_days',
-        'trailer',
+        'link_to_trailer_booking',
         'trailer_days',
         'cost',
         'paid'
@@ -63,3 +71,10 @@ class LogEntryAdmin(admin.ModelAdmin):
         link = reverse('admin:carlogging_logstart_change', args=[obj.log_start.id])
         return format_html('<a href="{}">{}</a>', link, obj.log_start)
     link_to_logstart.short_description = 'Belongs to'
+
+    def link_to_trailer_booking(self, obj):
+        if obj.trailer_booking is None:
+            return 'NULL'
+        link = reverse('admin:booking_booking_change', args=[obj.trailer_booking.id])
+        return format_html('<a href="{}">Booking ({})</a>', link, obj.trailer_booking.id)
+    link_to_trailer_booking.short_description = 'Trailer Booking'

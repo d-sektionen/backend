@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.utils import timezone
 
 from account import serializers
 from booking.models import Booking
@@ -48,6 +49,7 @@ class LogStartViewSet(
         booking_user_resp = validate_booking_user(booking_user_id)
         if booking_user_resp:
             return booking_user_resp
+        booking = get_booking(booking_user_id)
 
         booking_user = User.objects.get(username=booking_user_id)
         if LogStart.objects.filter(
@@ -63,10 +65,14 @@ class LogStartViewSet(
         LogStart.objects.create(
             logging_user=request.user,
             booking_user=booking_user,
+            car_booking=booking,
             kilometers=data['kilometers'],
             message=data['message'],
             car_cleaned=data['car_cleaned']
         )
+
+        # booking.is_logged = True
+        # booking.save()
 
         return Response(
             {'status_text': 'Loggningen är nu påbörjad.'},
@@ -105,12 +111,14 @@ class LogEntryViewSet(
         if data_resp:
             return data_resp
 
+        if data['trailer']:
+            trailer_user_id = data['booking_liu_id']  # TODO: data['trailer_liu_id']
+            trailer_user_resp = validate_booking_user(trailer_user_id, check_for_trailer=True)
+            if trailer_user_resp:
+                return trailer_user_resp
+
         booking_user_id = data['booking_liu_id']
-        booking_user_resp = validate_booking_user(booking_user_id)
-        if booking_user_resp:
-            return booking_user_resp
-            
-        booking_user = User.objects.get(username=request.data['booking_liu_id'])
+        booking_user = User.objects.get(username=booking_user_id)
         log_start = LogStart.objects.filter(
             booking_user=booking_user, 
             logging_finished=False
@@ -130,9 +138,23 @@ class LogEntryViewSet(
                 status.HTTP_400_BAD_REQUEST
             )
 
-        # TODO: calculate days car and trailer have been used here!
-        car_days = 1
-        trailer_days = 1
+        # Calculate amount of days car has been used
+        if log_start.car_booking.end >= timezone.now():
+            car_timedelta = timezone.now() - log_start.car_booking.start
+        else:
+            car_timedelta = log_start.car_booking.end - log_start.car_booking.start
+        car_days = max(1, car_timedelta.days)
+
+        # Calculate amount of days trailer has been used
+        trailer_booking = get_booking(trailer_user_id, check_for_trailer=True)
+        if data['trailer']:
+            if trailer_booking.end >= timezone.now():
+                trailer_timedelta = timezone.now() - trailer_booking.start
+            else:
+                trailer_timedelta = trailer_booking.end - trailer_booking.start
+            trailer_days = max(1, trailer_timedelta.days)
+        else:
+            trailer_days = 0
 
         log_entry = LogEntry.objects.create(
             logging_user=request.user,
@@ -142,7 +164,7 @@ class LogEntryViewSet(
             message=data['message'],
             car_cleaned=data['car_cleaned'],
             car_days=car_days,
-            trailer=data['trailer'],
+            trailer_booking=trailer_booking,
             trailer_days=trailer_days
         )
         log_entry.cost = log_entry.calc_cost()
@@ -150,6 +172,17 @@ class LogEntryViewSet(
 
         log_start.logging_finished = True
         log_start.save()
+
+        if log_start.car_booking.end >= timezone.now():
+            log_start.car_booking.end = timezone.now()
+            log_start.car_booking.save()
+
+        if trailer_booking is not None:
+            # trailer_booking.is_logged = True
+            if trailer_booking.end >= timezone.now():
+                trailer_booking.end = timezone.now()
+                trailer_booking.save()
+            trailer_booking.save()
 
         return Response(
             {'status_text': 'Loggningen är nu avslutad!'},
@@ -190,7 +223,7 @@ class PdfExport(APIView):
             )
         ]
 
-        if log_entry.trailer:
+        if log_entry.trailer_booking is not None:
             lines += [
                 ('Dygn med släp:', log_entry.trailer_days),
                 (

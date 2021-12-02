@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import LogEntry, LogStart
 from booking.models import Booking, Item
+from booking.serializers import BookingSerializer
 from account.serializers import SimpleUserSerializer
 from django.contrib.auth.models import User
 
@@ -13,6 +14,7 @@ class LogStartSerializer(serializers.ModelSerializer):
         fields = (
             'logging_user',
             'booking_user',
+            'car_booking',
             'booking_liu_id',
             'kilometers',
             'message',
@@ -23,12 +25,14 @@ class LogStartSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'logging_user', 
             'booking_user',
+            'car_booking',
             'logging_finished', 
             'logging_date'
         )
 
     logging_user = SimpleUserSerializer(read_only=True)
     booking_user = SimpleUserSerializer(read_only=True)
+    car_booking = BookingSerializer(read_only=True)
 
 
 class LogEntrySerializer(serializers.ModelSerializer):
@@ -46,7 +50,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'car_cleaned',
             'logging_date',
             'car_days',
-            'trailer',
+            'trailer_booking',
             'trailer_days',
             'cost',
             'paid'
@@ -55,7 +59,8 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'logging_user', 
             'booking_user', 
             'log_start', 
-            'logging_date', 
+            'logging_date',
+            'trailer_booking', 
             'cost', 
             'paid'
         )
@@ -63,3 +68,4 @@ class LogEntrySerializer(serializers.ModelSerializer):
     logging_user = SimpleUserSerializer(read_only=True)
     booking_user = SimpleUserSerializer(read_only=True)
     log_start = LogStartSerializer(read_only=True)
+    trailer_booking = BookingSerializer(read_only=True)
