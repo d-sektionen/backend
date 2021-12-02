@@ -146,14 +146,15 @@ class LogEntryViewSet(
         car_days = max(1, car_timedelta.days)
 
         # Calculate amount of days trailer has been used
-        trailer_booking = get_booking(trailer_user_id, check_for_trailer=True)
         if data['trailer']:
+            trailer_booking = get_booking(trailer_user_id, check_for_trailer=True)
             if trailer_booking.end >= timezone.now():
                 trailer_timedelta = timezone.now() - trailer_booking.start
             else:
                 trailer_timedelta = trailer_booking.end - trailer_booking.start
             trailer_days = max(1, trailer_timedelta.days)
         else:
+            trailer_booking = None
             trailer_days = 0
 
         log_entry = LogEntry.objects.create(

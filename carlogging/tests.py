@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from account.tests import create_user
-from booking.models import Booking, Item
+from booking.models import Booking, Item, ItemCategory
 
 # Create your tests here.
 class LogTestCase(TestCase):
@@ -49,7 +49,9 @@ class LogTestCase(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION='JWT ' + token_data['access'])
         # self.client.logout()
 
-        Item.objects.create(name='Kianu Revs', description='kianu-revs-1')
+        item_category = ItemCategory.objects.create(name='Bilrelaterat')
+        Item.objects.create(name='Kianu Revs', description='kianu-revs-1', category=item_category)
+        Item.objects.create(name='Släp', description='släp-1', category=item_category)
         Booking.objects.create(item=Item.objects.get(name='Kianu Revs', description='kianu-revs-1'),
                                start=dt.datetime.now(tz=timezone.utc),end=dt.datetime.now(tz=timezone.utc) +\
                                dt.timedelta(days=1), user=self.user)
