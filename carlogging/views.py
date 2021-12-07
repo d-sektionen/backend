@@ -139,6 +139,7 @@ class LogEntryViewSet(
             )
 
         # Calculate amount of days car has been used
+        print(f'{log_start.car_booking.carlogging_starts_car_booking = }')
         if log_start.car_booking.end >= timezone.now():
             car_timedelta = timezone.now() - log_start.car_booking.start
         else:

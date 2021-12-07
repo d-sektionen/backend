@@ -13,7 +13,7 @@ class LogStart(models.Model):
         User, null=True, on_delete=models.SET_NULL, related_name='carlogging_starts_logging_user')
     booking_user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name='carlogging_starts_booking_user')
-    car_booking = models.ForeignKey(
+    car_booking = models.OneToOneField(
         Booking, null=True, on_delete=models.SET_NULL, related_name='carlogging_starts_car_booking')
     kilometers = models.IntegerField(null=False)
     message = models.TextField(blank=True, max_length=200)
@@ -35,7 +35,7 @@ class LogEntry(models.Model):
     logging_date = models.DateTimeField(auto_now_add=True)
     
     car_days = models.IntegerField(null=False, default=1)
-    trailer_booking = models.ForeignKey(
+    trailer_booking = models.OneToOneField(
         Booking, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_trailer_booking')
     trailer_days = models.IntegerField(null=False, default=1)
     cost = models.IntegerField(null=True)
