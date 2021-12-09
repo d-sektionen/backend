@@ -50,12 +50,13 @@ class LogEntryAdmin(admin.ModelAdmin):
         'car_cleaned',
         'logging_date',
         'car_days',
+        'trailer_user',
         'link_to_trailer_booking',
         'trailer_days',
         'cost',
         'paid'
     )
-    list_filter = ('logging_user', 'booking_user')
+    list_filter = ('logging_user', 'booking_user', 'trailer_user')
     search_fields = (
         'logging_user__username', 
         'logging_user__first_name', 

@@ -35,6 +35,8 @@ class LogEntry(models.Model):
     logging_date = models.DateTimeField(auto_now_add=True)
     
     car_days = models.IntegerField(null=False, default=1)
+    trailer_user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_trailer_user')
     trailer_booking = models.OneToOneField(
         Booking, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_trailer_booking')
     trailer_days = models.IntegerField(null=False, default=1)

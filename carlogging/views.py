@@ -112,10 +112,13 @@ class LogEntryViewSet(
             return data_resp
 
         if data['trailer']:
-            trailer_user_id = data['booking_liu_id']  # TODO: data['trailer_liu_id']
+            trailer_user_id = data['trailer_liu_id']
             trailer_user_resp = validate_booking_user(trailer_user_id, check_for_trailer=True)
             if trailer_user_resp:
                 return trailer_user_resp
+            trailer_user = User.objects.get(username=trailer_user_id)
+        else:
+            trailer_user = None
 
         booking_user_id = data['booking_liu_id']
         booking_user = User.objects.get(username=booking_user_id)
@@ -166,6 +169,7 @@ class LogEntryViewSet(
             message=data['message'],
             car_cleaned=data['car_cleaned'],
             car_days=car_days,
+            trailer_user=trailer_user,
             trailer_booking=trailer_booking,
             trailer_days=trailer_days
         )
@@ -180,7 +184,6 @@ class LogEntryViewSet(
             log_start.car_booking.save()
 
         if trailer_booking is not None:
-            # trailer_booking.is_logged = True
             if trailer_booking.end >= timezone.now():
                 trailer_booking.end = timezone.now()
                 trailer_booking.save()

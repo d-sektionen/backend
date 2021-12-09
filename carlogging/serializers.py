@@ -50,6 +50,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'car_cleaned',
             'logging_date',
             'car_days',
+            'trailer_user',
             'trailer_booking',
             'trailer_days',
             'cost',
@@ -60,6 +61,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'booking_user', 
             'log_start', 
             'logging_date',
+            'trailer_user',
             'trailer_booking', 
             'cost', 
             'paid'
@@ -68,4 +70,5 @@ class LogEntrySerializer(serializers.ModelSerializer):
     logging_user = SimpleUserSerializer(read_only=True)
     booking_user = SimpleUserSerializer(read_only=True)
     log_start = LogStartSerializer(read_only=True)
+    trailer_user = SimpleUserSerializer(read_only=True)
     trailer_booking = BookingSerializer(read_only=True)
