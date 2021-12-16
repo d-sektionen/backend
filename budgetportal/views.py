@@ -57,36 +57,6 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
        #     queryset = queryset.filter(restricted_timeslot=restricted_timeslot)
         return queryset
 
-    """@action(
-        detail=True, methods=["put"], permission_classes=[FixedDjangoModelPermissions],
-    )
-    def confirm(self, request, pk=None):
-        booking = self.get_object()
-        booking.confirmed = True
-        booking.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)"""
-
-    """def should_auto_confirm(self, data, exists=False):
-        # If booking is a normal booking.
-        if not data["restricted_timeslot"]:
-            queryset = BudgetEntry.objects.all()
-
-            # on update don't compare with self.
-            if exists:
-                queryset = queryset.exclude(pk=self.get_object().id)
-
-            # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
-            queryset = BudgetEntry.objects.filter(
-                restricted_timeslot=True,
-                confirmed=True,
-                start__lte=data["end"],
-                end__gte=data["start"],
-            )
-            return not queryset.exists()
-
-        # if priority reservation and non admin user.
-        return False"""
-
     def perform_create(self, serializer):
         print("perform_create")
         auto_confirm = False
@@ -96,19 +66,36 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
     def approve(self, request, pk=None):
-        #data = serializer.validated_data
-        print(request.data)
-        print("req:", request.data["user_id"], type(request.data["user_id"]))
-        print("self", self.request.user.id, type(self.request.user.id))
+
+        keys = request.data.keys()
         if str(request.data['user_id']) != str(self.request.user.id):
             print("Different users")
             return Response(status=status.HTTP_403_FORBIDDEN, data="Different users")
+        
         entry = self.get_object()
 
-        if not entry.approvedKas:
+        if ('approvedKas' in keys):
             # Check if requesting user is a cashier for correct section
             print("committee",entry.committee)
+            entry.approvedKas = bool(request.data["approvedKas"])
+        else:
+            entry.approvedKas = False
+
+        if('approvedDeg' in keys):
+            # Check if requesting user is a member of deg
+            print("committee",entry.committee)
+            entry.approvedDeg = bool(request.data["approvedDeg"])
+        else:
+            entry.approvedDeg = False
+
+        if ('payed' in keys):
+            # Check if requesting user is a member of deg
+            print("committee",entry.committee)
+            entry.payed = bool(request.data["payed"])
+        else:
+            entry.payed = False
         
+        entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_update(self, serializer):

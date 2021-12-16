@@ -43,7 +43,13 @@ class BudgetEntry(models.Model):
     approvedDeg = models.BooleanField(default=False, blank=True)
     payed = models.BooleanField(default=False, blank=True)
     ipaddr = models.GenericIPAddressField()
-    
+    image = models.ImageField(null=True, blank=True, upload_to="exspense_receipt")
+    image_processed = ImageSpecField(
+        source="image",
+        #processors=[ResizeToFill(960, 400)],
+        format="JPEG",
+        options={"quality": 80},
+    )
     
     total_sum = FloatField(default=0, blank=False)
 

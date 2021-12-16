@@ -20,6 +20,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
 
 class BudgetEntrySerializer(serializers.ModelSerializer):
+    image_processed = serializers.ImageField(read_only=True)
     user = SimpleUserSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -53,6 +54,8 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "approvedKas",
             "approvedDeg",
             "payed",
+            "image",
+            "image_processed",
             "ipaddr",  
             "total_sum"
         )
@@ -60,8 +63,12 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "confirmed", 
             "approvedKas",
             "approvedDeg",
+            "image_processed",
             "payed",
             "ipaddr")
+        extra_kwargs = {
+            'image': {'write_only': True},
+        }
 
     def create(self, validated_data):
         validated_data["ipaddr"] = self.context.get('request').META.get("REMOTE_ADDR")
@@ -74,7 +81,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         print(user)
         if user != value:
             raise serializers.ValidationError(
-                "You are only allowed to book for yourself."
+                "You are only allowed to add expenses for yourself."
             )
         return value
 
@@ -108,15 +115,14 @@ class ApprovalSerializer(serializers.ModelSerializer):
         model = BudgetEntry
         fields = (
             "id",
-            "date",
             "user",
             "user_id",
             "confirmed",
             "approvedKas",
             "approvedDeg",
             "payed",
-            "ipaddr",  
         )
         read_only_fields = (
+            "date",
             "confirmed", 
             "ipaddr")
