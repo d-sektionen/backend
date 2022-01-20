@@ -5,10 +5,15 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from committee.serializers import CommitteeSerializer
+from committee.models import Committee
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_committees(request: Request, format=None):
-    # TODO: define
-    print('Testing!!!!!')
-    return Response(status=status.HTTP_200_OK)
+    committees = Committee.objects.all()
+    return Response(
+        CommitteeSerializer(committees, many=True).data,
+        status.HTTP_200_OK
+    )
