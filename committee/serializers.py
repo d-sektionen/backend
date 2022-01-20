@@ -6,4 +6,4 @@ from committee.models import Committee
 class CommitteeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Committee
-        fields = 'id', 'name'
+        fields = 'id', 'name', 'contact'

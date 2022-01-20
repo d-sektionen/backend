@@ -14,4 +14,4 @@ class CommitteeForm(forms.ModelForm):
 
     class Meta:
         model = Committee
-        fields = 'id', 'name', 'members'
+        fields = 'id', 'name', 'members', 'contact',

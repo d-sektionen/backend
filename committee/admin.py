@@ -15,8 +15,8 @@ class CommitteeAdmin(admin.ModelAdmin):
             self.form = self.add_form
         return super().get_form(request, obj, **kwargs)
 
-    list_display = 'id', 'name',
-    search_fields = 'name',
+    list_display = 'id', 'name', 'contact',
+    search_fields = 'name', 'contact',
     ordering = 'name',
 
 
