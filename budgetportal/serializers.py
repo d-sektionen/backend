@@ -30,6 +30,13 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
     )
     articles = serializers.JSONField()
 
+    """    image = serializers.ListField(
+                       child=serializers.FileField( max_length=100000,
+                                         allow_empty_file=False,
+                                         use_url=False )
+                                )
+    """
+
     """articles_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Article.objects.all(), source="articles"
     )"""
@@ -57,7 +64,8 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "image",
             "image_processed",
             "ipaddr",  
-            "total_sum"
+            "total_sum",
+            "comment"
         )
         read_only_fields = (
             "confirmed", 
@@ -121,6 +129,28 @@ class ApprovalSerializer(serializers.ModelSerializer):
             "approvedKas",
             "approvedDeg",
             "payed",
+        )
+        read_only_fields = (
+            "date",
+            "confirmed", 
+            "ipaddr")
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer(read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=User.objects.all(),
+        source="user",
+        default=serializers.CurrentUserDefault(),
+    )
+
+    class Meta:
+        model = BudgetEntry
+        fields = (
+            "id",
+            "user",
+            "user_id",
+            "comment",
         )
         read_only_fields = (
             "date",

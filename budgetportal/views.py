@@ -1,3 +1,4 @@
+from xml.etree.ElementTree import Comment
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -15,7 +16,7 @@ from rest_framework.decorators import action
 
 from app.permissions import FixedDjangoModelPermissions
 from .models import BudgetEntry
-from .serializers import BudgetEntrySerializer, ArticleSerializer, ApprovalSerializer
+from .serializers import BudgetEntrySerializer, ArticleSerializer, ApprovalSerializer, CommentSerializer
 from .permissions import BudgetEntryPermissions
 
 # Create your views here.
@@ -32,29 +33,36 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if self.action == 'approve':
             print("approve_serializer")
             return ApprovalSerializer
+        if self.action == 'comment':
+            print("comment")
+            return CommentSerializer
         return BudgetEntrySerializer
 
     def get_queryset(self):
         queryset = BudgetEntry.objects.all()
-        article = self.request.query_params.get("articles", None)
         date = self.request.query_params.get("date", None)
         user = self.request.query_params.get("user", None)
-        confirmed = self.request.query_params.get("confirmed", None)
-        #restricted_timeslot = self.request.query_params.get("restricted_timeslot", None)
+        approvedKas = self.request.query_params.get("approvedKas", None)
+        approvedDeg = self.request.query_params.get("approvedDeg", None)
+        payed = self.request.query_params.get("payed", None)
 
-        if user == "me":
+        # check if user is privilged user that is allowed to view all entries
+        # otherwise, filter so they only see their own
+        if False:
             user = self.request.user.id
+            queryset = BudgetEntry.objects.all()
+            queryset = queryset.filter(user=user)
 
-#        if article:
-#            queryset = queryset.filter(articles=article)
- #       if date != None:
+#       if date != None:
 #            queryset = queryset.filter(end__gt=timezone.now())
         if user:
             queryset = queryset.filter(user=user)
-        if confirmed:
-            queryset = queryset.filter(confirmed=confirmed)
-       # if restricted_timeslot:
-       #     queryset = queryset.filter(restricted_timeslot=restricted_timeslot)
+        if approvedKas:
+            queryset = queryset.filter(approvedKas=approvedKas)
+        if approvedDeg:
+            queryset = queryset.filter(approvedDeg=approvedDeg)
+        if payed:
+            queryset = queryset.filter(payed=payed)
         return queryset
 
     def perform_create(self, serializer):
@@ -76,24 +84,50 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
         if ('approvedKas' in keys):
             # Check if requesting user is a cashier for correct section
-            print("committee",entry.committee)
-            entry.approvedKas = bool(request.data["approvedKas"])
+            #TODO: Currently no way to check if a user is a cashier
+            if(True):
+                entry.approvedKas = bool(request.data["approvedKas"])
         else:
             entry.approvedKas = False
 
         if('approvedDeg' in keys):
             # Check if requesting user is a member of deg
-            print("committee",entry.committee)
-            entry.approvedDeg = bool(request.data["approvedDeg"])
+            #TODO: Currently no way to check if a user is a deg member
+            if(True):
+                entry.approvedDeg = bool(request.data["approvedDeg"])
         else:
             entry.approvedDeg = False
 
         if ('payed' in keys):
             # Check if requesting user is a member of deg
-            print("committee",entry.committee)
-            entry.payed = bool(request.data["payed"])
+            #TODO: Currently no way to check if a user is a deg member
+            if(True):
+                entry.payed = bool(request.data["payed"])
         else:
             entry.payed = False
+        
+        entry.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
+    def comment(self, request, pk=None):
+        keys = request.data.keys()
+        if str(request.data['user_id']) != str(self.request.user.id):
+            print("Different users")
+            return Response(status=status.HTTP_403_FORBIDDEN, data="Different users")
+        
+        #Check if user is allowed to comment (user in correct section)
+        if False:
+            return Response(status=status.HTTP_403_FORBIDDEN, data="Not allowed to comment")
+        
+
+        entry = self.get_object()
+        if True:
+            if entry.comment:
+                entry.comment += " " + str(request.data["comment"])
+            else:
+                entry.comment = str(request.data["comment"]) 
+            
         
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
