@@ -18,6 +18,19 @@ def get_committees(request: Request, format=None):
         status.HTTP_200_OK
     )
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_committee(request: Request, id: int, format=None):
+    committee = Committee.objects.filter(id=id).first()
+    if committee is None:
+        return Response(
+            {'error': 'Det finns inget utskott med det ID:t'},
+            status.HTTP_404_NOT_FOUND
+        )
+    return Response(
+        CommitteeSerializer(committee).data,
+        status.HTTP_200_OK
+    )
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -28,7 +41,6 @@ def get_committee_members(request: Request, id: int, format=None):
             {'error': 'Det finns inget utskott med det ID:t'},
             status.HTTP_404_NOT_FOUND
         )
-
     return Response(
         SimpleUserSerializer(committee.members, many=True).data,
         status.HTTP_200_OK
