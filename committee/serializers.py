@@ -18,8 +18,8 @@ class CommitteeContactSerializer(serializers.ModelSerializer):
 
 
 class CommitteeSerializer(serializers.ModelSerializer):
-    contact = CommitteeContactSerializer(read_only=True)
+    contact = CommitteeContactSerializer()
 
     class Meta:
         model = Committee
-        fields = 'id', 'name', 'contact'
+        fields = 'id', 'name', 'contact',

@@ -17,8 +17,6 @@ class CommitteeForm(forms.ModelForm):
         fields = 'id', 'name', 'members', 'contact',
     
     def clean(self):
-        members = self.cleaned_data.get('members')
-        contact = self.cleaned_data.get('contact')
-        if contact not in members:
+        if self.cleaned_data.get('contact') not in self.cleaned_data.get('members'):
             raise forms.ValidationError({'contact': 'Contact needs to be a member of the committee'})
         return super().clean()
