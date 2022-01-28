@@ -14,7 +14,7 @@ class CommitteeForm(forms.ModelForm):
 
     class Meta:
         model = Committee
-        fields = 'id', 'name', 'members', 'contact',
+        fields = 'id', 'name', 'description', 'members', 'contact',
     
     def clean(self):
         if self.cleaned_data.get('contact') not in self.cleaned_data.get('members'):

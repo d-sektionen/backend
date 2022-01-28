@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 
 class Committee(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=256, default='N/A')
     members = models.ManyToManyField(User, blank=True, related_name='committees')
     contact = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)

@@ -22,4 +22,4 @@ class CommitteeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Committee
-        fields = 'id', 'name', 'contact',
+        fields = 'id', 'name', 'description', 'contact',
