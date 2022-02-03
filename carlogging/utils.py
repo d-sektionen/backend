@@ -24,11 +24,19 @@ def validate_booking_user(liu_id, check_for_trailer=False):
     Validate that there's a user that corresponds to a given LiU-ID.\n
     Returns an error response if invalid, otherwise False.
     """
-    if not User.objects.filter(username=liu_id).exists():
+    user = User.objects.filter(username=liu_id).first()
+    if user is None:
         return Response(
             {'error': f'User with the LiU-ID "{liu_id}" does not exist.',
              'status_text': f'Det finns ingen användare med LiU-ID:t "{liu_id}".'}, 
             status=status.HTTP_404_NOT_FOUND
+        )
+
+    if not user.committees.exists():
+        return Response(
+            {'error': f'The user {liu_id} is not active in any committee.',
+             'status_text': f'Användaren {liu_id} måste vara sektionsaktiv för att logga'},
+            status.HTTP_403_FORBIDDEN
         )
         
     booking = get_booking(liu_id, check_for_trailer)
