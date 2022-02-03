@@ -119,21 +119,20 @@ class NetlightViewSet(viewsets.ViewSet):
 
         headers = {
             "Content-Type": "application/json",
-            "APIKey": NETLIGHT_API_KEY,
-            "Authorization": NETLIGHT_AUTHORIZATION,
+            "Authorization": NETLIGHT_API_KEY,
         }
         # TODO: Cache this request for a few minutes
         r = requests.get(
-            f"{NETLIGHT_API_URL}/Locks/{NETLIGHT_LOCK_ID}", headers=headers
+            f"{NETLIGHT_API_URL}/locks/{NETLIGHT_LOCK_ID}", headers=headers
         )
 
         if r.status_code == 200:
             data = r.json()
             return Response(
                 {
-                    "status": data["Status"],
-                    "battery_percentage": 100 * data["BatteryStatusAfter"] / 255,
-                    "last_opened": data["LastLockEventDate"],
+                    "status": data["connectionStatus"],
+                    "battery_percentage": data["batteryStatus"],
+                    "last_opened": data["lastLockEvent"]["eventTime"],
                 },
                 status=status.HTTP_200_OK,
             )
@@ -168,10 +167,10 @@ class NetlightViewSet(viewsets.ViewSet):
 
         headers = {
             "Content-Type": "application/json",
-            "APIKey": NETLIGHT_API_KEY,
-            "Authorization": NETLIGHT_AUTHORIZATION,
+            "Cache-Control": "no-cache",
+            "Authorization": NETLIGHT_API_KEY,
         }
-        data = {"lockId": NETLIGHT_LOCK_ID, "hubCommand": hub_command}
+        data = {"type": command}
         now = datetime.datetime.now()
 
         # Limit time of day when people can unlock door, they should still be able to lock at any time.
@@ -194,7 +193,7 @@ class NetlightViewSet(viewsets.ViewSet):
         # Log action and send request
         if log(command, Entry.NETLIGHT, user=user):
             r = requests.post(
-                f"{NETLIGHT_API_URL}/Hubs/{NETLIGHT_HUB_ID}/Commands",
+                f"{NETLIGHT_API_URL}/locks/{NETLIGHT_LOCK_ID}/operations",
                 data=json.dumps(data),
                 headers=headers,
             )

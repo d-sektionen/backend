@@ -31,6 +31,7 @@ import membership.urls
 import carlogging.urls
 import keylog.urls
 import budgetportal.urls
+import committee.urls
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
@@ -70,6 +71,8 @@ urlpatterns = [
     url(r"^membership/", include(membership.urls)),
     # Carloggin
     url(r"^carlogging/", include(carlogging.urls)),
+    # Committee
+    url(r'^committee/', include(committee.urls)),
     # Keylog
     url(r"^keylog/", include(keylog.urls)),
     # Keylog

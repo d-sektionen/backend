@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "checkin",
     "attendance",
     "carlogging",
+    "committee",
     "keylog",
     "budgetportal",
     # ---
@@ -220,7 +221,7 @@ KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
 
 
 # some of these IDs can be found at: https://api.gluehome.com/api/Hubs
-NETLIGHT_API_URL = "https://api.gluehome.com/api"
+NETLIGHT_API_URL = "https://user-api.gluehome.com/v1"
 NETLIGHT_API_KEY = os.getenv("NETLIGHT_API_KEY")
 NETLIGHT_HUB_ID = os.getenv("NETLIGHT_HUB_ID")
 NETLIGHT_LOCK_ID = os.getenv("NETLIGHT_LOCK_ID")
