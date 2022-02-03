@@ -1,0 +1,24 @@
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.admin.widgets import FilteredSelectMultiple
+
+from committee.models import Committee
+
+
+class CommitteeForm(forms.ModelForm):
+    members = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(), 
+        required=False,
+        widget=FilteredSelectMultiple(verbose_name='Members', is_stacked=False)
+    )
+
+    class Meta:
+        model = Committee
+        fields = 'id', 'name', 'members', 'contact',
+    
+    def clean(self):
+        members = self.cleaned_data.get('members')
+        contact = self.cleaned_data.get('contact')
+        if contact not in members:
+            raise forms.ValidationError({'contact': 'Contact needs to be a member of the committee'})
+        return super().clean()
