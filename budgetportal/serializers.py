@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from account.serializers import SimpleUserSerializer
 from datetime import timedelta
-from .models import BudgetEntry
+from account.serializers import MeSerializer
+from .models import BudgetEntry, Image, ImageAlbum
 
 class ArticleSerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
@@ -18,10 +19,24 @@ class ArticleSerializer(serializers.ModelSerializer):
             "total",
         )
 
+class ImageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(read_only=True)
+
+    class Meta:
+        model = Image
+        fields = ("file",)
+
+class ImageSerializer(serializers.ModelSerializer):
+    file = serializers.FileField()
+
+    class Meta:
+        model = Image
+        fields = ("image","entry")
+
 
 class BudgetEntrySerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
-    user = SimpleUserSerializer(read_only=True)
+    user = MeSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=User.objects.all(),
@@ -29,18 +44,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
     articles = serializers.JSONField()
-
-    """    image = serializers.ListField(
-                       child=serializers.FileField( max_length=100000,
-                                         allow_empty_file=False,
-                                         use_url=False )
-                                )
-    """
-
-    """articles_id = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=Article.objects.all(), source="articles"
-    )"""
-    #articles = ArticleSerializer(read_only=True)
+    #image2 = ImageSerializer()
 
     class Meta:
         model = BudgetEntry
@@ -65,7 +69,11 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "image_processed",
             "ipaddr",  
             "total_sum",
-            "comment"
+            "comment",
+            "report_pdf",
+            #"album",
+            "file",
+            "image2"
         )
         read_only_fields = (
             "confirmed", 
@@ -76,6 +84,9 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "ipaddr")
         extra_kwargs = {
             'image': {'write_only': True},
+            "image2": {
+                "required": False,
+            }
         }
 
     def create(self, validated_data):
@@ -85,8 +96,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
 
     def validate_user_id(self, value):
         user = self.context["request"].user
-        print(value)
-        print(user)
+        
         if user != value:
             raise serializers.ValidationError(
                 "You are only allowed to add expenses for yourself."

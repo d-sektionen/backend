@@ -70,6 +70,11 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         auto_confirm = False
         data = serializer.validated_data
         #auto_confirm = self.should_auto_confirm(data)
+        if self.request.method == 'POST':
+            files = self.request.FILES.getlist('image2')
+            if files:
+                self.request.data.pop('image2')
+                
         serializer.save()
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
