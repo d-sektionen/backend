@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+
 from committee.models import Committee
-from membership.utils import check_membership
 from booking.models import Booking
 
 CAR_DAILY_COST = 30
@@ -19,7 +19,6 @@ class LogStart(models.Model):
     kilometers = models.IntegerField(null=False)
     message = models.TextField(blank=True, max_length=200)
     car_cleaned = models.BooleanField(null=False)
-    logging_finished = models.BooleanField(null=False, default=False)
     logging_date = models.DateTimeField(auto_now_add=True)
 
 
@@ -28,8 +27,8 @@ class LogEntry(models.Model):
         User, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_logging_user')
     booking_user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_booking_user')
-    log_start = models.ForeignKey(
-        LogStart, null=True, on_delete=models.CASCADE)
+    log_start = models.OneToOneField(
+        LogStart, null=True, on_delete=models.CASCADE, related_name='log_entry')
     committee = models.ForeignKey(
         Committee, null=True, on_delete=models.SET_NULL)
     kilometers = models.IntegerField(null=False)

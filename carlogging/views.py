@@ -148,12 +148,11 @@ class LogEntryViewSet(
         if committee is None:
             return Response(
                 {'error': 'That committee does not exist!',
-                 'status_text': 'Det utskottet finns int!'},
+                 'status_text': 'Det utskottet finns inte!'},
                 status.HTTP_404_NOT_FOUND
             )
 
         # Calculate amount of days car has been used
-        print(f'{log_start.car_booking.carlogging_starts_car_booking = }')
         if log_start.car_booking.end >= timezone.now():
             car_timedelta = timezone.now() - log_start.car_booking.start
         else:
@@ -187,9 +186,6 @@ class LogEntryViewSet(
         )
         log_entry.cost = log_entry.calc_cost()
         log_entry.save()
-
-        log_start.logging_finished = True
-        log_start.save()
 
         if log_start.car_booking.end >= timezone.now():
             log_start.car_booking.end = timezone.now()
