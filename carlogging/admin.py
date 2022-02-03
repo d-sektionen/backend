@@ -45,6 +45,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         'booking_user',
         'link_to_pdf',
         'link_to_logstart',
+        'link_to_committee',
         'kilometers',
         # 'message',
         'car_cleaned',
@@ -79,3 +80,10 @@ class LogEntryAdmin(admin.ModelAdmin):
         link = reverse('admin:booking_booking_change', args=[obj.trailer_booking.id])
         return format_html('<a href="{}">Booking ({})</a>', link, obj.trailer_booking.id)
     link_to_trailer_booking.short_description = 'Trailer Booking'
+
+    def link_to_committee(self, obj):
+        if obj.committee is None:
+            return 'NULL'
+        link = reverse('admin:committee_committee_change', args=[obj.committee.id])
+        return format_html('<a href="{}">Committee ({})</a>', link, obj.committee.id)
+    link_to_committee.short_description = 'Committee'

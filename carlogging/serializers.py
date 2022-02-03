@@ -3,6 +3,7 @@ from .models import LogEntry, LogStart
 from booking.models import Booking, Item
 from booking.serializers import BookingSerializer
 from account.serializers import SimpleUserSerializer
+from committee.serializers import CommitteeSerializer
 from django.contrib.auth.models import User
 
 
@@ -45,6 +46,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'booking_user',
             'booking_liu_id',
             'log_start',
+            'committee',
             'kilometers',
             'message',
             'car_cleaned',
@@ -69,6 +71,7 @@ class LogEntrySerializer(serializers.ModelSerializer):
 
     logging_user = SimpleUserSerializer(read_only=True)
     booking_user = SimpleUserSerializer(read_only=True)
+    committee = CommitteeSerializer(read_only=True)
     log_start = LogStartSerializer(read_only=True)
     trailer_user = SimpleUserSerializer(read_only=True)
     trailer_booking = BookingSerializer(read_only=True)

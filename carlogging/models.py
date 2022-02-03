@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from committee.models import Committee
 from membership.utils import check_membership
 from booking.models import Booking
 
@@ -29,6 +30,8 @@ class LogEntry(models.Model):
         User, null=True, on_delete=models.SET_NULL, related_name='carlogging_entries_booking_user')
     log_start = models.ForeignKey(
         LogStart, null=True, on_delete=models.CASCADE)
+    committee = models.ForeignKey(
+        Committee, null=True, on_delete=models.SET_NULL)
     kilometers = models.IntegerField(null=False)
     message = models.TextField(blank=True, max_length=200)
     car_cleaned = models.BooleanField(null=False)

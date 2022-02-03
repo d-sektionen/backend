@@ -104,6 +104,7 @@ def validate_entry_data(data):
         'kilometers': int,
         'message': str,
         'car_cleaned': bool,
-        'trailer': bool
+        'trailer': bool,
+        'committee_id': int
     }
     return _validate_data(data, essential_key_types)

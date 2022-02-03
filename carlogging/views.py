@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from account import serializers
 from booking.models import Booking
+from committee.models import Committee
 from .models import LogEntry, LogStart, CAR_DAILY_COST, TRAILER_DAILY_COST, COST_PER_KM
 from rest_framework import viewsets, mixins, status
 from .serializers import LogEntrySerializer, LogStartSerializer
@@ -122,6 +123,9 @@ class LogEntryViewSet(
 
         booking_user_id = data['booking_liu_id']
         booking_user = User.objects.get(username=booking_user_id)
+        committee_id = data['committee_id']
+        committee = Committee.objects.filter(id=committee_id).first()
+        
         log_start = LogStart.objects.filter(
             booking_user=booking_user, 
             logging_finished=False
@@ -139,6 +143,13 @@ class LogEntryViewSet(
                 {'error': 'Start kilometer should be less than end kilometer!',
                  'status_text': f'Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start.kilometers} km.'},
                 status.HTTP_400_BAD_REQUEST
+            )
+        
+        if committee is None:
+            return Response(
+                {'error': 'That committee does not exist!',
+                 'status_text': 'Det utskottet finns int!'},
+                status.HTTP_404_NOT_FOUND
             )
 
         # Calculate amount of days car has been used
@@ -165,6 +176,7 @@ class LogEntryViewSet(
             logging_user=request.user,
             booking_user=booking_user,
             log_start=log_start,
+            committee=committee,
             kilometers=data['kilometers'],
             message=data['message'],
             car_cleaned=data['car_cleaned'],
