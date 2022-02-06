@@ -5,11 +5,10 @@ from rest_framework import routers
 from carlogging import views
 
 router = routers.DefaultRouter()
-router.register(r"entries", views.LogEntryViewSet, basename="entries")
-router.register(r"starts", views.LogStartViewSet, basename="starts")
-# router.register(r"pdf-export", views.pdf_export, basename="pdf-export")
+router.register(r'starts', views.LogStartViewSet, basename='starts')
+router.register(r'entries', views.LogEntryViewSet, basename='entries')
 
 urlpatterns = [
-    url(r"^", include(router.urls)),
-    path(r"pdf-export/<int:entry_id>", views.PdfExport.as_view()),
+    url(r'^', include(router.urls)),
+    path(r'entries/<int:entry_id>/pdf-export', views.export_entry_pdf),
 ]

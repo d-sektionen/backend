@@ -11,7 +11,7 @@ class LogStartAdmin(admin.ModelAdmin):
     list_display = (
         'id', 
         'logging_user', 
-        'booking_user', 
+        'car_user', 
         'link_to_log_entry',
         'link_to_car_booking', 
         'kilometers', 
@@ -20,7 +20,7 @@ class LogStartAdmin(admin.ModelAdmin):
     )
     ordering = ('logging_date',)
 
-    list_filter = ('logging_user', 'booking_user',)
+    list_filter = ('logging_user', 'car_user',)
     search_fields = (
         'logging_user__username', 
         'logging_user__first_name', 
@@ -44,7 +44,7 @@ class LogStartAdmin(admin.ModelAdmin):
 
 def mark_as_paid(modeladmin, request, queryset):
     for entry in queryset:
-        entry.paid = True
+        entry.is_paid = True
         entry.save()
     modeladmin.message_user = 'Entries were successfully marked.'
 
@@ -63,13 +63,13 @@ class LogEntryAdmin(admin.ModelAdmin):
         'kilometers',
         'car_cleaned',
         'cost',
-        'paid',
+        'is_paid',
         'logging_date',
         'link_to_pdf',
     )
     ordering = ('logging_date',)
 
-    list_filter = ('logging_user', 'booking_user', 'trailer_user',)
+    list_filter = ('logging_user', 'car_user', 'trailer_user',)
     search_fields = (
         'logging_user__username', 
         'logging_user__first_name', 
@@ -88,7 +88,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         if car_booking is None:
             return 'NULL'
         link = reverse('admin:booking_booking_change', args=[car_booking.id])
-        return format_html('<a href="{}">by {}</a>', link, obj.booking_user.username)
+        return format_html('<a href="{}">by {}</a>', link, obj.car_user.username)
 
     def link_to_trailer_booking(self, obj: LogEntry):
         if obj.trailer_booking is None:
@@ -103,7 +103,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', link, obj.committee.name)
 
     def link_to_pdf(self, obj: LogEntry):
-        url = f'/carlogging/pdf-export/{obj.id}'
+        url = f'/carlogging/entries/{obj.id}/pdf-export'
         return format_html('<a href="{}">Export to PDF</a>', url)
 
     link_to_log_start.short_description = 'Log Start'

@@ -1,103 +1,96 @@
-from django.shortcuts import render
-from django.utils import timezone
-
-from account import serializers
-from booking.models import Booking
-from committee.models import Committee
-from .models import LogEntry, LogStart, CAR_DAILY_COST, TRAILER_DAILY_COST, COST_PER_KM
-from rest_framework import viewsets, mixins, status
-from .serializers import LogEntrySerializer, LogStartSerializer
-from .permissions import LoggingAdminPermissions, LoggingPermissions
-from .utils import validate_booking_user, get_booking, validate_start_data, validate_entry_data
-from rest_framework.response import Response
-from django.db.models import F, Q
 from django.contrib.auth.models import User
-from membership.utils import check_membership
-from rest_framework.views import APIView
+from django.db.models import Q
 from django.http import FileResponse
-import io
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
+from django.utils import timezone
+from rest_framework import status, viewsets, mixins
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.request import Request
+from rest_framework.response import Response
+
+from io import BytesIO
+from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import letter
-from datetime import datetime
+from reportlab.lib.units import inch
+
+from carlogging.models import LogStart, LogEntry, CAR_DAILY_COST, TRAILER_DAILY_COST, COST_PER_KM
+from carlogging.permissions import LoggingPermissions, LoggingAdminPermissions
+from carlogging.serializers import LogStartSerializer, LogEntrySerializer
+from carlogging.utils import get_unlogged_booking, validate_request_data
+from committee.models import Committee
 
 
-class LogStartViewSet(
-    mixins.ListModelMixin,
-    # mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
+class LogStartViewSet(mixins.RetrieveModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    queryset = LogStart.objects.all()
     serializer_class = LogStartSerializer
     permission_classes = (LoggingPermissions,)
-    queryset = LogStart.objects.all()
 
     def get_queryset(self):
         return LogStart.objects.filter(
             Q(logging_user=self.request.user) |
-            Q(booking_user=self.request.user)
-        )
+            Q(car_user=self.request.user))
 
-    def create(self, request):
-        data = request.data
-        data_resp = validate_start_data(data)
-        if data_resp:
+    def create(self, request: Request):
+        """
+        Creates a new LogStart object, if the booker has an unlogged car booking
+        and no unfinished logs.
+        """
+        data_types = {'car_liu_id': str,
+                      'kilometers': int,
+                      'message': str,
+                      'car_cleaned': bool}
+        data_resp = validate_request_data(request.data, data_types)
+        if data_resp: 
             return data_resp
+        
+        # Validate the car booker and booking
+        car_liu_id = request.data['car_liu_id']
+        car_user = User.objects.filter(username=car_liu_id).first()
+        if car_user is None:
+            return Response({'status_text': f'Ingen användare med LiU-ID:t {car_liu_id} finns'},
+                            status.HTTP_404_NOT_FOUND)
 
-        booking_user_id = data['booking_liu_id']
-        booking_user_resp = validate_booking_user(booking_user_id)
-        if booking_user_resp:
-            return booking_user_resp
-        booking = get_booking(booking_user_id)
+        # TODO: skulle vara bättre att implementera i bokningsappen
+        if not car_user.committees.exists():
+            return Response({'status_text': f'{car_liu_id} måste vara sektionsaktiv för att boka bil'},
+                            status.HTTP_403_FORBIDDEN)
 
-        booking_user = User.objects.get(username=booking_user_id)
-        if LogStart.objects.filter(
-            booking_user=booking_user,
-            logging_finished=False
-        ).exists():
-            return Response(
-                {'error': f'A LogStart object has already been created for "{booking_user_id}"!',
-                 'status_text': f'Det finns redan en oavslutad, påbörjad loggning för "{booking_user_id}"!'},
-                status.HTTP_400_BAD_REQUEST
-            )
-            
-        LogStart.objects.create(
-            logging_user=request.user,
-            booking_user=booking_user,
-            car_booking=booking,
-            kilometers=data['kilometers'],
-            message=data['message'],
-            car_cleaned=data['car_cleaned']
-        )
+        if LogStart.objects.filter(car_user=car_user, log_entry=None).exists():
+            return Response({'status_text': f'En oavslutad loggning för {car_liu_id} finns redan'},
+                            status.HTTP_409_CONFLICT)
 
-        # booking.is_logged = True
-        # booking.save()
+        car_booking = get_unlogged_booking(car_user, False)
+        if car_booking is None:
+            return Response({'status_text': f'Ingen ologgad bilbokning av {car_liu_id} finns'},
+                            status.HTTP_404_NOT_FOUND)
 
-        return Response(
-            {'status_text': 'Loggningen är nu påbörjad.'},
-            status.HTTP_200_OK
-        )
+        # Start a new log
+        LogStart.objects.create(logging_user=request.user,
+                                car_user=car_user,
+                                car_booking=car_booking,
+                                kilometers=request.data['kilometers'],
+                                message=request.data['message'],
+                                car_cleaned=request.data['car_cleaned'])
+        return Response({'status_text': 'Loggningen är nu påbörjad'},
+                        status.HTTP_201_CREATED)
 
 
-class LogEntryViewSet(
-    mixins.ListModelMixin,
-    # mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
+class LogEntryViewSet(mixins.RetrieveModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    queryset = LogEntry.objects.all()
     serializer_class = LogEntrySerializer
     permission_classes = (LoggingPermissions,)
-    queryset = LogEntry.objects.all()
 
     def get_queryset(self):
         entries = LogEntry.objects.filter(
             Q(logging_user=self.request.user) |
-            Q(booking_user=self.request.user)
-        )
+            Q(car_user=self.request.user))
         for entry in entries:
             if entry.log_start.logging_user != self.request.user:
                 # Hide the "personal data" of the person who created the
@@ -106,169 +99,173 @@ class LogEntryViewSet(
                 entry.log_start.message = None
         return entries
 
-    def create(self, request):
-        data = request.data
-        data_resp = validate_entry_data(data)
-        if data_resp:
+    def create(self, request: Request):
+        """
+        Creates a new LogStart object, if the booker has an unlogged car booking
+        and no unfinished logs.
+        """
+        data_types = {'car_liu_id': str,
+                      'trailer': bool,
+                      'trailer_liu_id': str,
+                      'committee_id': int,
+                      'kilometers': int,
+                      'message': str,
+                      'car_cleaned': bool}
+        data_resp = validate_request_data(request.data, data_types)
+        if data_resp: 
             return data_resp
 
-        if data['trailer']:
-            trailer_user_id = data['trailer_liu_id']
-            trailer_user_resp = validate_booking_user(trailer_user_id, check_for_trailer=True)
-            if trailer_user_resp:
-                return trailer_user_resp
-            trailer_user = User.objects.get(username=trailer_user_id)
+        # Validate the car booker and log start
+        car_liu_id = request.data['car_liu_id']
+        car_user = User.objects.filter(username=car_liu_id).first()
+        if car_user is None:
+            return Response({'status_text': f'Ingen användare med LiU-ID:t {car_liu_id} finns'},
+                            status.HTTP_404_NOT_FOUND)
+                            
+        # TODO: skulle vara bättre att implementera i bokningsappen
+        if not car_user.committees.exists():
+            return Response({'status_text': f'{car_liu_id} måste vara sektionsaktiv för att boka bil'},
+                            status.HTTP_403_FORBIDDEN)
+
+        log_start = LogStart.objects.filter(car_user=car_user, log_entry=None).first()
+        if log_start is None:
+            return Response({'status_text': f'Ingen oavslutad loggning för {car_liu_id} hittades'},
+                            status.HTTP_404_NOT_FOUND)
+
+        # Validate the trailer booker and booking
+        if request.data['trailer']:
+            trailer_liu_id = request.data['trailer_liu_id']
+            trailer_user = User.objects.filter(username=trailer_liu_id).first()
+            if trailer_user is None:
+                return Response({'status_text': f'Ingen användare med LiU-ID:t {trailer_liu_id} finns'},
+                                status.HTTP_404_NOT_FOUND)
+
+            # TODO: skulle vara bättre att implementera i bokningsappen
+            if not trailer_user.committees.exists():
+                return Response({'status_text': f'{trailer_liu_id} måste vara sektionsaktiv för att boka släp'},
+                                status.HTTP_403_FORBIDDEN)
+
+            trailer_booking = get_unlogged_booking(trailer_user, True)
+            if trailer_booking is None:
+                return Response({'status_text': f'Ingen ologgad släpbokning av {trailer_liu_id} finns'},
+                                status.HTTP_404_NOT_FOUND)
         else:
             trailer_user = None
+            trailer_booking = None
 
-        booking_user_id = data['booking_liu_id']
-        booking_user = User.objects.get(username=booking_user_id)
-        committee_id = data['committee_id']
-        committee = Committee.objects.filter(id=committee_id).first()
-        
-        log_start = LogStart.objects.filter(
-            booking_user=booking_user, 
-            logging_finished=False
-        ).first()
-
-        if log_start is None:
-            return Response(
-                {'error': f'No LogStart object has been created for "{booking_user_id}"!',
-                 'status_text': 'Du måste påbörja en loggning innan du kan avsluta den!'},
-                status.HTTP_404_NOT_FOUND
-            )
-
-        if log_start.kilometers >= data['kilometers']:
-            return Response(
-                {'error': 'Start kilometer should be less than end kilometer!',
-                 'status_text': f'Mätarställningen som anges måste vara större än när loggningen startades, då angavs {log_start.kilometers} km.'},
-                status.HTTP_400_BAD_REQUEST
-            )
-        
+        # Validate the rest of the request data
+        committee = Committee.objects.filter(id=request.data['committee_id']).first()
         if committee is None:
-            return Response(
-                {'error': 'That committee does not exist!',
-                 'status_text': 'Det utskottet finns inte!'},
-                status.HTTP_404_NOT_FOUND
-            )
+            return Response({'status_text': 'Det valda utskottet finns inte'},
+                            status.HTTP_404_NOT_FOUND)
 
-        # Calculate amount of days car has been used
+        if log_start.kilometers >= request.data['kilometers']:
+            return Response({'status_text': f'Antalet kilometer måste vara större än när loggningen \
+                             startades ({log_start.kilometers})'},
+                            status.HTTP_400_BAD_REQUEST)
+
+        # Calculate cost of bookings and finish the log
         if log_start.car_booking.end >= timezone.now():
             car_timedelta = timezone.now() - log_start.car_booking.start
         else:
             car_timedelta = log_start.car_booking.end - log_start.car_booking.start
         car_days = max(1, car_timedelta.days)
 
-        # Calculate amount of days trailer has been used
-        if data['trailer']:
-            trailer_booking = get_booking(trailer_user_id, check_for_trailer=True)
+        if request.data['trailer']:
             if trailer_booking.end >= timezone.now():
                 trailer_timedelta = timezone.now() - trailer_booking.start
             else:
                 trailer_timedelta = trailer_booking.end - trailer_booking.start
             trailer_days = max(1, trailer_timedelta.days)
         else:
-            trailer_booking = None
             trailer_days = 0
 
-        log_entry = LogEntry.objects.create(
-            logging_user=request.user,
-            booking_user=booking_user,
-            log_start=log_start,
-            committee=committee,
-            kilometers=data['kilometers'],
-            message=data['message'],
-            car_cleaned=data['car_cleaned'],
-            car_days=car_days,
-            trailer_user=trailer_user,
-            trailer_booking=trailer_booking,
-            trailer_days=trailer_days
-        )
-        log_entry.cost = log_entry.calc_cost()
-        log_entry.save()
+        entry = LogEntry.objects.create(logging_user=request.user,
+                                        car_user=car_user,
+                                        trailer_user=trailer_user,
+                                        trailer_booking=trailer_booking,
+                                        log_start=log_start,
+                                        committee=committee,
+                                        car_days=car_days,
+                                        trailer_days=trailer_days,
+                                        kilometers=request.data['kilometers'],
+                                        message=request.data['message'],
+                                        car_cleaned=request.data['car_cleaned'])
+        entry.cost = entry.calc_cost()
+        entry.save()
 
+        # Cutoff booking end times to allow for new bookings
         if log_start.car_booking.end >= timezone.now():
             log_start.car_booking.end = timezone.now()
             log_start.car_booking.save()
-
-        if trailer_booking is not None:
-            if trailer_booking.end >= timezone.now():
-                trailer_booking.end = timezone.now()
-                trailer_booking.save()
+        
+        if request.data['trailer'] and trailer_booking.end >= timezone.now():
+            trailer_booking.end = timezone.now()
             trailer_booking.save()
-
-        return Response(
-            {'status_text': 'Loggningen är nu avslutad!'},
-            status.HTTP_200_OK
-        )
+        
+        return Response({'status_text': 'Loggningen är nu avslutad'},
+                        status.HTTP_201_CREATED)
 
 
-class PdfExport(APIView):
-    permisson_classes = (LoggingAdminPermissions,)
+@api_view(['GET'])
+@permission_classes([LoggingAdminPermissions])
+def export_entry_pdf(request: Request, entry_id: int):
+    """Generates a PDF outlining the details of the specified LogEntry object."""
 
-    def get(self, request, *args, **kwargs):
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
+    entry = LogEntry.objects.filter(id=entry_id).first()
+    if entry is None:
+        return Response({'status_text': f'Ingen loggning med ID:t {entry_id} finns'},
+                        status.HTTP_404_NOT_FOUND)
 
-        # print(c.getAvailableFonts())
+    buffer = BytesIO()
+    canvas = Canvas(buffer, pagesize=letter, bottomup=0)
+    text = canvas.beginText()
 
-        log_entry_id = self.kwargs['entry_id']
-        log_entry = LogEntry.objects.get(pk=log_entry_id)
+    text.setTextOrigin(inch, inch)
+    text.setFont('Courier', 18)
+    text.textLine(f'Billoggning (id: {entry_id})')
 
-        textobj = c.beginText()
-        textobj.setTextOrigin(inch, inch)
-        textobj.setFont('Courier', 18)
-        textobj.textLine(f'Billoggning (id: {log_entry_id})')
+    lines = [
+        ('Starttid (startloggning):', str(entry.log_start.logging_date).split('.')[0]),
+        ('Sluttid (slutloggning):', str(entry.logging_date).split('.')[0]),
+        ('LiU-ID på bokningen:', entry.car_user.username),
+        ('Start:', f'{entry.log_start.kilometers} km'),
+        ('Stopp:', f'{entry.kilometers} km'),
+        '-'*64,
+        ('Pris per kilometer:', f'{COST_PER_KM} kr/km'),
+        ('Antal km:', f'{entry.kilometers - entry.log_start.kilometers} km'),
+        ('Dygn med bil:', entry.car_days),
+        ('Dygnshyra:', f'{(entry.car_days - 1) * CAR_DAILY_COST} kr    ({CAR_DAILY_COST}kr/dygn efter första)')
+    ]
 
-        lines = [
-            ('Starttid (startloggning):', str(log_entry.log_start.logging_date).split('.')[0]),
-            ('Sluttid (slutloggning):', str(log_entry.logging_date).split('.')[0]),
-            ('LiU-ID på bokningen:', log_entry.booking_user.username),
-            ('Start:', f'{log_entry.log_start.kilometers} km'),
-            ('Stopp:', f'{log_entry.kilometers} km'),
-            '-'*64,
-            ('Pris per kilometer:', f'{COST_PER_KM} kr/km'),
-            ('Antal km:', f'{log_entry.kilometers - log_entry.log_start.kilometers} km'),
-            ('Dygn med bil:', log_entry.car_days),
-            (
-                'Dygnshyra:',
-                f'{(log_entry.car_days - 1) * CAR_DAILY_COST} kr    ({CAR_DAILY_COST}kr/dygn efter första)'
-            )
-        ]
-
-        if log_entry.trailer_booking is not None:
-            lines += [
-                ('Dygn med släp:', log_entry.trailer_days),
-                (
-                    'Släpdygnshyra:',
-                    f'{log_entry.trailer_days * TRAILER_DAILY_COST} kr    ({TRAILER_DAILY_COST}kr/dygn)'
-                )
-            ]
-
+    if entry.trailer_booking is not None:
         lines += [
-            '-'*64,
-            ('Summa:', f'{log_entry.cost} kr'),
-            '',
-            ('Denna PDF skapades:', str(datetime.now()).split('.')[0])
+            ('Dygn med släp:', entry.trailer_days),
+            ('Släpdygnshyra:', f'{entry.trailer_days * TRAILER_DAILY_COST} kr    ({TRAILER_DAILY_COST}kr/dygn)')
         ]
 
-        # Apply lines to text object
-        LEFT_COLUMN_LEN = 30
-        textobj.setFont('Courier', 12)
-        for line in lines:
-            if isinstance(line, tuple):
-                left = line[0]
-                right = line[1]
+    lines += [
+        '-'*64,
+        ('Summa:', f'{entry.cost} kr'),
+        '',
+        ('Denna PDF skapades:', str(timezone.now()).split('.')[0])
+    ]
 
-                if len(left) < LEFT_COLUMN_LEN:
-                    left += ' '*(LEFT_COLUMN_LEN - len(left))
+    # Apply lines to text object
+    LEFT_COLUMN_LEN = 30
+    text.setFont('Courier', 12)
+    for line in lines:
+        if isinstance(line, tuple):
+            left, right = line
+            
+            if len(left) < LEFT_COLUMN_LEN:
+                left += ' ' * (LEFT_COLUMN_LEN - len(left))
 
-                line = f'{str(left) + str(right)}'
-            textobj.textLine(line)
+            line = f'{str(left) + str(right)}'
+        text.textLine(line)
 
-        c.drawText(textobj)
-        c.showPage()
-        c.save()
-        buffer.seek(0)
-
-        return FileResponse(buffer, as_attachment=False, filename='car-logging.pdf')
+    canvas.drawText(text)
+    canvas.showPage()
+    canvas.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=False, filename=f'car-logging-{entry_id}.pdf')

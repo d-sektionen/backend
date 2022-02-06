@@ -1,118 +1,32 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers, status
-from booking.models import Booking
 from rest_framework.response import Response
 
+from booking.models import Booking
 
-def get_booking(liu_id, check_for_trailer=False) -> Booking:
-    """
-    Returns a booking that corresponds to a given LiU-ID if it exists.
-    """
-    user = User.objects.get(username=liu_id)
 
+def get_unlogged_booking(user: User, trailer: bool) -> Booking:
+    """Returns the oldest unlogged car or trailer booking for the specified user."""
     bookings = Booking.objects.filter(user=user, item__category__name='Bilrelaterat')
-    if check_for_trailer:
+    if trailer:
         bookings = bookings.filter(item__name='Släp', carlogging_entries_trailer_booking=None)
     else:
         bookings = bookings.filter(carlogging_starts_car_booking=None).exclude(item__name='Släp')
-
     return bookings.order_by('start').first()
 
 
-def validate_booking_user(liu_id, check_for_trailer=False):
+def validate_request_data(data: dict, data_types: dict) -> Response:
     """
-    Validate that there's a user that corresponds to a given LiU-ID.\n
-    Returns an error response if invalid, otherwise False.
+    Validates that the essential data of a request exists and is of the right data types.\n
+    Returns a 400 BAD REQUEST response if invalid, otherwise None.
     """
-    user = User.objects.filter(username=liu_id).first()
-    if user is None:
-        return Response(
-            {'error': f'User with the LiU-ID "{liu_id}" does not exist.',
-             'status_text': f'Det finns ingen användare med LiU-ID:t "{liu_id}".'}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
+    data_resp = dict()
+    for data_key, data_type in data_types.items():
+        if data_key not in data.keys():
+            data_resp[data_key] = 'Detta måste fyllas i'
+        elif type(data[data_key]) != data_type:
+            data_resp[data_key] = f'Detta måste vara av typen {data_type}'
 
-    if not user.committees.exists():
-        return Response(
-            {'error': f'The user {liu_id} is not active in any committee.',
-             'status_text': f'Användaren {liu_id} måste vara sektionsaktiv för att logga'},
-            status.HTTP_403_FORBIDDEN
-        )
-        
-    booking = get_booking(liu_id, check_for_trailer)
-    if booking is None:
-        if check_for_trailer:
-            return Response(
-                {'error': f'No trailer booking corresponds with the LiU-ID "{liu_id}"!',
-                 'status_text': f'Ingen släpbokning korresponderar med LiU-ID:t "{liu_id}"!'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        return Response(
-            {'error': f'No car booking corresponds with the LiU-ID "{liu_id}"!',
-             'status_text': f'Ingen bilbokning korresponderar med LiU-ID:t "{liu_id}"!'}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    return False
-
-
-def _validate_data(data, essential_key_types):
-    """
-    Validate the data of a generic POST request.\n
-    Returns an error response if invalid, otherwise False.
-    """
-    # Check for missing keys
-    missing_keys = list()
-    for key in essential_key_types:
-        if key not in data:
-            missing_keys.append(key)
-    if missing_keys:
-        missing_keys_str = str(missing_keys)[1:-1]  # Removes the square brackets
-        return Response(
-            {'error': f'The data {missing_keys_str} is missing!',
-             'status_text': f'Datan {missing_keys_str} fattas!'},
-            status.HTTP_400_BAD_REQUEST
-        )
-
-    # Check for invalid key types
-    for key, value in essential_key_types.items():
-        cmp_value = type(data[key])
-        if cmp_value != value:
-            return Response(
-                {'error': f'The data "{key}" should be of type "{value}", not "{cmp_value}"!',
-                'status_text': f'Datan "{key}" borde vara av typen "{value}", inte "{cmp_value}"!'},
-                status.HTTP_400_BAD_REQUEST
-            )
-    
-    return False
-
-
-def validate_start_data(data):
-    """
-    Validate the data of a LogStart POST request.\n
-    Returns an error response if invalid, otherwise False.
-    """
-    essential_key_types = {
-        'booking_liu_id': str,
-        'kilometers': int,
-        'message': str,
-        'car_cleaned': bool
-    }
-    return _validate_data(data, essential_key_types)
-
-
-def validate_entry_data(data):
-    """
-    Validate the data of a LogEntry POST request.\n
-    Returns an error response if invalid, otherwise False.
-    """
-    essential_key_types = {
-        'booking_liu_id': str,
-        'kilometers': int,
-        'message': str,
-        'car_cleaned': bool,
-        'trailer': bool,
-        'committee_id': int
-    }
-    return _validate_data(data, essential_key_types)
+    if data_resp:
+        data_resp['status_text'] = 'Det var något fel på den inskickade datan'
+        return data_resp
+    return None
