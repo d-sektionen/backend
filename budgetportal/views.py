@@ -15,15 +15,22 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
 
 from app.permissions import FixedDjangoModelPermissions
-from .models import BudgetEntry
-from .serializers import BudgetEntrySerializer, ArticleSerializer, ApprovalSerializer, CommentSerializer
+from .models import BudgetEntry, File
+from .serializers import BudgetEntrySerializer,  ApprovalSerializer, CommentSerializer, FileSerializer
 from .permissions import BudgetEntryPermissions
 from committee.models import Committee
+
+#
+class FileViewSet(viewsets.ModelViewSet):
+    serializer_class = FileSerializer
+    permission_classes = (BudgetEntryPermissions,)
+    queryset = File.objects.all()
+    http_method_names = ['get']
 
 # Create your views here.
 class BudgetEntryViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows bookings to be viewed, created, edited or deleted.
+    API endpoint that allows budget entries to be viewed, created, edited or deleted.
     """
 
     queryset = BudgetEntry.objects.all()
@@ -66,18 +73,21 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(payed=payed)
         return queryset
 
+    """
     def perform_create(self, serializer):
-        print("perform_create")
+        obj = serializer.save()
+        for f in self.request.data.getlist('files'):
+            mf = MyFile.objects.create(file=f)
+            obj.files.add(mf)
+    """
+
+
+    def perform_create(self, serializer):
         auto_confirm = False
         data = serializer.validated_data
-        #auto_confirm = self.should_auto_confirm(data)
-        if self.request.method == 'POST':
-            files = self.request.FILES.getlist('list_test')
-            if files:
-                print("list")
-                self.request.data.pop('image2')
-                
         serializer.save()
+
+        
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
     def approve(self, request, pk=None):
@@ -89,7 +99,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         
         entry = self.get_object()
         # Check if the user is part of deg
-        committies = Committee.objects.all()
+        committees = Committee.objects.all()
         degCommittee = Committee.objects.filter(name="deg")
         isDeg = False
         if degCommittee:
@@ -97,8 +107,8 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
         if ('approvedKas' in keys):
             # Check if requesting user is a cashier for correct section
-            committie_cashier = committies.filter(name=entry.committee.name).first().contact
-            if self.request.user == committie_cashier or isDeg:
+            committee_cashier = committees.filter(name=entry.committee.name).first().contact
+            if self.request.user == committee_cashier or isDeg:
                 entry.approvedKas = bool(request.data["approvedKas"])
         else:
             entry.approvedKas = False

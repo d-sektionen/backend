@@ -1,4 +1,3 @@
-from .models import BudgetEntry, Article
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from account.serializers import SimpleUserSerializer
@@ -6,38 +5,18 @@ from datetime import timedelta
 from account.serializers import MeSerializer
 from committee.serializers import CommitteeSerializer
 from committee.models import Committee
-from .models import BudgetEntry, Image, ImageAlbum, File
+from .models import BudgetEntry, File
 
-class ArticleSerializer(serializers.ModelSerializer):
-    image_processed = serializers.ImageField(read_only=True)
 
-    class Meta:
-        model = Article
-        fields = ("specification", "amount", "price", "total",)
-        read_only_fields = (
-            "specification", 
-            "amount", 
-            "price",
-            "total",
-        )
-
-class ImageSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(read_only=True)
-
-    class Meta:
-        model = Image
-        fields = ("file",)
-
-class ImageSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
     file = serializers.FileField()
 
     class Meta:
-        model = Image
-        fields = ("image","entry")
-
+        model = File
+        fields = ("file","expense")
+        read_only_fields=("file","expense")
 
 class BudgetEntrySerializer(serializers.ModelSerializer):
-    image_processed = serializers.ImageField(read_only=True)
     user = MeSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -49,11 +28,11 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
     committee = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=Committee.objects.all(),
-        #source="committee",
         default=CommitteeSerializer(),
     )
-    #image2 = ImageSerializer()
-    #list_test = serializers.ListField(child=serializers.FileField(max_length=1000000))
+    
+    read_only_custom_model_field = serializers.CharField(source='custom_property', read_only=True)
+
 
     class Meta:
         model = BudgetEntry
@@ -74,39 +53,35 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "approvedKas",
             "approvedDeg",
             "payed",
-            "image",
-            "image_processed",
             "ipaddr",  
             "total_sum",
             "comment",
-            "report_pdf",
-            "list_test"
-            #"album",
-            #"file",
-            #"image2"
         )
         read_only_fields = (
             "confirmed", 
             "approvedKas",
             "approvedDeg",
-            "image_processed",
             "payed",
             "ipaddr")
         extra_kwargs = {
-            'image': {'write_only': True},
-            "image2": {
-                "required": False,
-            }
+            
         }
 
     def create(self, validated_data):
+        request = self.context.get('request')
         validated_data["ipaddr"] = self.context.get('request').META.get("REMOTE_ADDR")
-        budget_entry = BudgetEntry.objects.create(**validated_data)
-        files = validated_data.pop("list_test")
-        for f in files:
-            _ = File.objects.create(file=f, entry=budget_entry)
-
-        return budget_entry
+        instance = BudgetEntry.objects.create(**validated_data)
+        
+        print(request)
+        print(request.FILES)
+        print(request.FILES.getlist("file"))
+        files = request.FILES
+        
+        for f in files.getlist("file"):
+            mf = File.objects.create(file=f, expense=instance)
+            mf.save()
+        
+        return instance
 
     def validate_user_id(self, value):
         user = self.context["request"].user
