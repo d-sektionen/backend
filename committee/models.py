@@ -7,3 +7,6 @@ class Committee(models.Model):
     description = models.CharField(max_length=256, default='N/A')
     members = models.ManyToManyField(User, blank=True, related_name='committees')
     contact = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return self.name + " - " + self.description[:32]

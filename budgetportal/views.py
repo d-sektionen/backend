@@ -18,6 +18,7 @@ from app.permissions import FixedDjangoModelPermissions
 from .models import BudgetEntry
 from .serializers import BudgetEntrySerializer, ArticleSerializer, ApprovalSerializer, CommentSerializer
 from .permissions import BudgetEntryPermissions
+from committee.models import Committee
 
 # Create your views here.
 class BudgetEntryViewSet(viewsets.ModelViewSet):
@@ -71,8 +72,9 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         #auto_confirm = self.should_auto_confirm(data)
         if self.request.method == 'POST':
-            files = self.request.FILES.getlist('image2')
+            files = self.request.FILES.getlist('list_test')
             if files:
+                print("list")
                 self.request.data.pop('image2')
                 
         serializer.save()
@@ -86,18 +88,31 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN, data="Different users")
         
         entry = self.get_object()
+        # Check if the user is part of deg
+        committies = Committee.objects.all()
+        degCommittee = Committee.objects.filter(name="deg")
+        isDeg = False
+        if degCommittee:
+            isDeg = degCommittee.members.filter(username=self.request.user)
 
         if ('approvedKas' in keys):
             # Check if requesting user is a cashier for correct section
-            #TODO: Currently no way to check if a user is a cashier
-            if(True):
+            committie_cashier = committies.filter(name=entry.committee.name).first().contact
+            if self.request.user == committie_cashier or isDeg:
                 entry.approvedKas = bool(request.data["approvedKas"])
         else:
             entry.approvedKas = False
 
+
+        #print(Committee.objects.all())
+        #print(entry.committee.contact)
+        #print(entry.committee.members.filter(user=self.request.user))
+        #print("...", Committee.objects.filter())
+            
         if('approvedDeg' in keys):
             # Check if requesting user is a member of deg
             #TODO: Currently no way to check if a user is a deg member
+            entry.committee.members.filter(username=self.request.user)
             if(True):
                 entry.approvedDeg = bool(request.data["approvedDeg"])
         else:

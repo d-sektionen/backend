@@ -4,7 +4,9 @@ from rest_framework import serializers
 from account.serializers import SimpleUserSerializer
 from datetime import timedelta
 from account.serializers import MeSerializer
-from .models import BudgetEntry, Image, ImageAlbum
+from committee.serializers import CommitteeSerializer
+from committee.models import Committee
+from .models import BudgetEntry, Image, ImageAlbum, File
 
 class ArticleSerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
@@ -44,7 +46,14 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
     articles = serializers.JSONField()
+    committee = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=Committee.objects.all(),
+        #source="committee",
+        default=CommitteeSerializer(),
+    )
     #image2 = ImageSerializer()
+    #list_test = serializers.ListField(child=serializers.FileField(max_length=1000000))
 
     class Meta:
         model = BudgetEntry
@@ -71,9 +80,10 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "total_sum",
             "comment",
             "report_pdf",
+            "list_test"
             #"album",
-            "file",
-            "image2"
+            #"file",
+            #"image2"
         )
         read_only_fields = (
             "confirmed", 
@@ -91,8 +101,12 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["ipaddr"] = self.context.get('request').META.get("REMOTE_ADDR")
-        #validated_data[""]
-        return BudgetEntry.objects.create(**validated_data)
+        budget_entry = BudgetEntry.objects.create(**validated_data)
+        files = validated_data.pop("list_test")
+        for f in files:
+            _ = File.objects.create(file=f, entry=budget_entry)
+
+        return budget_entry
 
     def validate_user_id(self, value):
         user = self.context["request"].user

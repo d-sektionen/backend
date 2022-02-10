@@ -6,6 +6,8 @@ from django.core.exceptions import ValidationError
 from datetime import timedelta
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
+from committee.models import Committee
+
 
 class Article(models.Model):
     specification = models.TextField(max_length=512, blank=False)
@@ -24,7 +26,8 @@ class Article(models.Model):
     def __str__(self):
         return self.name
 
-
+class File(models.Model):
+    file = models.FileField(null=True, blank=True, upload_to="expense_receipt/%Y/%m/%d/")
 
 class ImageAlbum(models.Model):
     def default(self):
@@ -48,7 +51,7 @@ class BudgetEntry(models.Model):
     clearingNr = models.TextField()
     bankNr = models.TextField()
     bankName = models.TextField()
-    committee = models.TextField()
+    committee = models.ForeignKey(Committee, null=False, on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
     approvedKas = models.BooleanField(default=False, blank=True)
     approvedDeg = models.BooleanField(default=False, blank=True)
@@ -66,11 +69,8 @@ class BudgetEntry(models.Model):
     comment = models.TextField(default="",blank=True, null=True)
     total_sum = FloatField(default=0, blank=False)
     report_pdf = models.FileField(upload_to='documents/%Y/%m/%d/',null=True, blank=True)
-
+    list_test = models.ManyToManyField(File, blank=True, related_name='files')
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
 
-class File(models.Model):
-    file = models.ImageField(null=True, blank=True, upload_to="expense_receipt/%Y/%m/%d/")
-    entry = models.ForeignKey(BudgetEntry, related_name="model", null=True, blank=True, on_delete=models.CASCADE)
