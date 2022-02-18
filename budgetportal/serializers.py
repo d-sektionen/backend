@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from account.serializers import SimpleUserSerializer
@@ -16,8 +18,9 @@ class FileSerializer(serializers.ModelSerializer):
         fields = ("file","expense")
         read_only_fields=("file","expense")
 
+
 class BudgetEntrySerializer(serializers.ModelSerializer):
-    user = MeSerializer(read_only=True)
+    user = SimpleUserSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=User.objects.all(),
@@ -31,8 +34,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         default=CommitteeSerializer(),
     )
     
-    read_only_custom_model_field = serializers.CharField(source='custom_property', read_only=True)
-
+    #read_only_custom_model_field = serializers.CharField(source='custom_property', read_only=True)
 
     class Meta:
         model = BudgetEntry
@@ -63,9 +65,6 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "approvedDeg",
             "payed",
             "ipaddr")
-        extra_kwargs = {
-            
-        }
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -84,24 +83,51 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         return instance
 
     def validate_user_id(self, value):
-        user = self.context["request"].user
-        
+        user = self.context["request"].user   
         if user != value:
             raise serializers.ValidationError(
                 "You are only allowed to add expenses for yourself."
             )
         return value
 
-    def validate(self, attrs):
-        
-        print(attrs)
-
-        if attrs["articles"] == None:
+    def validate_articles(self, value: list):
+        if type(value) is not list:
             raise serializers.ValidationError(
-                "Articles can not be set to None"
+                "Articles must be a list of dictionaries,"
             )
 
+        for article in value:
+            if type(article) is not dict:
+                raise serializers.ValidationError(
+                    "Articles must be a list of dictionaries."
+                )
+
+            spec = article.get('spec')
+            count = article.get('amount')
+            price = article.get('price')
+            print(spec, count, price)
+            if type(spec) is not str or \
+                    type(int(count)) is not int or \
+                    type(float(price)) is not float:
+                raise serializers.ValidationError(
+                    'Each article must have the fields specification (string), count (integer), and price (float).'
+                )
+
+        return value
+
+    def validate(self, attrs):
+        print(attrs)
         return attrs
+
+    def to_representation(self, instance: BudgetEntry):
+        ret = super().to_representation(instance)
+
+        #Convert articles json string to json object
+        articles = ret.pop('articles')
+        print(articles)
+        ret['articles'] = json.loads(str(articles).replace('\'', '"'))
+
+        return ret
 
 
 class ApprovalSerializer(serializers.ModelSerializer):
@@ -133,6 +159,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
             "date",
             "confirmed", 
             "ipaddr")
+
 
 class CommentSerializer(serializers.ModelSerializer):
     user = SimpleUserSerializer(read_only=True)

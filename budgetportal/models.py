@@ -9,7 +9,7 @@ from imagekit.processors import ResizeToFill
 from committee.models import Committee
 
 class BudgetEntry(models.Model):
-    date = models.DateTimeField(validators=[validate_datetime_future])
+    date = models.DateTimeField()
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     name = models.TextField(blank=False)
     location = models.TextField(blank=False)

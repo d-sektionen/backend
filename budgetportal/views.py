@@ -10,9 +10,11 @@ from django.utils.timezone import get_current_timezone
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 
 from app.permissions import FixedDjangoModelPermissions
 from .models import BudgetEntry, File
@@ -20,14 +22,14 @@ from .serializers import BudgetEntrySerializer,  ApprovalSerializer, CommentSeri
 from .permissions import BudgetEntryPermissions
 from committee.models import Committee
 
-#
+
 class FileViewSet(viewsets.ModelViewSet):
     serializer_class = FileSerializer
     permission_classes = (BudgetEntryPermissions,)
     queryset = File.objects.all()
     http_method_names = ['get']
 
-# Create your views here.
+
 class BudgetEntryViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows budget entries to be viewed, created, edited or deleted.
@@ -36,6 +38,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
     queryset = BudgetEntry.objects.all()
     serializer_class = BudgetEntrySerializer
     permission_classes = (BudgetEntryPermissions,)
+    parser_classes = [FormParser, MultiPartParser]
 
     def get_serializer_class(self):
         if self.action == 'approve':
@@ -61,8 +64,8 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             queryset = BudgetEntry.objects.all()
             queryset = queryset.filter(user=user)
 
-#       if date != None:
-#            queryset = queryset.filter(end__gt=timezone.now())
+        if date != None:
+            queryset = queryset.filter(date__gt=date)
         if user:
             queryset = queryset.filter(user=user)
         if approvedKas:
@@ -81,66 +84,66 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             obj.files.add(mf)
     """
 
-
     def perform_create(self, serializer):
+        print(self.request.data)
         auto_confirm = False
         data = serializer.validated_data
         serializer.save()
 
-        
+    def perform_update(self, serializer):
+        old_obj = self.get_object()
+        new_data = serializer.validated_data
+        auto_confirm = old_obj.confirmed
+        # if time was changed we need to recalculate auto approval
+        if old_obj.start != new_data["start"] or old_obj.end != new_data["end"]:
+            if old_obj.confirmed:
+                # Recalculate confirmation
+                auto_confirm = self.should_auto_confirm(new_data, exists=True)
+
+        serializer.save(confirmed=auto_confirm)
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
-    def approve(self, request, pk=None):
-
-        keys = request.data.keys()
-        if str(request.data['user_id']) != str(self.request.user.id):
-            print("Different users")
-            return Response(status=status.HTTP_403_FORBIDDEN, data="Different users")
-        
+    def approve(self, request: Request, pk=None):
+        data_keys = request.data.keys()
         entry = self.get_object()
-        # Check if the user is part of deg
-        committees = Committee.objects.all()
-        degCommittee = Committee.objects.filter(name="deg")
-        isDeg = False
-        if degCommittee:
-            isDeg = degCommittee.members.filter(username=self.request.user)
+        
+        # Check if the request user is the one specified
+        if str(request.data['user_id']) != str(request.user.id):
+            return Response('Different users', status.HTTP_403_FORBIDDEN)
 
-        if ('approvedKas' in keys):
-            # Check if requesting user is a cashier for correct section
-            committee_cashier = committees.filter(name=entry.committee.name).first().contact
-            if self.request.user == committee_cashier or isDeg:
-                entry.approvedKas = bool(request.data["approvedKas"])
-        else:
-            entry.approvedKas = False
+        # TODO: when deg committee has been entered into the database, change to proper name below
+        deg_committee = Committee.objects.filter(name='deg').first()
+        is_in_deg = False
+        if deg_committee:
+            is_in_deg = deg_committee.members.filter(id=request.user.id).exists()
 
-
-        #print(Committee.objects.all())
-        #print(entry.committee.contact)
-        #print(entry.committee.members.filter(user=self.request.user))
-        #print("...", Committee.objects.filter())
-            
-        if('approvedDeg' in keys):
-            # Check if requesting user is a member of deg
-            #TODO: Currently no way to check if a user is a deg member
-            entry.committee.members.filter(username=self.request.user)
-            if(True):
-                entry.approvedDeg = bool(request.data["approvedDeg"])
+        # If approveDeg is sent, mark field if user is in deg
+        if 'approvedDeg' in data_keys:
+            if is_in_deg:
+                entry.approvedDeg = bool(request.data['approvedDeg'])
         else:
             entry.approvedDeg = False
 
-        if ('payed' in keys):
-            # Check if requesting user is a member of deg
-            #TODO: Currently no way to check if a user is a deg member
-            if(True):
-                entry.payed = bool(request.data["payed"])
+        # If approveKas is sent, mark field if user is cashier of the entry committee
+        if 'approvedKas' in data_keys:
+            committee_cashier = Committee.objects.filter(name=entry.committee.name).first().contact
+            if request.user == committee_cashier or is_in_deg:
+                entry.approvedKas = bool(request.data['approvedKas'])
+        else:
+            entry.approvedKas = False
+
+        # If payed is sent, mark field if user is in deg
+        if 'payed' in data_keys:
+            if is_in_deg:
+                entry.payed = bool(request.data['payed'])
         else:
             entry.payed = False
-        
+
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
-    def comment(self, request, pk=None):
+    def comment(self, request: Request, pk=None):
         keys = request.data.keys()
         if str(request.data['user_id']) != str(self.request.user.id):
             print("Different users")
@@ -161,15 +164,3 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def perform_update(self, serializer):
-        old_obj = self.get_object()
-        new_data = serializer.validated_data
-        auto_confirm = old_obj.confirmed
-        # if time was changed we need to recalculate auto approval
-        if old_obj.start != new_data["start"] or old_obj.end != new_data["end"]:
-            if old_obj.confirmed:
-                # Recalculate confirmation
-                auto_confirm = self.should_auto_confirm(new_data, exists=True)
-
-        serializer.save(confirmed=auto_confirm)
