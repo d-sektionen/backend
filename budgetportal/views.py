@@ -2,6 +2,7 @@ from xml.etree.ElementTree import Comment
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.conf import settings
@@ -42,10 +43,8 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'approve':
-            print("approve_serializer")
             return ApprovalSerializer
         if self.action == 'comment':
-            print("comment")
             return CommentSerializer
         return BudgetEntrySerializer
 
@@ -57,12 +56,14 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         approvedDeg = self.request.query_params.get("approvedDeg", None)
         payed = self.request.query_params.get("payed", None)
 
+        """
         # check if user is privilged user that is allowed to view all entries
         # otherwise, filter so they only see their own
         if False:
             user = self.request.user.id
             queryset = BudgetEntry.objects.all()
             queryset = queryset.filter(user=user)
+        """
 
         if date != None:
             queryset = queryset.filter(date__gt=date)
@@ -74,7 +75,20 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(approvedDeg=approvedDeg)
         if payed:
             queryset = queryset.filter(payed=payed)
-        return queryset
+
+        # TODO: when deg committee has been entered into the database, change to proper name below
+        # If user is in DEG, return all
+        deg_committee = Committee.objects.filter(name='deg').first()
+        if deg_committee and deg_committee.members.filter(id=self.request.user.id).exists():
+            return queryset
+
+        # Else only return user's own entries or ones associated
+        # with the committees the user is a contact/cashier for
+        query_filter = Q(user=self.request.user)
+        for committee in self.request.user.contact_for.all():
+            query_filter = query_filter | Q(committee__id=committee.id)
+            
+        return queryset.filter(query_filter)
 
     """
     def perform_create(self, serializer):
@@ -89,6 +103,8 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         auto_confirm = False
         data = serializer.validated_data
         serializer.save()
+
+        # TODO: send mail to DEG and treasurerer
 
     def perform_update(self, serializer):
         old_obj = self.get_object()
@@ -121,6 +137,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if 'approvedDeg' in data_keys:
             if is_in_deg:
                 entry.approvedDeg = bool(request.data['approvedDeg'])
+                # TODO: send mail to user if denied
         else:
             entry.approvedDeg = False
 
@@ -129,6 +146,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             committee_cashier = Committee.objects.filter(name=entry.committee.name).first().contact
             if request.user == committee_cashier or is_in_deg:
                 entry.approvedKas = bool(request.data['approvedKas'])
+                # TODO: send mail to user if denied
         else:
             entry.approvedKas = False
 
@@ -136,6 +154,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if 'payed' in data_keys:
             if is_in_deg:
                 entry.payed = bool(request.data['payed'])
+                # TODO: send mail to user if payed
         else:
             entry.payed = False
 
@@ -144,23 +163,22 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
     def comment(self, request: Request, pk=None):
-        keys = request.data.keys()
-        if str(request.data['user_id']) != str(self.request.user.id):
-            print("Different users")
-            return Response(status=status.HTTP_403_FORBIDDEN, data="Different users")
+        data_keys = request.data.keys()
         
-        #Check if user is allowed to comment (user in correct section)
+        # Check if the request user is the one specified
+        if str(request.data['user_id']) != str(request.user.id):
+            return Response('Different users', status.HTTP_403_FORBIDDEN)
+
+        # TODO: check if user is allowed to comment (user in correct section)
         if False:
             return Response(status=status.HTTP_403_FORBIDDEN, data="Not allowed to comment")
-        
 
-        entry = self.get_object()
+        entry = self.get_object()        
         if True:
             if entry.comment:
                 entry.comment += " " + str(request.data["comment"])
             else:
                 entry.comment = str(request.data["comment"]) 
-            
         
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)

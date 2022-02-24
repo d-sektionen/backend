@@ -28,13 +28,28 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
     articles = serializers.JSONField()
-    committee = serializers.PrimaryKeyRelatedField(
+   
+    committee_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=Committee.objects.all(),
+        source="committee",
         default=CommitteeSerializer(),
+        
     )
-    
+    committee = CommitteeSerializer(read_only=True)
+    total_sum_test = serializers.SerializerMethodField()
+
     #read_only_custom_model_field = serializers.CharField(source='custom_property', read_only=True)
+
+    def get_total_sum_test(self, obj: BudgetEntry):
+        sum = 0.0
+        
+        # TODO: fix JSONDecodeError
+        #articles = json.loads(str(obj.articles))
+        #for article in articles:
+        #    sum += article.amount * article.price
+
+        return sum
 
     class Meta:
         model = BudgetEntry
@@ -42,8 +57,8 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "id",
             "date",
             "user",
-            "name",
             "user_id",
+            "name",
             "articles",
             "description",
             "confirmed",
@@ -52,11 +67,13 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "bankName",
             "location",
             "committee",
+            "committee_id",
             "approvedKas",
             "approvedDeg",
             "payed",
             "ipaddr",  
             "total_sum",
+            "total_sum_test",
             "comment",
         )
         read_only_fields = (
@@ -103,14 +120,14 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
                 )
 
             spec = article.get('spec')
-            count = article.get('amount')
+            amount = article.get('amount')
             price = article.get('price')
-            print(spec, count, price)
+            
             if type(spec) is not str or \
-                    type(int(count)) is not int or \
+                    type(int(amount)) is not int or \
                     type(float(price)) is not float:
                 raise serializers.ValidationError(
-                    'Each article must have the fields specification (string), count (integer), and price (float).'
+                    'Each article must have the fields specification (string), amount (integer), and price (float).'
                 )
 
         return value

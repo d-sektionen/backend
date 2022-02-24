@@ -34,6 +34,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
+    contact_for = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     pretty_name = serializers.SerializerMethodField()
     privileges = serializers.SerializerMethodField()
@@ -48,6 +49,7 @@ class MeSerializer(serializers.ModelSerializer):
             "last_name",
             "pretty_name",
             "committees",
+            "contact_for",
             "membership",
             "profile",
             "privileges",
@@ -61,6 +63,9 @@ class MeSerializer(serializers.ModelSerializer):
 
     def get_committees(self, obj):
         return CommitteeSerializer(obj.committees, many=True).data
+
+    def get_contact_for(self, obj):
+        return CommitteeSerializer(obj.contact_for, many=True).data
 
     def get_privileges(self, obj):
         return {
