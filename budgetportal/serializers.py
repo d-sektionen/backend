@@ -37,17 +37,17 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         
     )
     committee = CommitteeSerializer(read_only=True)
-    total_sum_test = serializers.SerializerMethodField()
+    total_sum = serializers.SerializerMethodField()
 
     #read_only_custom_model_field = serializers.CharField(source='custom_property', read_only=True)
 
-    def get_total_sum_test(self, obj: BudgetEntry):
+    def get_total_sum(self, obj: BudgetEntry):
         sum = 0.0
-        
-        # TODO: fix JSONDecodeError
-        #articles = json.loads(str(obj.articles))
-        #for article in articles:
-        #    sum += article.amount * article.price
+
+        #Convert articles json string to json object
+        articles = json.loads(str(obj.articles).replace('\'', '"'))
+        for article in articles:
+            sum += article['amount'] * article['price']
 
         return sum
 
@@ -73,7 +73,6 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "payed",
             "ipaddr",  
             "total_sum",
-            "total_sum_test",
             "comment",
         )
         read_only_fields = (
@@ -141,7 +140,6 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
 
         #Convert articles json string to json object
         articles = ret.pop('articles')
-        print(articles)
         ret['articles'] = json.loads(str(articles).replace('\'', '"'))
 
         return ret

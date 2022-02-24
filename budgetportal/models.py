@@ -25,7 +25,6 @@ class BudgetEntry(models.Model):
     payed = models.BooleanField(default=False, blank=True)
     ipaddr = models.GenericIPAddressField()
     comment = models.TextField(default="",blank=True, null=True)
-    total_sum = FloatField(default=0, blank=False)
     report_pdf = models.FileField(upload_to='documents/%Y/%m/%d/',null=True, blank=True)
 
     def __str__(self):
