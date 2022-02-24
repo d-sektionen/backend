@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('budgetportal', '0018_file'),
+        ('committee', '0004_auto_20220224_1830'),
     ]
 
     operations = [
