@@ -24,6 +24,8 @@ from .permissions import BudgetEntryPermissions
 from committee.models import Committee
 
 
+from django.contrib.auth.models import Permission # remove
+
 class FileViewSet(viewsets.ModelViewSet):
     serializer_class = FileSerializer
     permission_classes = (BudgetEntryPermissions,)
@@ -100,23 +102,14 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         print(f'{self.request.data = }')
-        auto_confirm = False
-        data = serializer.validated_data
         serializer.save()
 
         # TODO: send mail to DEG and treasurerer
 
     def perform_update(self, serializer):
-        old_obj = self.get_object()
-        new_data = serializer.validated_data
-        auto_confirm = old_obj.confirmed
-        # if time was changed we need to recalculate auto approval
-        if old_obj.start != new_data["start"] or old_obj.end != new_data["end"]:
-            if old_obj.confirmed:
-                # Recalculate confirmation
-                auto_confirm = self.should_auto_confirm(new_data, exists=True)
-
-        serializer.save(confirmed=auto_confirm)
+        print(f'{self.request.data = }')
+        # Maybe needs to be re-approved?
+        serializer.save()
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
     def approve(self, request: Request, pk=None):

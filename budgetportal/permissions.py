@@ -1,7 +1,5 @@
 from rest_framework import permissions
 from membership.utils import check_membership
-from booking.models import Blacklisted
-from datetime import datetime
 
 
 class BudgetEntryPermissions(permissions.BasePermission):
@@ -15,16 +13,8 @@ class BudgetEntryPermissions(permissions.BasePermission):
 
         # Create only allowed if section member
         if request.method == "POST" and not (
-            request.user.has_perm("booking.add_booking")
+            request.user.has_perm("budgetportal.add_budgetentry")
             or check_membership(request.user.username)
-        ):
-            return False
-
-        if (
-            request.method == "POST"
-            and Blacklisted.objects.filter(
-                user=request.user, expires__gt=datetime.now()
-            ).exists()
         ):
             return False
 
@@ -41,7 +31,7 @@ class BudgetEntryPermissions(permissions.BasePermission):
 
         # Allow delete if admin
         if request.method == "DELETE" and request.user.has_perm(
-            "booking.delete_booking"
+            "budgetportal.delete_budgetentry"
         ):
             return True
 
