@@ -1,9 +1,9 @@
 import json
-
+from datetime import timedelta
 from django.contrib.auth.models import User
 from rest_framework import serializers
+
 from account.serializers import SimpleUserSerializer
-from datetime import timedelta
 from account.serializers import MeSerializer
 from committee.serializers import CommitteeSerializer
 from committee.models import Committee
@@ -15,8 +15,8 @@ class FileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
-        fields = ("file","expense")
-        read_only_fields=("file","expense")
+        fields = ("file", "expense")
+        read_only_fields = ("file", "expense")
 
 
 class BudgetEntrySerializer(serializers.ModelSerializer):
@@ -37,59 +37,46 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         
     )
     committee = CommitteeSerializer(read_only=True)
-    total_sum = serializers.SerializerMethodField()
-
-    #read_only_custom_model_field = serializers.CharField(source='custom_property', read_only=True)
-
-    def get_total_sum(self, obj: BudgetEntry):
-        sum = 0.0
-
-        #Convert articles json string to json object
-        articles = json.loads(str(obj.articles).replace('\'', '"'))
-        for article in articles:
-            sum += article['amount'] * article['price']
-
-        return sum
 
     class Meta:
         model = BudgetEntry
         fields = (
             "id",
-            "date",
-            "user",
-            "user_id",
-            "name",
             "articles",
             "description",
-            "confirmed",
+            "total_sum",
             "clearingNr",
             "bankNr",
             "bankName",
-            "location",
             "committee",
             "committee_id",
+            "name",
+            "user_id",
+            "user",
+            "location",
+            "date",
+            "ipaddr",  
+            "confirmed",
             "approvedKas",
             "approvedDeg",
             "payed",
-            "ipaddr",  
-            "total_sum",
             "comment",
         )
         read_only_fields = (
+            "ipaddr",
             "confirmed", 
             "approvedKas",
             "approvedDeg",
             "payed",
-            "ipaddr")
+        )
 
     def create(self, validated_data):
         request = self.context.get('request')
         validated_data["ipaddr"] = self.context.get('request').META.get("REMOTE_ADDR")
         instance = BudgetEntry.objects.create(**validated_data)
         
-        print(request)
-        print(request.FILES)
-        print(request.FILES.getlist("file"))
+        print(f'{request.FILES = }')
+        print(f'{request.FILES.getlist("file") = }')
         files = request.FILES
         
         for f in files.getlist("file"):
@@ -109,7 +96,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
     def validate_articles(self, value: list):
         if type(value) is not list:
             raise serializers.ValidationError(
-                "Articles must be a list of dictionaries,"
+                "Articles must be a list of dictionaries."
             )
 
         for article in value:
@@ -126,20 +113,16 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
                     type(int(amount)) is not int or \
                     type(float(price)) is not float:
                 raise serializers.ValidationError(
-                    'Each article must have the fields specification (string), amount (integer), and price (float).'
+                    'Each article must have the fields spec (string), amount (integer), and price (float).'
                 )
 
         return value
 
-    def validate(self, attrs):
-        print(attrs)
-        return attrs
-
     def to_representation(self, instance: BudgetEntry):
         ret = super().to_representation(instance)
 
-        #Convert articles json string to json object
-        articles = ret.pop('articles')
+        # Convert articles json string to json object
+        articles = ret.get('articles')
         ret['articles'] = json.loads(str(articles).replace('\'', '"'))
 
         return ret
@@ -154,17 +137,12 @@ class ApprovalSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    """articles_id = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=Article.objects.all(), source="articles"
-    )"""
-    #articles = ArticleSerializer(read_only=True)
-
     class Meta:
         model = BudgetEntry
         fields = (
             "id",
-            "user",
             "user_id",
+            "user",
             "confirmed",
             "approvedKas",
             "approvedDeg",
@@ -172,8 +150,9 @@ class ApprovalSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "date",
+            "ipaddr",
             "confirmed", 
-            "ipaddr")
+        )
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -189,11 +168,12 @@ class CommentSerializer(serializers.ModelSerializer):
         model = BudgetEntry
         fields = (
             "id",
-            "user",
             "user_id",
+            "user",
             "comment",
         )
         read_only_fields = (
             "date",
+            "ipaddr",
             "confirmed", 
-            "ipaddr")
+        )

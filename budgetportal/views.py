@@ -99,7 +99,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
     """
 
     def perform_create(self, serializer):
-        print(self.request.data)
+        print(f'{self.request.data = }')
         auto_confirm = False
         data = serializer.validated_data
         serializer.save()
@@ -163,7 +163,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['put'], permission_classes=[FixedDjangoModelPermissions]) 
     def comment(self, request: Request, pk=None):
-        data_keys = request.data.keys()
+        entry = self.get_object()
         
         # Check if the request user is the one specified
         if str(request.data['user_id']) != str(request.user.id):
@@ -172,13 +172,10 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         # TODO: check if user is allowed to comment (user in correct section)
         if False:
             return Response(status=status.HTTP_403_FORBIDDEN, data="Not allowed to comment")
+        elif entry.comment:
+            entry.comment += " " + str(request.data["comment"])
+        else:
+            entry.comment = str(request.data["comment"]) 
 
-        entry = self.get_object()        
-        if True:
-            if entry.comment:
-                entry.comment += " " + str(request.data["comment"])
-            else:
-                entry.comment = str(request.data["comment"]) 
-        
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
