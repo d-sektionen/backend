@@ -117,8 +117,9 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         entry = self.get_object()
         
         # Check if the request user is the one specified
-        if str(request.data['user_id']) != str(request.user.id):
-            return Response('Different users', status.HTTP_403_FORBIDDEN)
+        # TODO: dont think this is necessary
+        #if str(request.data['user_id']) != str(request.user.id):
+        #    return Response('Different users', status.HTTP_403_FORBIDDEN)
 
         # TODO: when deg committee has been entered into the database, change to proper name below
         deg_committee = Committee.objects.filter(name='deg').first()
@@ -126,9 +127,12 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if deg_committee:
             is_in_deg = deg_committee.members.filter(id=request.user.id).exists()
 
+        #Change to check if user is section cashier
+        is_section_cashier = True
+
         # If approveDeg is sent, mark field if user is in deg
         if 'approvedDeg' in data_keys:
-            if is_in_deg:
+            if is_in_deg or is_section_cashier:
                 entry.approvedDeg = bool(request.data['approvedDeg'])
                 # TODO: send mail to user if denied
         else:
@@ -137,6 +141,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         # If approveKas is sent, mark field if user is cashier of the entry committee
         if 'approvedKas' in data_keys:
             committee_cashier = Committee.objects.filter(name=entry.committee.name).first().contact
+            print("committee cashier", committee_cashier)
             if request.user == committee_cashier or is_in_deg:
                 entry.approvedKas = bool(request.data['approvedKas'])
                 # TODO: send mail to user if denied
@@ -145,7 +150,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
 
         # If payed is sent, mark field if user is in deg
         if 'payed' in data_keys:
-            if is_in_deg:
+            if is_in_deg or is_section_cashier:
                 entry.payed = bool(request.data['payed'])
                 # TODO: send mail to user if payed
         else:
