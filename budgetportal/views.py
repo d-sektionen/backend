@@ -70,7 +70,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if date != None:
             queryset = queryset.filter(date__gt=date)
         if user:
-            queryset = queryset.filter(user=user)
+            queryset = queryset.filter(user__username=user)
         if approvedKas:
             queryset = queryset.filter(approvedKas=approvedKas)
         if approvedDeg:
@@ -101,7 +101,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
     """
 
     def perform_create(self, serializer):
-        print(f'{self.request.data = }')
+        # print(f'{self.request.data = }')
         serializer.save()
 
         # TODO: send mail to DEG and treasurerer
