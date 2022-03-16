@@ -1,30 +1,17 @@
-from xml.etree.ElementTree import Comment
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.db.models import Q
-from django.http import JsonResponse
-from django.shortcuts import redirect
-from django.conf import settings
-from django_ical.views import ICalFeed
-from django.utils.timezone import get_current_timezone
-from rest_framework import mixins, viewsets, status, exceptions
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
+from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
-from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, MultiPartParser
 
-from app.permissions import FixedDjangoModelPermissions
 from .models import BudgetEntry, File
 from .serializers import BudgetEntrySerializer,  ApprovalSerializer, CommentSerializer, FileSerializer
 from .permissions import BudgetEntryPermissions
+
+from app.permissions import FixedDjangoModelPermissions
 from committee.models import Committee
 
-
-from django.contrib.auth.models import Permission # remove
 
 class FileViewSet(viewsets.ModelViewSet):
     serializer_class = FileSerializer

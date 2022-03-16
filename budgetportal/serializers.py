@@ -1,16 +1,14 @@
 import json
-from datetime import timedelta
-import re
+import base64
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from rest_framework import serializers
 
+from .models import BudgetEntry, File
+
 from account.serializers import SimpleUserSerializer
-from account.serializers import MeSerializer
 from committee.serializers import CommitteeSerializer
 from committee.models import Committee
-from .models import BudgetEntry, File
-import base64
-from django.core.files.base import ContentFile
 
 
 class FileSerializer(serializers.ModelSerializer):
