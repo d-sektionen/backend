@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 
+from . import email
 from .models import BudgetEntry, File
 from .serializers import BudgetEntrySerializer,  ApprovalSerializer, CommentSerializer, FileSerializer
 from .permissions import BudgetEntryPermissions
@@ -88,10 +89,32 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
     """
 
     def perform_create(self, serializer):
-        # print(f'{self.request.data = }')
-        serializer.save()
+        instance = serializer.save()  # TODO: should probably save only if sending the e-mails succeeds
 
-        # TODO: send mail to DEG and treasurerer
+        # TODO: sending e-mails currently gets stuck at connecting, so it needs to be fixed
+        if False:
+            # Send e-mail to entry's committee's treasurer
+            treasurer_email = instance.committee.contact.email
+            treasurer_subject = "COMMITTEE TEST"  # TODO: change
+            treasurer_body = f"Hej!\n{self.request.user.get_full_name()} har fyllt ut ett nytt personligt utlägg som gäller ditt utskott. Gå in och granska det här: [länk]"  # TODO: fill in link
+            email.send(
+                treasurer_subject,
+                treasurer_body,
+                treasurer_email,
+            )
+
+            # TODO: when deg committee has been entered into the database, change to proper name below
+            # Send e-mail to DEG
+            deg_committee = Committee.objects.filter(name='deg').first()
+            if deg_committee:
+                deg_email = deg_committee.contact.email  # TODO: should be sent to all members?
+                deg_subject = "DEG TEST"  # TODO: change
+                deg_body = f"Hej! Det finns ett nytt personligt utlägg för {instance.committee.name} för dig att granska och bokföra, du hittar utlägget här: [länk]"  # TODO: fill in link
+                email.send(
+                    deg_subject,
+                    deg_body,
+                    deg_email,
+                )
 
     def perform_update(self, serializer):
         print(f'{self.request.data = }')
@@ -131,6 +154,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             print("committee cashier", committee_cashier)
             if request.user == committee_cashier or is_in_deg:
                 entry.approvedKas = bool(request.data['approvedKas'])
+
                 # TODO: send mail to user if denied
         else:
             entry.approvedKas = False
@@ -139,6 +163,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if 'payed' in data_keys:
             if is_in_deg or is_section_cashier:
                 entry.payed = bool(request.data['payed'])
+
                 # TODO: send mail to user if payed
         else:
             entry.payed = False
