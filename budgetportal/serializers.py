@@ -77,9 +77,8 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         instance = BudgetEntry.objects.create(**validated_data)
 
 
-
         
-        raw_file = request.data["files[]"]
+        raw_file = request.data.get("files[]")
         if raw_file:
             format, imgstr = raw_file.split(';base64,') 
             ext = format.split('/')[-1] 
@@ -88,7 +87,6 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             mf.save()
             
         
-        #for f in files.getlist("file"):
          
         return instance
 
