@@ -82,12 +82,16 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
 
         
         raw_file = request.data.get("files[]")
+        
         if raw_file:
             format, imgstr = raw_file.split(';base64,') 
             ext = format.split('/')[-1] 
             data = ContentFile(base64.b64decode(imgstr), name=request.data['name']+ "." + ext)
             mf = File.objects.create(file=data, expense=instance)
-            mf.save()
+            mf.save()  
+        else:
+            error = {'message': 'Missing recipt'}
+            raise serializers.ValidationError(error)
         return instance
 
     def validate_user_id(self, value):

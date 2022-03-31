@@ -9,7 +9,7 @@ def send(subject: str, body: str, to: str):
     """Sends an e-mail from the budget app's noreply address."""
     print("About to start e-mail connection...")
     with get_connection(
-        host="smtp.google.com",
+        host="smtp.gmail.com",
         port=587,
         username=NOREPLY_EMAIL, 
         password="budgetteringsportalen2022dsektionen",

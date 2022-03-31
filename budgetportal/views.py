@@ -80,41 +80,36 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             
         return queryset.filter(query_filter)
 
-    """
     def perform_create(self, serializer):
-        obj = serializer.save()
-        for f in self.request.data.getlist('files'):
-            mf = MyFile.objects.create(file=f)
-            obj.files.add(mf)
-    """
+        instance = serializer.save()
 
-    def perform_create(self, serializer):
-        instance = serializer.save()  # TODO: should probably save only if sending the e-mails succeeds
+        # Send e-mail to entry's committee's treasurer
+        treasurer_body = f"Hej!\n{self.request.user.get_full_name()} har fyllt ut ett nytt personligt utlägg som gäller ditt utskott. Gå in och granska det här: [länk]"  # TODO: fill in link
+        email.send(
+            "TREASURER TEST", # TODO: change
+            treasurer_body,
+            instance.committee.contact.email,
+        )
 
-        # TODO: sending e-mails currently gets stuck at connecting, so it needs to be fixed
-        if False:
-            # Send e-mail to entry's committee's treasurer
-            treasurer_email = instance.committee.contact.email
-            treasurer_subject = "COMMITTEE TEST"  # TODO: change
-            treasurer_body = f"Hej!\n{self.request.user.get_full_name()} har fyllt ut ett nytt personligt utlägg som gäller ditt utskott. Gå in och granska det här: [länk]"  # TODO: fill in link
+        # Send second e-mail to entry's committee's treasurer
+        unpayed_entry_count = BudgetEntry.objects.filter(payed=False, committee__contact=instance.committee.contact).count()
+        treasurer_body_2 = f"Hej! Det finns {unpayed_entry_count} nya bokförda personliga utlägg för dig att betala ut. Du kommer åt dem här: [länk]"  # TODO: fill in link
+        email.send(
+            "TREASURER TEST 2", # TODO: change
+            treasurer_body_2,
+            instance.committee.contact.email,
+        )
+
+        # TODO: when deg committee has been entered into the database, change to proper name below
+        # Send e-mail to DEG
+        deg_committee = Committee.objects.filter(name='deg').first()
+        if deg_committee:
+            deg_body = f"Hej!\nDet finns ett nytt personligt utlägg för {instance.committee.name} för dig att granska och bokföra, du hittar utlägget här: [länk]"  # TODO: fill in link
             email.send(
-                treasurer_subject,
-                treasurer_body,
-                treasurer_email,
+                "DEG TEST", # TODO: change
+                deg_body,
+                deg_committee.contact.email  # TODO: should be sent to all members?,
             )
-
-            # TODO: when deg committee has been entered into the database, change to proper name below
-            # Send e-mail to DEG
-            deg_committee = Committee.objects.filter(name='deg').first()
-            if deg_committee:
-                deg_email = deg_committee.contact.email  # TODO: should be sent to all members?
-                deg_subject = "DEG TEST"  # TODO: change
-                deg_body = f"Hej! Det finns ett nytt personligt utlägg för {instance.committee.name} för dig att granska och bokföra, du hittar utlägget här: [länk]"  # TODO: fill in link
-                email.send(
-                    deg_subject,
-                    deg_body,
-                    deg_email,
-                )
 
     def perform_update(self, serializer):
         print(f'{self.request.data = }')
@@ -144,7 +139,16 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if 'approvedDeg' in data_keys:
             if is_in_deg or is_section_cashier:
                 entry.approvedDeg = bool(request.data['approvedDeg'])
-                # TODO: send mail to user if denied
+
+                # Send mail to user if denied
+                # TODO: make sure this is correct
+                if not entry.approvedDeg:
+                    email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har nekats med med motiveringen: [motivering]. Logga in på ditt konto på budgetportalen för att redigera ditt personliga utlägg och skicka in det igen."
+                    email.send(
+                        "DENIED BY DEG TEST", # TODO: change
+                        email_body,
+                        entry.user.email,
+                    )
         else:
             entry.approvedDeg = False
 
@@ -152,10 +156,18 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         if 'approvedKas' in data_keys:
             committee_cashier = Committee.objects.filter(name=entry.committee.name).first().contact
             print("committee cashier", committee_cashier)
-            if request.user == committee_cashier or is_in_deg:
+            if request.user == committee_cashier or is_in_deg: # TODO: should is_in_deg be here
                 entry.approvedKas = bool(request.data['approvedKas'])
 
-                # TODO: send mail to user if denied
+                # Send mail to user if denied
+                # TODO: make sure this is correct
+                if not entry.approvedKas:
+                    email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har nekats med med motiveringen: [motivering]. Logga in på ditt konto på budgetportalen för att redigera ditt personliga utlägg och skicka in det igen."
+                    email.send(
+                        "DENIED BY TREASURER TEST", # TODO: change
+                        email_body,
+                        entry.user.email,
+                    )
         else:
             entry.approvedKas = False
 
@@ -164,7 +176,14 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             if is_in_deg or is_section_cashier:
                 entry.payed = bool(request.data['payed'])
 
-                # TODO: send mail to user if payed
+                # Send mail to user if payed
+                if entry.payed:
+                    email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har betalats ut av {request.user.get_full_name()}, pengarna bör finnas på ditt konto inom 1-2 bankdagar."
+                    email.send(
+                        "PAYED TEST", # TODO: change
+                        email_body,
+                        entry.user.email,
+                    )
         else:
             entry.payed = False
 
