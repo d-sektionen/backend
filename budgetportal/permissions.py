@@ -1,11 +1,12 @@
 from rest_framework import permissions
+
 from membership.utils import check_membership
 
 
 class BudgetEntryPermissions(permissions.BasePermission):
     """
-  Custom permission for a budget entry.
-  """
+    Custom permission for a budget entry.
+    """
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:

@@ -1,16 +1,14 @@
 import json
-from datetime import timedelta
-import re
+import base64
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from rest_framework import serializers
 
+from .models import BudgetEntry, File
+
 from account.serializers import SimpleUserSerializer
-from account.serializers import MeSerializer
 from committee.serializers import CommitteeSerializer
 from committee.models import Committee
-from .models import BudgetEntry, File
-import base64
-from django.core.files.base import ContentFile
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -82,16 +80,14 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         instance = BudgetEntry.objects.create(**validated_data)
 
 
-
         
-        raw_file = request.data["files[]"]
+        raw_file = request.data.get("files[]")
         if raw_file:
             format, imgstr = raw_file.split(';base64,') 
             ext = format.split('/')[-1] 
             data = ContentFile(base64.b64decode(imgstr), name=request.data['name']+ "." + ext)
             mf = File.objects.create(file=data, expense=instance)
             mf.save()
-         
         return instance
 
     def validate_user_id(self, value):

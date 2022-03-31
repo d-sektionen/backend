@@ -1,12 +1,9 @@
 import json
-from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.fields import FloatField
+from django.db import models
+
 from .validators import validate_datetime_future, validate_datetime_within_year
-from django.core.exceptions import ValidationError
-from datetime import timedelta
-from imagekit.models import ImageSpecField
-from imagekit.processors import ResizeToFill
+
 from committee.models import Committee
 
 
