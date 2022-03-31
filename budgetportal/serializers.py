@@ -18,8 +18,8 @@ class FileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
-        fields = ("file", "expense")
-        read_only_fields = ("file", "expense")
+        fields = ("file",)
+        read_only_fields = ("file",)
 
 
 class BudgetEntrySerializer(serializers.ModelSerializer):
@@ -40,6 +40,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         
     )
     committee = CommitteeSerializer(read_only=True)
+    receipts = FileSerializer(many=True, read_only=True)
 
     class Meta:
         model = BudgetEntry
@@ -64,6 +65,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "approvedDeg",
             "payed",
             "comment",
+            "receipts",
         )
         read_only_fields = (
             "ipaddr",
@@ -71,6 +73,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "approvedKas",
             "approvedDeg",
             "payed",
+            "receipts",
         )
 
     def create(self, validated_data):
@@ -85,12 +88,9 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         if raw_file:
             format, imgstr = raw_file.split(';base64,') 
             ext = format.split('/')[-1] 
-            data = ContentFile(base64.b64decode(imgstr), name=str(123)+ "." + ext)
+            data = ContentFile(base64.b64decode(imgstr), name=request.data['name']+ "." + ext)
             mf = File.objects.create(file=data, expense=instance)
             mf.save()
-            
-        
-        #for f in files.getlist("file"):
          
         return instance
 
