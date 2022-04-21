@@ -62,6 +62,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "approvedKas",
             "approvedDeg",
             "payed",
+            "denied",
             "comment",
             "receipts",
         )
@@ -156,6 +157,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
             "approvedKas",
             "approvedDeg",
             "payed",
+            "denied",
         )
         read_only_fields = (
             "date",

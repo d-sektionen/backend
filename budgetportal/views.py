@@ -75,7 +75,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         # Else only return user's own entries or ones associated
         # with the committees the user is a contact/cashier for
         query_filter = Q(user=self.request.user)
-        for committee in self.request.user.contact_for.all():
+        for committee in self.request.user.treasurer_for.all():
             query_filter = query_filter | Q(committee__id=committee.id)
             
         return queryset.filter(query_filter)
@@ -86,30 +86,22 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         # Send e-mail to entry's committee's treasurer
         treasurer_body = f"Hej!\n{self.request.user.get_full_name()} har fyllt ut ett nytt personligt utlägg som gäller ditt utskott. Gå in och granska det här: [länk]"  # TODO: fill in link
         email.send(
-            "TREASURER TEST", # TODO: change
+            "Ett nytt personligt utlägg finns att granska",
             treasurer_body,
-            instance.committee.contact.email,
-        )
-
-        # Send second e-mail to entry's committee's treasurer
-        unpayed_entry_count = BudgetEntry.objects.filter(payed=False, committee__contact=instance.committee.contact).count()
-        treasurer_body_2 = f"Hej! Det finns {unpayed_entry_count} nya bokförda personliga utlägg för dig att betala ut. Du kommer åt dem här: [länk]"  # TODO: fill in link
-        email.send(
-            "TREASURER TEST 2", # TODO: change
-            treasurer_body_2,
-            instance.committee.contact.email,
+            instance.committee.treasurer_email,
         )
 
         # TODO: when deg committee has been entered into the database, change to proper name below
-        # Send e-mail to DEG
         deg_committee = Committee.objects.filter(name='deg').first()
+        # Send e-mail to all DEG members
         if deg_committee:
             deg_body = f"Hej!\nDet finns ett nytt personligt utlägg för {instance.committee.name} för dig att granska och bokföra, du hittar utlägget här: [länk]"  # TODO: fill in link
-            email.send(
-                "DEG TEST", # TODO: change
-                deg_body,
-                deg_committee.contact.email  # TODO: should be sent to all members?,
-            )
+            for member in deg_committee.members.all():
+                email.send(
+                    "Ett nytt personligt utlägg finns att granska",
+                    deg_body,
+                    f"{member.first_name}.{member.last_name}@d-sektionen.se",  # Assuming that all members have a standardized section e-mail
+                )
 
     def perform_update(self, serializer):
         print(f'{self.request.data = }')
@@ -126,6 +118,9 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         #if str(request.data['user_id']) != str(request.user.id):
         #    return Response('Different users', status.HTTP_403_FORBIDDEN)
 
+        if entry.denied:
+            return Response('Entry is denied', status.HTTP_403_FORBIDDEN)   
+
         # TODO: when deg committee has been entered into the database, change to proper name below
         deg_committee = Committee.objects.filter(name='deg').first()
         is_in_deg = False
@@ -135,57 +130,66 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         #Change to check if user is section cashier
         is_section_cashier = True
 
+        # If approveKas is sent, mark field if user is cashier of the entry committee
+        if 'approvedKas' in data_keys:
+            committee_cashier = Committee.objects.filter(name=entry.committee.name).first().treasurer
+            print("committee cashier", committee_cashier)
+            if request.user == committee_cashier or is_in_deg or is_section_cashier: # TODO: should is_in_deg be here
+                entry.approvedKas = bool(request.data['approvedKas'])
+        else:
+            entry.approvedKas = False
+
         # If approveDeg is sent, mark field if user is in deg
         if 'approvedDeg' in data_keys:
             if is_in_deg or is_section_cashier:
+                approvedDegChanged = bool(request.data['approvedDeg']) != entry.approvedDeg
                 entry.approvedDeg = bool(request.data['approvedDeg'])
 
-                # Send mail to user if denied
-                # TODO: make sure this is correct
-                if not entry.approvedDeg:
-                    email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har nekats med med motiveringen: [motivering]. Logga in på ditt konto på budgetportalen för att redigera ditt personliga utlägg och skicka in det igen."
+                if entry.approvedDeg and approvedDegChanged:
+                    # Send second e-mail to entry's committee's treasurer
+                    unpayed_entry_count = BudgetEntry.objects.filter(payed=False, approvedDeg=True, committee__treasurer=entry.committee.treasurer).count()
+                    treasurer_body_2 = f"Hej! Det finns {unpayed_entry_count} nya bokförda personliga utlägg för dig att betala ut. Du kommer åt dem här: [länk]"  # TODO: fill in link
                     email.send(
-                        "DENIED BY DEG TEST", # TODO: change
-                        email_body,
-                        entry.user.email,
+                        f"{unpayed_entry_count} bokförda utlägg finns att betala ut",
+                        treasurer_body_2,
+                        entry.committee.treasurer_email,
                     )
         else:
             entry.approvedDeg = False
 
-        # If approveKas is sent, mark field if user is cashier of the entry committee
-        if 'approvedKas' in data_keys:
-            committee_cashier = Committee.objects.filter(name=entry.committee.name).first().contact
-            print("committee cashier", committee_cashier)
-            if request.user == committee_cashier or is_in_deg: # TODO: should is_in_deg be here
-                entry.approvedKas = bool(request.data['approvedKas'])
-
-                # Send mail to user if denied
-                # TODO: make sure this is correct
-                if not entry.approvedKas:
-                    email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har nekats med med motiveringen: [motivering]. Logga in på ditt konto på budgetportalen för att redigera ditt personliga utlägg och skicka in det igen."
-                    email.send(
-                        "DENIED BY TREASURER TEST", # TODO: change
-                        email_body,
-                        entry.user.email,
-                    )
-        else:
-            entry.approvedKas = False
-
-        # If payed is sent, mark field if user is in deg
+        # If payed is sent, mark field if user is section cashier
         if 'payed' in data_keys:
-            if is_in_deg or is_section_cashier:
+            if is_section_cashier:
                 entry.payed = bool(request.data['payed'])
 
                 # Send mail to user if payed
                 if entry.payed:
                     email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har betalats ut av {request.user.get_full_name()}, pengarna bör finnas på ditt konto inom 1-2 bankdagar."
                     email.send(
-                        "PAYED TEST", # TODO: change
+                        "Ditt personliga utlägg har utbetalats",
                         email_body,
                         entry.user.email,
                     )
         else:
             entry.payed = False
+
+        # If denied is sent, mark field if user is section cashier
+        if 'denied' in data_keys:
+            committee_cashier = Committee.objects.filter(name=entry.committee.name).first().treasurer
+            print("committee cashier", committee_cashier)
+            if request.user == committee_cashier or is_in_deg or is_section_cashier: # TODO: should is_in_deg be here
+                entry.denied = bool(request.data['denied'])
+
+                # Send mail to user if denied
+                if entry.denied:
+                    email_body = f"Hej!\nDitt personliga utlägg för {entry.committee.name} har nekats av {request.user.get_full_name()}. Logga in på ditt konto på budgetportalen för att se motiveringen."
+                    email.send(
+                        "Ditt personliga utlägga har nekats",
+                        email_body,
+                        entry.user.email,
+                    )
+        else:
+            entry.denied = False
 
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -195,16 +199,18 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         entry = self.get_object()
         
         # Check if the request user is the one specified
-        if str(request.data['user_id']) != str(request.user.id):
-            return Response('Different users', status.HTTP_403_FORBIDDEN)
+        # TODO: dont think this is necessary
+        #if str(request.data['user_id']) != str(request.user.id):
+        #    return Response('Different users', status.HTTP_403_FORBIDDEN)
 
         # TODO: check if user is allowed to comment (user in correct section)
         if False:
             return Response(status=status.HTTP_403_FORBIDDEN, data="Not allowed to comment")
         elif entry.comment:
+            print("test")
             entry.comment += " " + str(request.data["comment"])
         else:
             entry.comment = str(request.data["comment"]) 
-
         entry.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        print(entry.comment)
+        return Response(status=status.HTTP_200_OK)

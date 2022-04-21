@@ -27,6 +27,7 @@ class BudgetEntry(models.Model):
     approvedKas = models.BooleanField(default=False, blank=True)
     approvedDeg = models.BooleanField(default=False, blank=True)
     payed = models.BooleanField(default=False, blank=True)
+    denied = models.BooleanField(default=False, blank=True)
     comment = models.TextField(default="",blank=True, null=True)
 
     @property

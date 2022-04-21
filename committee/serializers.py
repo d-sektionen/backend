@@ -5,12 +5,12 @@ from django.contrib.auth.models import User
 from committee.models import Committee
 
 
-class CommitteeContactSerializer(serializers.ModelSerializer):
+class CommitteeTreasurerSerializer(serializers.ModelSerializer):
     pretty_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = 'id', 'username', 'email', 'pretty_name'
+        fields = "id", "username", "email", "pretty_name"
 
     def get_pretty_name(self, obj):
         full_name = obj.get_full_name()
@@ -18,8 +18,8 @@ class CommitteeContactSerializer(serializers.ModelSerializer):
 
 
 class CommitteeSerializer(serializers.ModelSerializer):
-    contact = CommitteeContactSerializer()
+    treasurer = CommitteeTreasurerSerializer()
 
     class Meta:
         model = Committee
-        fields = 'id', 'name', 'description', 'contact',
+        fields = "id", "name", "description", "treasurer", "treasurer_email"
