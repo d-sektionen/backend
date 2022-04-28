@@ -30,6 +30,9 @@ class BudgetEntry(models.Model):
     denied = models.BooleanField(default=False, blank=True)
     comment = models.TextField(default="",blank=True, null=True)
 
+    class Meta:
+        ordering = ("date",)
+
     @property
     def total_sum(self):
         sum = 0.0

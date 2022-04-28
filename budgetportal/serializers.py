@@ -76,22 +76,19 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        request = self.context.get('request')
-        validated_data["ipaddr"] = self.context.get('request').META.get("REMOTE_ADDR")
+        request = self.context.get("request")
+        validated_data["ipaddr"] = self.context.get("request").META.get("REMOTE_ADDR")
         instance = BudgetEntry.objects.create(**validated_data)
-
-
-        
         raw_file = request.data.get("files[]")
         
         if raw_file:
             format, imgstr = raw_file.split(';base64,') 
             ext = format.split('/')[-1] 
-            data = ContentFile(base64.b64decode(imgstr), name=request.data['name']+ "." + ext)
+            data = ContentFile(base64.b64decode(imgstr), name=request.data["name"] + "." + ext)
             mf = File.objects.create(file=data, expense=instance)
             mf.save()  
         else:
-            error = {'message': 'Missing recipt'}
+            error = {"message": "Missing receipt"}
             raise serializers.ValidationError(error)
         return instance
 
@@ -115,15 +112,15 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
                     "Articles must be a list of dictionaries."
                 )
 
-            spec = article.get('spec')
-            amount = article.get('amount')
-            price = article.get('price')
+            spec = article.get("spec")
+            amount = article.get("amount")
+            price = article.get("price")
             
             if type(spec) is not str or \
                     type(int(amount)) is not int or \
                     type(float(price)) is not float:
                 raise serializers.ValidationError(
-                    'Each article must have the fields spec (string), amount (integer), and price (float).'
+                    "Each article must have the fields spec (string), amount (integer), and price (float)."
                 )
 
         return value
@@ -132,8 +129,8 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
 
         # Convert articles json string to json object
-        articles = ret.get('articles')
-        ret['articles'] = json.loads(str(articles).replace('\'', '"'))
+        articles = ret.get("articles")
+        ret["articles"] = json.loads(str(articles).replace("'", '"'))
 
         return ret
 
