@@ -87,8 +87,8 @@ class Meeting(EventBase):
 
     def get_status_message(self):
         attendee_count = Attendant.objects.filter(meeting__id=self.id).count()
-        count_str = f"{attendee_count}"
-        status_str = f"Meeting currently has {count_str} registered attendees."
+        count_str = str(attendee_count)
+        status_str = "Meeting currently has "+str(count_str)+" registered attendees."
         return status_str
 
 

@@ -81,11 +81,11 @@ class Occurrence(EventBase):
 
     def get_status_message(self):
         attendee_count = self.attendants.count()
-        count_str = f"{attendee_count}"
+        count_str = str(attendee_count)
 
         if self.attendant_limit:
-            count_str = f"{attendee_count} out of {self.attendant_limit}"
+            count_str = str(attendee_count) + "out of" + str(self.attendant_limit)
 
-        status_str = f"Event currently has {count_str} registered attendees."
+        status_str = "Event currently has" + str(count_str) +" registered attendees."
         return status_str
 

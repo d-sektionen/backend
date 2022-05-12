@@ -187,7 +187,7 @@ class CalendarFeed(ICalFeed):
         return item["title"]
 
     def item_guid(self, item):
-        return f"{item['id']}@d-sektionen.se"
+        return item['id'] + "@d-sektionen.se"
 
     def item_description(self, item):
         return item["description"]

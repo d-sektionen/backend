@@ -85,7 +85,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         email.send_new_entry_mails(self.request.user, instance)
 
     def perform_update(self, serializer):
-        print(f"{self.request.data = }")
+        #print(f"{self.request.data = }")
         # Maybe needs to be re-approved?
         serializer.save()
 
