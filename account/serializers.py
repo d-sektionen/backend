@@ -4,15 +4,10 @@ from rest_framework import serializers
 
 from membership.utils import check_membership
 from checkin.models import Doorkeeper
+from committee.serializers import CommitteeSerializer
 
 from .models import Profile, CalendarSubscription
 from . import user
-
-
-class CommitteeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Group
-        fields = ("id", "name")
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -39,6 +34,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     committees = serializers.SerializerMethodField()
+    treasurer_for = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     pretty_name = serializers.SerializerMethodField()
     privileges = serializers.SerializerMethodField()
@@ -53,6 +49,7 @@ class MeSerializer(serializers.ModelSerializer):
             "last_name",
             "pretty_name",
             "committees",
+            "treasurer_for",
             "membership",
             "profile",
             "privileges",
@@ -65,9 +62,10 @@ class MeSerializer(serializers.ModelSerializer):
         return obj.get_full_name() if obj.get_full_name() else obj.get_username()
 
     def get_committees(self, obj):
-        # TODO: fix this
-        committees = Group.objects.filter(id__in=obj.groups.all())
-        return CommitteeSerializer(committees, many=True).data
+        return CommitteeSerializer(obj.committees, many=True).data
+
+    def get_treasurer_for(self, obj):
+        return CommitteeSerializer(obj.treasurer_for, many=True).data
 
     def get_privileges(self, obj):
         return {
