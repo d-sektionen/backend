@@ -80,6 +80,8 @@ INSTALLED_APPS = [
     # "grapple",
     "modelcluster",
     "taggit",
+    # auth-adfs
+    "django_auth_adfs",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +100,7 @@ MIDDLEWARE = [
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "cas.backends.CASBackend",
+    "django_auth_adfs.backend.AdfsAuthCodeBackend",
 )
 
 ROOT_URLCONF = "app.urls"
@@ -165,12 +168,29 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
-# CAS (system for LiU authentication)
+# CAS (system for LiU authentication) !!!! Being replaced !!!!
 CAS_SERVER_URL = "https://login.liu.se/cas/"
 CAS_LOGOUT_COMPLETELY = True
 CAS_PROVIDE_URL_TO_LOGOUT = True
 CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
+### New authentication system for liu
+AUTH_ADFS = {
+    "SERVER": "fs.liu.se",
+    "CLIENT_ID": "your-configured-client-id",
+    "RELYING_PARTY_ID": "your-adfs-RPT-name",
+    # Make sure to read the documentation about the AUDIENCE setting
+    # when you configured the identifier as a URL!
+    "AUDIENCE": "microsoft:identityserver:your-RelyingPartyTrust-identifier",
+    "CA_BUNDLE": "/path/to/ca-bundle.pem",
+    "CLAIM_MAPPING": {"first_name": "given_name",
+                      "last_name": "family_name",
+                      "email": "email"},
+}
+
+# Configure django to redirect users to the right URL for login
+LOGIN_URL = "django_auth_adfs:login"
+LOGIN_REDIRECT_URL = "/"
 
 # User configuration sheet (for getting user info from a google docs sheet)
 # TODO: this is outdated, look into this and remove.
