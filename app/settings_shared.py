@@ -95,13 +95,17 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "cas.middleware.CASMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
+    #'django_auth_adfs.middleware.LoginRequiredMiddleware',
 ]
+
 
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "cas.backends.CASBackend",
     "django_auth_adfs.backend.AdfsAuthCodeBackend",
+    "django_auth_adfs.backend.AdfsAccessTokenBackend",
 )
+
 
 ROOT_URLCONF = "app.urls"
 
@@ -174,23 +178,26 @@ CAS_LOGOUT_COMPLETELY = True
 CAS_PROVIDE_URL_TO_LOGOUT = True
 CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
+CLIENT_ID = os.getenv("CLIENT_ID")
+
 ### New authentication system for liu
 AUTH_ADFS = {
+    #"LOGIN_EXEMPT_URLS": ["account/"],
     "SERVER": "fs.liu.se",
-    "CLIENT_ID": "your-configured-client-id",
-    "RELYING_PARTY_ID": "your-adfs-RPT-name",
+    "CLIENT_ID": CLIENT_ID,
+    "RELYING_PARTY_ID": CLIENT_ID,
     # Make sure to read the documentation about the AUDIENCE setting
     # when you configured the identifier as a URL!
-    "AUDIENCE": "microsoft:identityserver:your-RelyingPartyTrust-identifier",
-    "CA_BUNDLE": "/path/to/ca-bundle.pem",
+    "AUDIENCE": "microsoft:identityserver:"+str(CLIENT_ID),
+    "CA_BUNDLE":True,
     "CLAIM_MAPPING": {"first_name": "given_name",
                       "last_name": "family_name",
                       "email": "email"},
 }
 
 # Configure django to redirect users to the right URL for login
-LOGIN_URL = "django_auth_adfs:login"
-LOGIN_REDIRECT_URL = "/"
+#LOGIN_URL = "django_auth_adfs:login"
+#LOGIN_REDIRECT_URL = "/oauth2/callback"
 
 # User configuration sheet (for getting user info from a google docs sheet)
 # TODO: this is outdated, look into this and remove.
@@ -207,6 +214,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("app.permissions.AllowOptionsAuthentication",),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",

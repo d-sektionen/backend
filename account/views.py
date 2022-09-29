@@ -11,9 +11,16 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from django.http import HttpResponse
+
 from app.permissions import FixedDjangoModelPermissions
 from booking.models import Booking
+from django.contrib.auth import login, logout, authenticate, get_backends
 
+import requests
+import time
+import jwt
+import json
 
 from .serializers import (
     MeSerializer,
@@ -25,7 +32,7 @@ from .serializers import (
 from .permissions import IsUser
 from .idtoken import generate_id_token, read_id_token
 from .models import CalendarSubscription
-
+from account.adfs_token_validation import get_public_key
 
 @login_required
 def generate_token(request):
@@ -42,6 +49,68 @@ def generate_token(request):
         return JsonResponse(
             {"refresh": str(refresh), "access": str(refresh.access_token)}
         )
+
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
+def device_login(request):
+    print("Requesting user:",request.user)
+    if len(request.body) == 0:
+        #user = User.objects.get(username__iexact="felli675")
+
+        payload = {
+            "client_id": settings.CLIENT_ID,
+            "scope":"openid",
+        }       
+        response = requests.post(
+            "https://fs.liu.se/adfs/oauth2/devicecode",
+            data=payload,
+        )
+        data = response.json() 
+        return JsonResponse(data)
+    else:
+        req = json.loads(request.body)
+        device_code = req["device_code"]
+        backend = get_backends()[0]
+
+        payload = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "client_id": settings.CLIENT_ID,
+            "device_code": device_code
+        }
+        
+        for i in range(10):    
+            response = requests.post(
+                "https://fs.liu.se/adfs/oauth2/token",
+                data=payload,
+            )
+            if response.status_code == 200:        
+                data = response.json()
+                id_token = data["id_token"]
+                print(data.keys())
+                access_token = data["access_token"]
+                public_key = get_public_key(id_token, "https://fs.liu.se/adfs/discovery/keys")
+                decoded = jwt.decode(id_token,
+                    key=public_key,
+                    algorithms=['RS256'],
+                    audience=[settings.CLIENT_ID]
+                )
+                user = User.objects.get(username__iexact=decoded["winaccountname"])
+                #user = authenticate()
+                print("User:",user)
+
+                #login(request, user)
+                decoded["access_token"] = access_token
+                return JsonResponse({"code":decoded, "mode":1, "user": str(user)})
+            print(i)
+            time.sleep(1)
+        return JsonResponse({"code":device_code})
+
+
+def device_logout(request):
+
+    logout(request)
+    
+    return JsonResponse({"user":str(request.user)})
 
 
 class MeView(mixins.RetrieveModelMixin, GenericAPIView):
