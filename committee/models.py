@@ -8,6 +8,9 @@ class Committee(models.Model):
     members = models.ManyToManyField(User, blank=True, related_name='committees')
     treasurer = models.ForeignKey(User, related_name="treasurer_for", null=True, on_delete=models.SET_NULL)
     treasurer_email = models.EmailField(null=True)
+    chair = models.ForeignKey(User, related_name="chair_for", null=True, on_delete=models.SET_NULL)
+    chair_email = models.EmailField(null=True)
+    
 
     def __str__(self):
         return self.name + " - " + self.description[:32]

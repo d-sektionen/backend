@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from committee.models import Committee
 
 
-class CommitteeTreasurerSerializer(serializers.ModelSerializer):
+class CommitteeUserSerializer(serializers.ModelSerializer):
     pretty_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -18,8 +18,9 @@ class CommitteeTreasurerSerializer(serializers.ModelSerializer):
 
 
 class CommitteeSerializer(serializers.ModelSerializer):
-    treasurer = CommitteeTreasurerSerializer()
+    treasurer = CommitteeUserSerializer()
+    chair = CommitteeUserSerializer()
 
     class Meta:
         model = Committee
-        fields = "id", "name", "description", "treasurer", "treasurer_email"
+        fields = "id", "name", "description", "treasurer", "treasurer_email", "chair", "chair_email"
