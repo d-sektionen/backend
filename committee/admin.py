@@ -16,9 +16,9 @@ class CommitteeAdmin(admin.ModelAdmin):
         self.fieldsets = self.change_form.Meta.fieldsets if obj else self.add_form.Meta.fieldsets
         return super().get_fieldsets(request, obj, **kwargs)
 
-    list_display = ("id", "name", "description", "treasurer", "treasurer_email")
-    list_filter = ("treasurer",)
-    search_fields = ("name", "description", "treasurer")
+    list_display = ("id", "name", "description", "treasurer", "treasurer_email",  "chair", "chair_email")
+    list_filter = ("treasurer", "chair")
+    search_fields = ("name", "description", "treasurer", "chair")
     ordering = ("name",)
 
 admin.site.register(Committee, CommitteeAdmin)

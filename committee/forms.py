@@ -14,10 +14,11 @@ class CommitteeForm(forms.ModelForm):
 
     class Meta:
         model = Committee
-        fields = ("name", "description", "members", "treasurer", "treasurer_email")
+        fields = ("name", "description", "members", "treasurer", "treasurer_email", "chair", "chair_email")
         fieldsets = (
             (None, {"fields": ("name", "description", "members")}),
             ("Treasurer", {"fields": ("treasurer", "treasurer_email")}),
+            ("Chair", {"fields": ("chair", "chair_email")}),
         )
     
     def clean(self):
