@@ -10,6 +10,7 @@ from committee.models import Committee
 
 from membership.utils import check_membership
 from account.user import get_or_create_user
+from .permissions import CommitteePermissions
 
 @api_view(['GET'])
 @permission_classes([IsUser])
@@ -52,7 +53,7 @@ def get_committee_members(request: Request, id: int, format=None):
     )
 
 @api_view(['POST'])
-@permission_classes([IsUser])
+@permission_classes([IsUser, CommitteePermissions])
 def set_commite_dependents(request: Request, format=None):
     """Set the dependents (ordförande & kassör) using data from Dsek-FetchR."""
     members = request.data
