@@ -6,5 +6,5 @@ urlpatterns = [
     path('all/', views.get_committees),
     path('<int:id>/', views.get_committee),
     path('<int:id>/members/', views.get_committee_members),
-    path('set_dependents', views.set_commite_dependents)
+    path('set_dependents/', views.set_committee_dependents)
 ]
