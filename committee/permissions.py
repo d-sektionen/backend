@@ -7,8 +7,8 @@ from membership.utils import check_membership
 
 class CommitteePermissions(permissions.BasePermission):
     """
-  Custom permission for a booking.
-  """
+    Custom permission for a booking.
+    """
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated or not request.user.has_perm("committee.add_committee"):

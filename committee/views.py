@@ -54,7 +54,7 @@ def get_committee_members(request: Request, id: int, format=None):
 
 @api_view(['POST'])
 @permission_classes([IsUser, CommitteePermissions])
-def set_commite_dependents(request: Request, format=None):
+def set_committee_dependents(request: Request, format=None):
     """Set the dependents (ordförande & kassör) using data from Dsek-FetchR."""
     members = request.data
 
@@ -81,12 +81,11 @@ def set_commite_dependents(request: Request, format=None):
             
             committee_obj.save()
             
-        else:
-            
+        else:    
             return Response(
-            {'error': 'Det finns inget utskott med det ID:t'},
-            status.HTTP_400_BAD_REQUEST
-        )
+                {'error': 'Det finns inget utskott med det ID:t'},
+                status.HTTP_400_BAD_REQUEST
+            )
 
     return Response(
         {'ok': 'Sektionsmedlemmar uppdaterade'},
