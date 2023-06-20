@@ -23,6 +23,8 @@ import time
 import jwt
 import json
 
+from .user import get_or_create_user
+
 from .serializers import (
     MeSerializer,
     SimpleUserSerializer,
@@ -93,7 +95,7 @@ def device_login(request):
                     algorithms=['RS256'],
                     audience=[settings.CLIENT_ID]
                 )
-                user = User.objects.get(username__iexact=decoded["winaccountname"])
+                user = get_or_create_user(decoded['winaccountname'])[0]
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')#, backend=backend)
 
                 decoded["access_token"] = access_token
