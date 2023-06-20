@@ -68,6 +68,7 @@ def get_kid(token):
     except KeyError:
         raise InvalidToken('missing kid')
 
+
 def get_jwks_uri(tenant_id=None):
     
     meta = _fetch_discovery_meta(tenant_id)
@@ -76,7 +77,7 @@ def get_jwks_uri(tenant_id=None):
     else:
         raise CommunicationError('jwks_uri not found in the issuer meta')
 
-@functools.lru_cache
+@functools.lru_cache()
 def get_jwks(tenant_id=None):
     keys = requests.get(tenant_id).json()
     return keys

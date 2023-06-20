@@ -80,7 +80,6 @@ INSTALLED_APPS = [
     # "grapple",
     "modelcluster",
     "taggit",
-    # auth-adfs
     "django_auth_adfs",
 ]
 
@@ -179,7 +178,6 @@ CAS_PROVIDE_URL_TO_LOGOUT = True
 CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
 CLIENT_ID = os.getenv("CLIENT_ID")
-
 ### New authentication system for liu
 AUTH_ADFS = {
     #"LOGIN_EXEMPT_URLS": ["account/"],
@@ -196,8 +194,8 @@ AUTH_ADFS = {
 }
 
 # Configure django to redirect users to the right URL for login
-#LOGIN_URL = "django_auth_adfs:login"
-#LOGIN_REDIRECT_URL = "/oauth2/callback"
+LOGIN_URL = "django_auth_adfs:login"
+LOGIN_REDIRECT_URL = "/oauth2/callback"
 
 # User configuration sheet (for getting user info from a google docs sheet)
 # TODO: this is outdated, look into this and remove.
@@ -218,6 +216,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
     ),
 }
 
@@ -265,7 +264,7 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),
 }
 
-LOGIN_URL = "/account/login/"
+# LOGIN_URL = "/account/login/"
 
 # Websocket channels configuration
 CHANNEL_LAYERS = {

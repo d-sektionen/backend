@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django_ical.views import ICalFeed
 from django.utils.timezone import get_current_timezone
+from django.views.generic import TemplateView
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
@@ -53,8 +54,8 @@ def generate_token(request):
 from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def device_login(request):
-    print("Requesting user:",request.user)
-    if len(request.body) == 0:
+    if len(request.body) == 0 or 'device_code' not in request.body.decode('utf-8'):
+
         #user = User.objects.get(username__iexact="felli675")
 
         payload = {
@@ -70,15 +71,14 @@ def device_login(request):
     else:
         req = json.loads(request.body)
         device_code = req["device_code"]
-        backend = get_backends()[0]
-
         payload = {
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
             "client_id": settings.CLIENT_ID,
             "device_code": device_code
         }
         
-        for i in range(10):    
+        # Poll for 60 seconds
+        for _ in range(60):    
             response = requests.post(
                 "https://fs.liu.se/adfs/oauth2/token",
                 data=payload,
@@ -86,7 +86,6 @@ def device_login(request):
             if response.status_code == 200:        
                 data = response.json()
                 id_token = data["id_token"]
-                print(data.keys())
                 access_token = data["access_token"]
                 public_key = get_public_key(id_token, "https://fs.liu.se/adfs/discovery/keys")
                 decoded = jwt.decode(id_token,
@@ -95,13 +94,13 @@ def device_login(request):
                     audience=[settings.CLIENT_ID]
                 )
                 user = User.objects.get(username__iexact=decoded["winaccountname"])
-                #user = authenticate()
-                print("User:",user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')#, backend=backend)
 
-                #login(request, user)
                 decoded["access_token"] = access_token
-                return JsonResponse({"code":decoded, "mode":1, "user": str(user)})
-            print(i)
+                return JsonResponse({
+                    "code":decoded, 
+                    "user": str(user), 
+                })
             time.sleep(1)
         return JsonResponse({"code":device_code})
 
@@ -123,6 +122,9 @@ class MeView(mixins.RetrieveModelMixin, GenericAPIView):
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+# Should be removed when a more suitable login view is implemented
+class AdminLoginView(TemplateView):
+    template_name = "admin.html"
 
 class IdentificationTokenView(APIView):
     """
