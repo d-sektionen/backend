@@ -85,7 +85,8 @@ urlpatterns = [
     url(r"^cms/logout", cas.views.logout, name="wagtailadmin_logout"),
     url(r"^cms/", include(wagtailadmin_urls)),
     url(r"^documents/", include(wagtaildocs_urls)),
-    url(r"^pages/", include(wagtail_urls))
+    url(r"^pages/", include(wagtail_urls)),
+    url(r'^oauth2/', include('django_auth_adfs.urls')),
     # url(r"^api/cms/", cms_api_router.urls),
     # # url(r'^cms/graphql', csrf_exempt(GraphQLView.as_view())),
     # # url(r'^cms/graphiql', csrf_exempt(GraphQLView.as_view(graphiql=True, pretty=True))),
