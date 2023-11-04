@@ -14,7 +14,7 @@ class Meeting(EventBase):
 
     description = models.TextField(max_length=512, blank=True)
     current_vote = models.ForeignKey(
-        "Vote", blank=True, null=True, related_name="+", on_delete=models.CASCADE
+        "Vote", blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     open_attendance = models.BooleanField(
         default=False, help_text="Allows users to set their own attendance."
