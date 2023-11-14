@@ -15,8 +15,9 @@ class Command(BaseCommand):
                 user = User.objects.get(username=name)
             except Exception:
                 self.stdout.write(f"Can't find user {name}")
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
-        self.stdout.write(f"User {name} is now admin")
+                continue # Continue to try and create next user.
 
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            self.stdout.write(f"User {name} is now admin")
