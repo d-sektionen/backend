@@ -4,9 +4,10 @@ from membership.models import Request
 
 
 class Command(BaseCommand):
-    help = "Make an existing user a super user (takes the username as a parameter)"
+    help = "Make existing users staff and super user (takes usernames as a parameters)"
 
     def add_arguments(self, parser):
+        # Creates a list with one or more users supplied from command line.
         parser.add_argument('username', nargs='+', type=str)
 
     def handle(self, *args, **kwargs):
@@ -15,8 +16,9 @@ class Command(BaseCommand):
                 user = User.objects.get(username=name)
             except Exception:
                 self.stdout.write(f"Can't find user {name}")
-                continue # Continue to try and create next user.
+                continue # Continue to try and find next user
 
+            # Make user admin
             user.is_staff = True
             user.is_superuser = True
             user.save()
