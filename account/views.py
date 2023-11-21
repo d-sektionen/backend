@@ -79,8 +79,8 @@ def device_login(request):
             "device_code": device_code
         }
         
-        # Poll for 60 seconds
-        for _ in range(60):    
+        # Poll for 5 seconds
+        for _ in range(5):    
             response = requests.post(
                 "https://fs.liu.se/adfs/oauth2/token",
                 data=payload,
