@@ -1,0 +1,50 @@
+version: '3.12'
+
+services:
+  db:
+    image: postgres:15.3
+    environment:
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django
+      POSTGRES_DB: django
+    volumes:
+      - dev_backend_db:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432
+    networks:
+      - internal   # network internal
+
+  backend:
+    build: .
+    user: "${UID}:${GID}"
+    restart: always
+    entrypoint: /code/docker-entrypoint.sh
+    command: >
+      sh -c "uwsgi --ini /code/backend.uwsgi.ini"
+    volumes:
+      - .:/code
+    ports:
+      - 0.0.0.0:8002:8000
+    environment:
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django
+      POSTGRES_DB: django
+      POSTGRES_HOST: db
+      DJANGO_SETTINGS_MODULE: app.settings_production
+    env_file:
+      - ./.env
+    networks:
+      - internal   # network internal
+      - default    # network outside
+    depends_on:
+      - db
+
+volumes:
+  dev_backend_db:
+
+networks:
+  default:
+    external: true
+    name: backend_network
+  internal:
+    internal: true
