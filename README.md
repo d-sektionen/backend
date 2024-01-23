@@ -80,6 +80,15 @@ If you are denied access to anything, try running the following in your terminal
 
 # Documentation
 
+## uwsgitop
+
+If you want to run something like "top" but for uwsgi. 
+Go into the .venv in the backend-project and run:
+
+```sh
+uwsgitop http://127.0.0.1:1235
+```
+
 ## Account
 
 ### GET /account/token
