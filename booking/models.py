@@ -37,6 +37,7 @@ class Item(models.Model):
         format="JPEG",
         options={"quality": 80},
     )
+    enabled = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
