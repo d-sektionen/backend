@@ -14,12 +14,12 @@ class BookingViewSet(viewsets.ModelViewSet):
     API endpoint that allows bookings to be viewed, created, edited or deleted.
     """
 
-    queryset = Booking.objects.all()
+    queryset = Booking.objects.filter(item__enabled=True)
     serializer_class = BookingSerializer
     permission_classes = (BookingPermissions,)
 
     def get_queryset(self):
-        queryset = Booking.objects.all()
+        queryset = Booking.objects.filter(item__enabled=True)
         item = self.request.query_params.get("item", None)
         future = self.request.query_params.get("future", None)
         user = self.request.query_params.get("user", None)
@@ -95,5 +95,5 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
     API endpoint that allows bookable items to be viewed.
     """
 
-    queryset = Item.objects.all()
+    queryset = Item.objects.filter(enabled=True)
     serializer_class = ItemSerializer
