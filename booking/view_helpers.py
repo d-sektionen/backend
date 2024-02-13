@@ -38,4 +38,5 @@ def notify_werk(content):
     Args:
         content: Content to include in the message.
     """
-    requests.post(settings.WERK_WEBHOOK_URL, json={"text": content})
+    if settings.WERK_WEBHOOK_URL != "":
+        requests.post(settings.WERK_WEBHOOK_URL, json={"text": content})
