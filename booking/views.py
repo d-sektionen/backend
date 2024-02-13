@@ -25,6 +25,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         user = self.request.query_params.get("user", None)
         confirmed = self.request.query_params.get("confirmed", None)
         restricted_timeslot = self.request.query_params.get("restricted_timeslot", None)
+        after = self.request.query_params.get("after", None)
+        before = self.request.query_params.get("before", None)
 
         if user == "me":
             user = self.request.user.id
@@ -33,6 +35,10 @@ class BookingViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(item=item)
         if future != None:
             queryset = queryset.filter(end__gt=timezone.now())
+        if after != None:
+            queryset = queryset.filter(start__gt=after)
+        if before != None:
+            queryset = queryset.filter(end__lt=before)
         if user:
             queryset = queryset.filter(user=user)
         if confirmed:
