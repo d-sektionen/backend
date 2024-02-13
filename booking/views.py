@@ -7,7 +7,7 @@ from app.permissions import FixedDjangoModelPermissions
 from .models import Booking, Item
 from .serializers import BookingSerializer, ItemSerializer
 from .permissions import BookingPermissions
-from .view_helpers import notify_werk_of_booking
+from .view_helpers import notify_werk_unconfirmed_booking
 
 
 class BookingViewSet(viewsets.ModelViewSet):
@@ -77,7 +77,9 @@ class BookingViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         auto_confirm = self.should_auto_confirm(data)
         serializer.save(confirmed=auto_confirm)
-        notify_werk_of_booking(data, auto_confirm)
+
+        if auto_confirm == False:
+            notify_werk_unconfirmed_booking(data, False)
 
     def perform_update(self, serializer):
         old_obj = self.get_object()
@@ -90,6 +92,9 @@ class BookingViewSet(viewsets.ModelViewSet):
                 auto_confirm = self.should_auto_confirm(new_data, exists=True)
 
         serializer.save(confirmed=auto_confirm)
+
+        if auto_confirm == False:
+            notify_werk_unconfirmed_booking(new_data, True)
 
 
 class ItemViewSet(viewsets.ReadOnlyModelViewSet):
