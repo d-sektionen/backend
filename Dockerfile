@@ -4,40 +4,27 @@ FROM python:3.8
 # Set the working directory in the container
 WORKDIR /code
 
-# Set build args
-#ARG UID
-#ARG GID
-
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-ENV DJANGO_SETTINGS_MODULE=app.settings_production
-ENV UID=1002
-ENV GID=1002
+ENV DJANGO_SETTINGS_MODULE app.settings_production
+
+# Create to non root user
+RUN groupadd -r default_user && useradd -r -g default_user default_user
+
+COPY docker-entrypoint.sh .
+ENTRYPOINT [ "sh", "/code/docker-entrypoint.sh"]
 
 # Copy the requirements file into the container
-COPY production.txt .
-COPY development.txt .
-COPY docker-entrypoint.sh .
+COPY requirements.txt .
 
 # Install the project dependencies
-RUN pip install --no-cache-dir -r production.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the project code into the container
 COPY . .
 
-# Set permissions
-RUN chown -R ${UID}:${GID} .
-RUN chmod -R 755 .
-
-# Expose the port that the Django app will run on
-EXPOSE 8000
-
-# Switch to a non-root user
-USER ${UID}:${GID}
-
-# Run migration
-RUN chmod +x docker-entrypoint.sh
-
-# Define the command to run the Django app
-#CMD python manage.py runserver 127.0.0.1:8000
+RUN chown -R default_user:default_user ./
+RUN chmod -R 700 ./
+# Change to non root user
+USER default_user

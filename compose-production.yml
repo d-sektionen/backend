@@ -1,0 +1,29 @@
+version: "3.12"
+
+services:
+  backend:
+    image: # Specify backend image
+    restart: always
+    command: uwsgi --ini /srv/backend.uwsgi.ini
+    volumes:
+      # Set the paths when deploying to production.
+      #- {ini path}:/srv/backend.uwsgi.ini
+    ports:
+      # Update for production environment
+      - 0.0.0.0:XXXX:8000
+    environment:
+      # Set these when deploying to production
+      POSTGRES_NAME: XXXX
+      POSTGRES_USER: XXXX
+      POSTGRES_PASSWORD: XXXX
+      POSTGRES_HOST: XXXX
+      POSTGRES_PORT: XXXX
+      CLIENT_ID: ""
+      CLIENT_SECRET: ""
+      LIU_TENANT_ID: ""
+    networks:
+      - default # network outside
+
+networks:
+  default:
+    name: backend_network
