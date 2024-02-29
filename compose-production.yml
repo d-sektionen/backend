@@ -2,7 +2,7 @@ version: "3.12"
 
 services:
   backend:
-    image: # Specify backend image
+    image: registry.d-sektionen.se/backend:prod # Specify backend image
     restart: always
     command: uwsgi --ini /srv/backend.uwsgi.ini
     volumes:
@@ -18,9 +18,10 @@ services:
       POSTGRES_PASSWORD: XXXX
       POSTGRES_HOST: XXXX
       POSTGRES_PORT: XXXX
-      CLIENT_ID: ""
-      CLIENT_SECRET: ""
-      LIU_TENANT_ID: ""
+    env_file:
+      # Environment variable file for keys and secrets for azure authentication.
+      - path: XXXX/.env
+        required: true
     networks:
       - default # network outside
 

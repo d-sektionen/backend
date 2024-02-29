@@ -15,7 +15,7 @@ services:
       - internal # network internal
 
   backend_dev:
-    build: .
+    image: registry.d-sektionen.se/backend:dev # Specify backend image
     restart: on-failure
     command: uwsgi --ini /srv/backend.uwsgi.ini
     volumes:
@@ -28,6 +28,10 @@ services:
       POSTGRES_PASSWORD: django
       POSTGRES_HOST: dev_database
       POSTGRES_PORT: 5432
+    env_file:
+      # Environment variable file for keys and secrets for azure authentication.
+      - path: ./.env
+        required: true
     networks:
       - internal # network internal
       - default # network outside
