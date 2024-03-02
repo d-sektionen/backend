@@ -7,10 +7,11 @@ services:
     command: uwsgi --ini /srv/backend.uwsgi.ini
     volumes:
       # Set the paths when deploying to production.
-      #- {ini path}:/srv/backend.uwsgi.ini
+      #- [ini file path]:/srv/backend.uwsgi.ini
+      #- [static files path]:/code/static
     ports:
       # Update for production environment
-      - 0.0.0.0:XXXX:8000
+      - 127.0.0.1:XXXX:8000
     environment:
       # Set these when deploying to production
       POSTGRES_NAME: XXXX
@@ -20,8 +21,7 @@ services:
       POSTGRES_PORT: XXXX
     env_file:
       # Environment variable file for keys and secrets for azure authentication.
-      - path: XXXX/.env
-        required: true
+      - XXXX/.env
     networks:
       - default # network outside
 
