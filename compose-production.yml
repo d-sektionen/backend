@@ -9,6 +9,7 @@ services:
       # Set the paths when deploying to production.
       #- [ini file path]:/srv/backend.uwsgi.ini
       #- [static files path]:/code/static
+      #- [log file path]:/var/log/uwsgi/
     ports:
       # Update for production environment
       - 127.0.0.1:XXXX:8000

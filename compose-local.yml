@@ -21,13 +21,14 @@ services:
     volumes:
       - ./backend.uwsgi.ini:/srv/backend.uwsgi.ini
       - ./static:/code/static
+      - ./log:/var/log/uwsgi/
     ports:
       - 127.0.0.1:8000:8000
     environment:
       POSTGRES_NAME: django
       POSTGRES_USER: django
       POSTGRES_PASSWORD: django
-      POSTGRES_HOST: dev_database
+      POSTGRES_HOST: local_dev_database
       POSTGRES_PORT: 5432
     env_file:
       # Environment variable file for keys and secrets for azure authentication.
@@ -36,7 +37,7 @@ services:
       - internal # network internal
       - default # network outside
     depends_on:
-      - dev_database
+      - local_dev_database
 
 volumes:
   dev_db_data:
