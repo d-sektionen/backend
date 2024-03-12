@@ -2,27 +2,14 @@ from rest_framework.decorators import (
     api_view,
     authentication_classes,
     permission_classes,
-    action,
 )
 from rest_framework.permissions import AllowAny
-from rest_framework import viewsets
 from rest_framework.response import Response
-from icalendar import Calendar, Event, vDatetime
+from icalendar import Calendar, Event
 import datetime
 from django.utils import timezone
-from rest_framework import status
-from django.conf import settings
-from account.permissions import AllowMembers
-from logger.utils import log, Entry
 
 import requests
-import json
-
-NETLIGHT_API_URL = settings.NETLIGHT_API_URL
-NETLIGHT_API_KEY = settings.NETLIGHT_API_KEY
-NETLIGHT_HUB_ID = settings.NETLIGHT_HUB_ID
-NETLIGHT_LOCK_ID = settings.NETLIGHT_LOCK_ID
-NETLIGHT_AUTHORIZATION = settings.NETLIGHT_AUTHORIZATION
 
 # move to settings if you cba.
 CAL_URL = "https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics"
@@ -109,129 +96,4 @@ def section_calendar(request):
     else:
         return Response(
             ["This endpoint is a WIP you should not get this response when it's ready."]
-        )
-
-
-class NetlightViewSet(viewsets.ViewSet):
-    permission_classes = (AllowMembers,)
-
-    def list(self, request):
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": NETLIGHT_API_KEY,
-        }
-        # TODO: Cache this request for a few minutes
-        r = requests.get(
-            f"{NETLIGHT_API_URL}/locks/{NETLIGHT_LOCK_ID}", headers=headers
-        )
-
-        if r.status_code == 200:
-            data = r.json()
-            return Response(
-                {
-                    "status": data["connectionStatus"],
-                    "battery_percentage": data["batteryStatus"],
-                    "last_opened": data["lastLockEvent"]["eventTime"],
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        return Response(
-            {"detail": "Problem i kommunikationen med låset.", "status": r.status_code},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    @action(detail=False, methods=["post"])
-    def unlock(self, request):
-        return self.lock_command("unlock", request.user)
-
-    @action(detail=False, methods=["post"])
-    def lock(self, request):
-        return self.lock_command("lock", request.user)
-
-    def lock_command(self, command, user):
-        """
-        Unlocks or locks the Netlight door.
-        """
-        hub_command = None
-
-        if command == "unlock":
-            hub_command = 0
-        elif command == "lock":
-            hub_command = 1
-        else:
-            return Response(
-                {"detail": "Invalid command."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        headers = {
-            "Content-Type": "application/json",
-            "Cache-Control": "no-cache",
-            "Authorization": NETLIGHT_API_KEY,
-        }
-        data = {"type": command}
-        now = datetime.datetime.now()
-
-        # Limit time of day when people can unlock door, they should still be able to lock at any time.
-        todayMorningLimit = now.replace(hour=5, minute=0, second=0, microsecond=0)
-        todayEveningLimit = now.replace(hour=21, minute=0, second=0, microsecond=0)
-        notWithinLimits = now > todayEveningLimit or now < todayMorningLimit
-        if command == "unlock" and notWithinLimits:
-            return Response(
-                {
-                    "detail": "Det går endast att låsa upp mellan "
-                    + todayMorningLimit.strftime("%H:%M")
-                    + " och "
-                    + todayEveningLimit.strftime("%H:%M")
-                    + "."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        r = None
-        # Log action and send request
-        if log(command, Entry.NETLIGHT, user=user):
-            r = requests.post(
-                f"{NETLIGHT_API_URL}/locks/{NETLIGHT_LOCK_ID}/operations",
-                data=json.dumps(data),
-                headers=headers,
-            )
-        else:
-            return Response(
-                {"detail": "Unable to log request."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        # Respond to success
-        if r.status_code == 200:
-            msg = "upplåst" if command == "unlock" else "låst"
-            return Response(
-                {"detail": "Dörren är nu på väg att bli " + msg + "."},
-                status=status.HTTP_200_OK,
-            )
-
-        # Respond to failed lock communication
-        if r.status_code == 503:
-            return Response(
-                {
-                    "detail": "Låsservern kan inte nå låset. Se till att dosan är inkopplad."
-                },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-        if r.status_code == 401:
-            return Response(
-                {"detail": "Felkonfigurerad API_KEY eller AUTHORIZATION på servern."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-        if r.status_code == 400:
-            return Response(
-                {"detail": "Felkonfigurerat LOCK_ID på servern."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        # If all other checks fail.
-        return Response(
-            {"detail": "Problem i kommunikationen med låset.", "status": r.status_code},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
