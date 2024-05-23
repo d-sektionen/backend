@@ -253,6 +253,8 @@ SEAM_BETTAN_ID = os.getenv("SEAM_BETTAN_ID")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
 
+WERK_WEBHOOK_URL = os.getenv("WERK_WEBHOOK_URL", "")
+
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
 
