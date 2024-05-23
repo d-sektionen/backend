@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "storage",
     "voting.apps.VotingConfig",
     "tools",
+    "locks",
     "membership",
     "booking",
     "logger",
@@ -247,13 +248,8 @@ WAGTAIL_ALLOW_UNICODE_SLUGS = False
 STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
 KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
 
-
-# some of these IDs can be found at: https://api.gluehome.com/api/Hubs
-NETLIGHT_API_URL = "https://user-api.gluehome.com/v1"
-NETLIGHT_API_KEY = os.getenv("NETLIGHT_API_KEY")
-NETLIGHT_HUB_ID = os.getenv("NETLIGHT_HUB_ID")
-NETLIGHT_LOCK_ID = os.getenv("NETLIGHT_LOCK_ID")
-NETLIGHT_AUTHORIZATION = os.getenv("NETLIGHT_AUTHORIZATION")
+# Seam Api
+SEAM_BETTAN_ID = os.getenv("SEAM_BETTAN_ID")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
 
