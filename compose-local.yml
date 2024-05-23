@@ -1,0 +1,49 @@
+version: "3.12"
+
+services:
+  local_dev_database:
+    image: postgres:16.2-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django
+    volumes:
+      - dev_db_data:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432
+    networks:
+      - internal # network internal
+
+  local_dev_app:
+    build: .
+    restart: on-failure
+    command: uwsgi --ini /srv/backend.uwsgi.ini
+    volumes:
+      - ./backend.uwsgi.ini:/srv/backend.uwsgi.ini
+      - ./static:/code/static
+      - ./log:/var/log/uwsgi/
+    ports:
+      - 127.0.0.1:8000:8000
+    environment:
+      POSTGRES_NAME: django
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django
+      POSTGRES_HOST: local_dev_database
+      POSTGRES_PORT: 5432
+    env_file:
+      # Environment variable file for keys and secrets for azure authentication.
+      - ./.env
+    networks:
+      - internal # network internal
+      - default # network outside
+    depends_on:
+      - local_dev_database
+
+volumes:
+  dev_db_data:
+
+networks:
+  default:
+    name: backend_dev_network
+  internal:
+    internal: true
