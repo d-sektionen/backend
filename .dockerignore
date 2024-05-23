@@ -1,0 +1,11 @@
+__pycache__/
+static/
+.vscode/
+.env
+.gitignore
+*.sqlite3
+.venv
+*.ini
+*compose*.yml
+Dockerfile
+log/

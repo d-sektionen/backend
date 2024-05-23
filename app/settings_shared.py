@@ -10,11 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-import os
-import sys
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import datetime
+import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -181,17 +180,19 @@ CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 CLIENT_ID = os.getenv("CLIENT_ID")
 ### New authentication system for liu
 AUTH_ADFS = {
-    #"LOGIN_EXEMPT_URLS": ["account/"],
+    # "LOGIN_EXEMPT_URLS": ["account/"],
     "SERVER": "fs.liu.se",
     "CLIENT_ID": CLIENT_ID,
     "RELYING_PARTY_ID": CLIENT_ID,
     # Make sure to read the documentation about the AUDIENCE setting
     # when you configured the identifier as a URL!
-    "AUDIENCE": "microsoft:identityserver:"+str(CLIENT_ID),
-    "CA_BUNDLE":True,
-    "CLAIM_MAPPING": {"first_name": "given_name",
-                      "last_name": "family_name",
-                      "email": "email"},
+    "AUDIENCE": "microsoft:identityserver:" + str(CLIENT_ID),
+    "CA_BUNDLE": True,
+    "CLAIM_MAPPING": {
+        "first_name": "given_name",
+        "last_name": "family_name",
+        "email": "email",
+    },
 }
 
 # Configure django to redirect users to the right URL for login
@@ -213,11 +214,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("app.permissions.AllowOptionsAuthentication",),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
+        "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
+        "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
     ),
 }
 
