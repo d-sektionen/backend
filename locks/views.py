@@ -6,57 +6,51 @@ from rest_framework.response import Response
 import datetime
 from rest_framework import status
 from django.conf import settings
-from seamapi.types import SeamApiException
+from yalexs.const import Brand
+from yalexs.exceptions import AugustApiHTTPError
+from yalexs.api import Api
+from yalexs.authenticator import Authenticator, AuthenticationState
 from account.permissions import AllowMembers
 from logger.utils import log, Entry
-from seamapi import Seam
 
-SEAM_BETTAN_ID = settings.SEAM_BETTAN_ID
-seam = Seam()
+
+BETTAN_LOCK_ID = settings.BETTAN_LOCK_ID
+YALE_EMAIL = settings.YALE_EMAIL
+YALE_PASSWORD = settings.YALE_PASSWORD
+
+yale_api = Api(timeout=20, brand=Brand.YALE_HOME)
+yale_authenticator = Authenticator(
+    yale_api,
+    "email",
+    YALE_EMAIL,
+    YALE_PASSWORD,
+    access_token_cache_file=".YALE_ACCESS_TOKEN_CACHE",
+)
+yale_authenticate = yale_authenticator.authenticate()
 
 
 class BettanViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
 
     def list(self, request):
-        lock = None
         try:
-            lock = seam.locks.get(device=SEAM_BETTAN_ID)
-        except SeamApiException as e:
-            if e.metadata is None:
-                return Response(
-                    {"detail": "Något gick fel. Kontakta Webmaster."},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-
-            if e.metadata["type"] and e.metadata["type"] == "device_not_found":
-                return Response(
-                    {"detail": "Det gick inte att hitta låset. Kontakta Webmaster."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            return Response(
-                {"detail": "Något gick fel. Kontakta Webmaster."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            lock = yale_api.get_lock_detail(
+                lock_id=BETTAN_LOCK_ID, access_token=yale_authenticate.access_token
             )
-
-        if lock.errors:
-            formatted_errors = []
-            for error in lock.errors:
-                if error["error_code"] == "device_disconnected":
-                    formatted_errors.append("Kan inte kommunicera med låset. Är den bortkopplad?")
-                elif error["error_code"] == "hub_disconnected":
-                    formatted_errors.append("Kan inte kommunicera med hubben. Är den bortkopplad?")
-
+        except AugustApiHTTPError as e:
+            print(e)
             return Response(
-                {"detail": "\n".join(formatted_errors)},
+                {
+                    "detail": "Problem i kommunikationen med låset. Kontakta webmaster!",
+                    "status": "500",
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(
             {
-                "status": lock.properties.online,
-                "battery_percentage": lock.properties.battery_level * 100,
+                "status": lock.bridge_is_online,  # Not 1:1 with previous implementation
+                "battery_percentage": lock.battery_level,
             },
             status=status.HTTP_200_OK,
         )
@@ -99,27 +93,30 @@ class BettanViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        # An action attempt may not always be successful and may need polling.
-        # If errors start occurring, look into that.
-        attempt = None
-        if command == "unlock":
-            attempt = seam.locks.unlock_door(device=SEAM_BETTAN_ID)
-        elif command == "lock":
-            attempt = seam.locks.lock_door(device=SEAM_BETTAN_ID)
-        else:
-            return Response({"detail": "Invalid command."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if command == "unlock":
+                yale_api.unlock(
+                    access_token=yale_authenticate.access_token, lock_id=BETTAN_LOCK_ID
+                )
+            elif command == "lock":
+                yale_api.lock(
+                    access_token=yale_authenticate.access_token, lock_id=BETTAN_LOCK_ID
+                )
+            else:
+                return Response({"detail": "Invalid command."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Respond to success
-        if attempt.status == "success":
+            # Respond to success
             msg = "upplåst" if command == "unlock" else "låst"
             return Response(
                 {"detail": "Dörren är nu på väg att bli " + msg + "."},
                 status=status.HTTP_200_OK,
             )
-        # TODO: There might me more errors to handle but the Seam error documentation is not great.
-
-        # If all other checks fail.
-        return Response(
-            {"detail": "Problem i kommunikationen med låset.", "status": "500"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+        except AugustApiHTTPError as e:
+            print(e)
+            return Response(
+                {
+                    "detail": "Problem i kommunikationen med låset. Kontakta webmaster!",
+                    "status": "500",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
