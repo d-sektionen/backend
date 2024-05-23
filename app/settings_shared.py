@@ -50,34 +50,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-    "graphene_django",
     "imagekit",
-    # ---
-    # Wagtail related
-    # ---
-    # Wagtail project apps
-    "cms.misc",
-    "cms.home",
-    "cms.infomail",
-    "cms.infopage",
-    "cms.snippets",
-    "cms.post",
-    # Wagtail modules
-    "wagtail.contrib.styleguide",
-    "wagtail.contrib.forms",
-    "wagtail.contrib.redirects",
-    "wagtail.embeds",
-    "wagtail.sites",
-    "wagtail.users",
-    "wagtail.snippets",
-    "wagtail.documents",
-    "wagtail.images",
-    "wagtail.search",
-    "wagtail.admin",
-    "wagtail.core",
-    "wagtail.api.v2",
-    "wagtail.contrib.search_promotions",
-    # "grapple",
     "modelcluster",
     "taggit",
     "django_auth_adfs",
@@ -93,7 +66,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "cas.middleware.CASMiddleware",
-    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     #'django_auth_adfs.middleware.LoginRequiredMiddleware',
 ]
 
@@ -221,28 +193,6 @@ REST_FRAMEWORK = {
         "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
     ),
 }
-
-# # GraphQL configuration, right now only used in CMS.
-GRAPHENE = {"SCHEMA": "cms.graphql.schema.schema"}
-
-# GRAPHENE = {"SCHEMA": "grapple.schema.schema"}
-# GRAPPLE_APPS = {
-#     "misc": "",
-#     "home": "",
-#     "infomail": "",
-#     "infopage": "",
-#     "snippets": "",
-#     "post": "",
-# }
-
-
-# Wagtail config, used in cms
-# TODO: configure wagtail search backend, probably simple DB-search
-# for development to avoid dependencies and a more advanced search
-# backend for production.
-WAGTAIL_SITE_NAME = "Datateknologsektionen"
-WAGTAIL_ALLOW_UNICODE_SLUGS = False
-
 
 # TODO: remove, these services are discontinued.
 STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
