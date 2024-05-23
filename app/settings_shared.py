@@ -194,10 +194,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-# TODO: remove, these services are discontinued.
-STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
-KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
-
 # Yale Api
 BETTAN_LOCK_ID = os.getenv("BETTAN_LOCK_ID")
 YALE_EMAIL = os.getenv("YALE_EMAIL")
