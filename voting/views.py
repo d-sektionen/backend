@@ -226,7 +226,7 @@ class VoteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return Vote.objects.none()
 
 
-class VoteAdminViewSet(NoDeleteViewSet):
+class VoteAdminViewSet(viewsets.ModelViewSet):
     serializer_class = VoteListSerializer
     queryset = Vote.objects.all()
     permission_classes = (FixedDjangoModelPermissions,)
@@ -236,6 +236,22 @@ class VoteAdminViewSet(NoDeleteViewSet):
             return VoteDetailsSerializer
         return VoteListSerializer
 
+    def destroy(self, request, pk=None):
+        if "meeting_id" not in request.query_params:
+            raise exceptions.ParseError(
+                detail='Missing required parameter "meeting_id"'
+            )
+
+        if "vote_id" not in request.query_params:
+            raise exceptions.ParseError(
+                detail='Missing required parameter "vote_id"'
+            )
+
+        vote = Vote.objects.filter(id=request.query_params["vote_id"], meeting_id=request.query_params["meeting_id"])
+        if vote:
+            vote.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MadeVoteViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
@@ -243,17 +259,39 @@ class MadeVoteViewSet(viewsets.ViewSet):
     # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it:
     @transaction.atomic
     def create(self, request):
+        if "vote_id" not in request.data:
+            raise exceptions.ParseError(
+                detail='Missing required parameter "vote_id"'
+            )
+
+        if "alternative_id" not in request.data:
+            raise exceptions.ParseError(
+                detail='Missing required parameter "alternative_id"'
+            )
         vote_id = request.data["vote_id"]
         alternative_id = request.data["alternative_id"]
 
-        alternative = Alternative.objects.get(id=alternative_id)
-        if str(alternative.vote_id) != str(vote_id):
+        try:
+            alternative = Alternative.objects.get(id=alternative_id)
+        except:
+            return Response(
+                {"error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if alternative.vote_id != vote_id:
+            return Response(
+                {"error": "Alternativet hör inte till omröstningen"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            vote = Vote.objects.get(id=vote_id)
+        except:
             return Response(
                 {"error": "Omröstningen hittades inte"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-        vote = Vote.objects.get(id=vote_id)
 
         if not Attendant.objects.filter(
             meeting=vote.meeting, user=request.user
