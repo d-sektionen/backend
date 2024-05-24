@@ -19,14 +19,18 @@ YALE_EMAIL = settings.YALE_EMAIL
 YALE_PASSWORD = settings.YALE_PASSWORD
 
 yale_api = Api(timeout=20, brand=Brand.YALE_HOME)
-yale_authenticator = Authenticator(
-    yale_api,
-    "email",
-    YALE_EMAIL,
-    YALE_PASSWORD,
-    access_token_cache_file=".YALE_ACCESS_TOKEN_CACHE",
-)
-yale_authenticate = yale_authenticator.authenticate()
+if YALE_EMAIL and YALE_PASSWORD:
+    yale_authenticator = Authenticator(
+        yale_api,
+        "email",
+        YALE_EMAIL,
+        YALE_PASSWORD,
+        access_token_cache_file=".YALE_ACCESS_TOKEN_CACHE",
+    )
+
+    yale_authenticate = yale_authenticator.authenticate()
+else:
+    yale_authenticate = None
 
 
 class BettanViewSet(viewsets.ViewSet):
