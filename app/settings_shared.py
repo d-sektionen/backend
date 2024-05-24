@@ -46,13 +46,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cas",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
     "imagekit",
-    "modelcluster",
-    "taggit",
     "django_auth_adfs",
 ]
 
@@ -65,14 +62,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "cas.middleware.CASMiddleware",
     #'django_auth_adfs.middleware.LoginRequiredMiddleware',
 ]
 
 
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
-    "cas.backends.CASBackend",
     "django_auth_adfs.backend.AdfsAuthCodeBackend",
     "django_auth_adfs.backend.AdfsAccessTokenBackend",
 )
@@ -142,12 +137,6 @@ MEDIA_URL = "/media/"
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
-
-# CAS (system for LiU authentication) !!!! Being replaced !!!!
-CAS_SERVER_URL = "https://login.liu.se/cas/"
-CAS_LOGOUT_COMPLETELY = True
-CAS_PROVIDE_URL_TO_LOGOUT = True
-CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 ### New authentication system for liu

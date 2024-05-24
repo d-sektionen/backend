@@ -36,8 +36,6 @@ import locks.urls
 
 from django.views.decorators.csrf import csrf_exempt
 
-import cas.views
-
 
 def redirect_to_my_auth(request):
     return redirect_to_login(reverse("wagtailadmin_home"), login_url="/account/login")
