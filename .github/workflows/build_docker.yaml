@@ -19,6 +19,11 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      - name: Extract branch name
+        id: extract_branch
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -26,10 +31,6 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Extract branch name
-        id: extract_branch
-        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-      
       - name: Extract metadata (tags) for Docker
         id: meta
         uses: docker/metadata-action@v4
