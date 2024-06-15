@@ -14,5 +14,6 @@ sys
 uwsgi_params
 media/
 static/
-
+log/
 env
+.YALE_ACCESS_TOKEN_CACHE

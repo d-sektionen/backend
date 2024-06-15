@@ -10,11 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-import os
-import sys
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import datetime
+import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -47,40 +46,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cas",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-    "graphene_django",
     "imagekit",
-    # ---
-    # Wagtail related
-    # ---
-    # Wagtail project apps
-    "cms.misc",
-    "cms.home",
-    "cms.infomail",
-    "cms.infopage",
-    "cms.snippets",
-    "cms.post",
-    # Wagtail modules
-    "wagtail.contrib.styleguide",
-    "wagtail.contrib.forms",
-    "wagtail.contrib.redirects",
-    "wagtail.embeds",
-    "wagtail.sites",
-    "wagtail.users",
-    "wagtail.snippets",
-    "wagtail.documents",
-    "wagtail.images",
-    "wagtail.search",
-    "wagtail.admin",
-    "wagtail.core",
-    "wagtail.api.v2",
-    "wagtail.contrib.search_promotions",
-    # "grapple",
-    "modelcluster",
-    "taggit",
     "django_auth_adfs",
 ]
 
@@ -93,15 +62,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "cas.middleware.CASMiddleware",
-    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     #'django_auth_adfs.middleware.LoginRequiredMiddleware',
 ]
 
 
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
-    "cas.backends.CASBackend",
     "django_auth_adfs.backend.AdfsAuthCodeBackend",
     "django_auth_adfs.backend.AdfsAccessTokenBackend",
 )
@@ -172,26 +138,22 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
-# CAS (system for LiU authentication) !!!! Being replaced !!!!
-CAS_SERVER_URL = "https://login.liu.se/cas/"
-CAS_LOGOUT_COMPLETELY = True
-CAS_PROVIDE_URL_TO_LOGOUT = True
-CAS_RESPONSE_CALLBACKS = ("account.user.cas_callback",)
-
 CLIENT_ID = os.getenv("CLIENT_ID")
 ### New authentication system for liu
 AUTH_ADFS = {
-    #"LOGIN_EXEMPT_URLS": ["account/"],
+    # "LOGIN_EXEMPT_URLS": ["account/"],
     "SERVER": "fs.liu.se",
     "CLIENT_ID": CLIENT_ID,
     "RELYING_PARTY_ID": CLIENT_ID,
     # Make sure to read the documentation about the AUDIENCE setting
     # when you configured the identifier as a URL!
-    "AUDIENCE": "microsoft:identityserver:"+str(CLIENT_ID),
-    "CA_BUNDLE":True,
-    "CLAIM_MAPPING": {"first_name": "given_name",
-                      "last_name": "family_name",
-                      "email": "email"},
+    "AUDIENCE": "microsoft:identityserver:" + str(CLIENT_ID),
+    "CA_BUNDLE": True,
+    "CLAIM_MAPPING": {
+        "first_name": "given_name",
+        "last_name": "family_name",
+        "email": "email",
+    },
 }
 
 # Configure django to redirect users to the right URL for login
@@ -213,44 +175,22 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("app.permissions.AllowOptionsAuthentication",),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
+        "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        'django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication',
+        "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
     ),
 }
 
-# # GraphQL configuration, right now only used in CMS.
-GRAPHENE = {"SCHEMA": "cms.graphql.schema.schema"}
-
-# GRAPHENE = {"SCHEMA": "grapple.schema.schema"}
-# GRAPPLE_APPS = {
-#     "misc": "",
-#     "home": "",
-#     "infomail": "",
-#     "infopage": "",
-#     "snippets": "",
-#     "post": "",
-# }
-
-
-# Wagtail config, used in cms
-# TODO: configure wagtail search backend, probably simple DB-search
-# for development to avoid dependencies and a more advanced search
-# backend for production.
-WAGTAIL_SITE_NAME = "Datateknologsektionen"
-WAGTAIL_ALLOW_UNICODE_SLUGS = False
-
-
-# TODO: remove, these services are discontinued.
-STUDENT_PORTAL_SERVICE_KEY = os.getenv("STUDENT_PORTAL_SERVICE_KEY")
-KOBRA_TOKEN = os.getenv("KOBRA_TOKEN")
-
-# Seam Api
-SEAM_BETTAN_ID = os.getenv("SEAM_BETTAN_ID")
+# Yale Api
+BETTAN_LOCK_ID = os.getenv("BETTAN_LOCK_ID")
+YALE_EMAIL = os.getenv("YALE_EMAIL")
+YALE_PASSWORD = os.getenv("YALE_PASSWORD")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
+
+WERK_WEBHOOK_URL = os.getenv("WERK_WEBHOOK_URL", "")
 
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True

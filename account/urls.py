@@ -9,9 +9,6 @@ from rest_framework_simplejwt.views import (
 from account import views
 from .views import AdminLoginView
 
-
-#import cas.views
-
 router = routers.DefaultRouter()
 router.register(
     r"calendar-subscriptions",
@@ -38,7 +35,4 @@ urlpatterns = [
     # Login with credentials, also returns JWT
     path(r"credential-login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path(r"calendar/<uuid:pk>", views.CalendarFeed(), name="calendar_feed"),
-    # CAS
-    #path(r"login/", cas.views.login, name="login"),
-    #path(r"logout/", cas.views.logout, name="logout"),
 ]
