@@ -14,8 +14,12 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import datetime
 import os
 import sys
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+dotenv_path = os.path.join(BASE_DIR, '.env')
+load_dotenv(dotenv_path)
 
 # Application definition
 
