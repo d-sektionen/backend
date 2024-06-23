@@ -15,7 +15,7 @@ services:
       - internal # network internal
 
   dev_app:
-    image: registry.d-sektionen.se/backend:dev # Specify backend image
+    image: registry.d-sektionen.se/backend:development # Specify backend image
     restart: on-failure
     command: uwsgi --ini /srv/backend.uwsgi.ini
     volumes:
