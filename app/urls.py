@@ -70,6 +70,8 @@ urlpatterns = [
     url(r"^budget/", include(budgetportal.urls)),
     # Locks
     url(r"^locks/", include(locks.urls)),
+    # Login to backend
+    url('oauth2/', include('django_auth_adfs.urls')),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # TODO: Change for production

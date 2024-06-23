@@ -35,4 +35,5 @@ urlpatterns = [
     # Login with credentials, also returns JWT
     path(r"credential-login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path(r"calendar/<uuid:pk>", views.CalendarFeed(), name="calendar_feed"),
+
 ]
