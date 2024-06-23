@@ -23,7 +23,6 @@ from django.urls import re_path, reverse
 
 import account.urls
 import voting.urls
-import storage.urls
 import booking.urls
 import tools.urls
 import checkin.urls
@@ -47,8 +46,6 @@ urlpatterns = [
     re_path(r"^account/", include(account.urls)),
     # Voting
     re_path(r"^voting/", include(voting.urls)),
-    # Storage
-    re_path(r"^storage/", include(storage.urls)),
     # Booking
     re_path(r"^booking/", include(booking.urls)),
     # Tools
