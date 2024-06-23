@@ -36,7 +36,9 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: registry.d-sektionen.se/backend
-          tags: ${{ env.BRANCH_NAME }}
+          tags: |
+            type=ref,event=branch,branch=master,tag=latest
+            type=ref,event=branch,branch=${{ env.BRANCH_NAME }} 
 
       - name: Build and push Docker image
         id: push
