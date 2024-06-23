@@ -28,13 +28,12 @@
     let csrftoken = getCookie('csrftoken');
     
     const deviceFunc = () => {
-        if (host == 'localhost:8000') {
+        if (host.includes('localhost') || host.includes('127.0.0.1')) {
             url = `http://${host}${deviceLogin}`
         } else {
             url = `https://${host}${deviceLogin}`
         }
 
-        console.log(url)
         fetch(url, {
             method:'POST',
             headers: {
@@ -45,7 +44,6 @@
         })
         .then(res => res.json())
         .then(js => {
-            console.log(js)
             // Set id of requesting device (This user)
             deviceCode = js['device_code']
             // Set verification url (sends user to LiU ADFS login)
