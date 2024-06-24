@@ -4,13 +4,6 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import uuid
 
-# Can be moved if you cba.
-def is_user_in_group(group, user):
-    if group is None or user is None:
-        return False
-
-    return group in user.groups.all()
-
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
