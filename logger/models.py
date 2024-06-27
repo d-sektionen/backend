@@ -15,10 +15,12 @@ class Entry(models.Model):
       (DEBUG, 'Debug'),
   )
 
+  CONFIGURA = 'CF'
   NETLIGHT = 'NL'
   UNCATEGORIZED = 'UN'
   CATEGORIES = (
     (NETLIGHT, 'Netlight'),
+    (CONFIGURA, 'CF'),
     (UNCATEGORIZED, 'Uncategorized'),
   )
 
