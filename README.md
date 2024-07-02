@@ -1,37 +1,25 @@
 # D-sektionens API (Django)
 
-Work in progress to create a common API in Django.
-
-## Note about wagtail-integration branch
-
-Work is being done to migrate all backends (Wordpress, advent calendar, etc.) into a single app.
-All of these will be migrated to this repository and when finished this repository should probably be renamed to `backend`.
-
-The goal of this is to have a well structured, well connected backend at `backend.d-sektionen.se` where different front end applications can fetch data.
-The backend should therefore contain mostly api based (for example, REST or GraphQL) products.
-A guideline is that **a normal visitor should not see `backend.d-sektionen.se` in their url bar.** Although it would be accepted for a content editor to see it.
 
 ## Setting up a local development environment
+The project requires at least Python version 3.9.
+### Create a virtualenv with a Python 3 interpreter and activate it:
 
-Create a virtualenv with a Python 3 interpreter and activate it:
+Setup and activate virtualenv:
 
-Should be at least python version 3.7.
-
-Setup and activate virtualenv
-
-### Linux/Mac
+#### Linux/Mac
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### Windows
-Open Powershell as Administer 
+#### Windows
+Open Powershell as Administrator 
 ```
 set-executionpolicy remotesigned
 ```
 
-In repository root folder
+In repository root folder:
 ```
 python -m venv .venv
 .venv/Scripts/activate
@@ -40,7 +28,7 @@ python -m venv .venv
 **Note: All the following commands assume that you have activated the
 virtual environment using `source .venv/bin/activate` in your terminal.**
 
-Then install the needed Python dependencies:
+#### Install the needed Python dependencies:
 
 ```sh
 pip install -r development.txt
@@ -52,8 +40,8 @@ Every time you make a modification to the database structure, run this:
 ./manage.py migrate
 ```
 
-Note: You will need to run the migration command if you encounter the
-following error message:
+**Note: You will need to run the migration command if you encounter the
+following error message:**
 
 ```sh
 You have 13 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
@@ -68,74 +56,31 @@ Start the Django development server and begin developing:
 
 If you're using MAC OS, check out: https://stackoverflow.com/a/53310545/9966843
 
+## Environment variables
+The project requires some environment variables to be set. The following is a sample of what an `.env` file may look like.
+```bash
+CLIENT_ID=
+```
+The following variables are optional:
+```bash
+YALE_EMAIL=
+YALE_PASSWORD=
+BETTAN_LOCK_ID=
+CONFIGURA_LOCK_ID=
+WERK_WEBHOOK_URL=
+```
+Keep in mind some functionality may not work without the optional variables.
+
 ## Accessing content
 
-For now, the only way to access content is to visit the Django admin
+The only way to access content is to visit the Django admin
 site. This can be found at http://127.0.0.1:8000/admin.
+
+To be able to log in to the admin site, you first need to visit http://127.0.0.1:8000/account/admin_device_login.
+Once there, authenticate using your LiU details. Then you can return to the admin site.
 
 If you are denied access to anything, try running the following in your terminal:
 ```sh
 ./manage.py add_super_user <username>
 ```
-
-# Documentation
-
-## uwsgitop
-
-If you want to run something like "top" but for uwsgi. 
-Go into the .venv in the backend-project and run:
-
-```sh
-uwsgitop http://127.0.0.1:1235
-```
-
-## Account
-
-### GET /account/token
-
-Redirects the user to the LiU login page and upon successful login returns a json object containing a token. Example:
-
-```
-{
-    "token": "YOUR TOKEN HERE"
-}
-```
-
-### GET /account/token?redirect=URL
-
-Same as the normal token endpoint but instead of returning a json object redirects the user to the supplied URL with an added query parameter (`URL?token=YOURTOKENHERE`).
-
-### GET /account/user/ID
-
-Retrieves a user. The ID can be a numerical identifier (as stored in the database), or the string "me" for the currently logged in user. Example:
-
-```
-{
-    {
-        "username": "patsl736",
-        "first_name": "Patrik",
-        "last_name": "Sletmo",
-        "groups": [
-            {
-                "name": "D-sektionen"
-            },
-            {
-                "name": "Admins for D-sektionen"
-            },
-            {
-                "name": "Admins for I-sektionen"
-            }
-        ],
-        "sections": [
-            {
-                "id": 1,
-                "name": "D-sektionen"
-            },
-            {
-                "id": 2,
-                "name": "I-sektionen"
-            }
-        ]
-    }
-}
-```
+Unlike `manage.py createsuperuser`, this will upgrade the account to superuser if it already exists.
