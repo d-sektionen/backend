@@ -1,5 +1,14 @@
 # Locks
-This app has endpoints and functionality related to the smart locks used on our rented rooms. Currently it uses Seam API to integrate with a Yale Linus lock. The documentation can be found [here](https://docs.seam.co/latest/).
-
+This app has endpoints and functionality related to the smart locks used on our rented rooms. The app contacts the Yale API directly through the use of the library `yalexs`.
 ## Development
-It is recommended to use a sandbox when developing as it allows to test on fake locks. It can be enabled when creating a new workspace in the Seam dashboard. It can be specified through the `SEAM_API_KEY` environment variable. Fake locks can be added using the fake login details [here](https://docs.seam.co/latest/developer-tools/sandbox-and-sample-data)
+**Before adding any new functionality, make sure to read the documentation for [yalexs](https://github.com/bdraco/yalexs).**
+
+It is recommended to use your own Yale account for testing. If you don't have an account, ask the Webmaster for an invite. Once you have one, you can acquire a valid token through the management command `authenticate_yale`:
+
+```
+./manage.py authenticate_yale
+```
+
+It will guide you through the authentication process, including 2fa. Once authenticated, a file called `.YALE_TOKEN_CACHE` will be created in the root directory. This is all you need to make authenticated requests to the API.
+
+**Not working?** Remember to specify `YALE_EMAIL` and `YALE_PASSWORD` in the `.env` file
