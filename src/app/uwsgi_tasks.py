@@ -5,7 +5,7 @@ https://uwsgi-docs.readthedocs.io/en/latest/PythonDecorators.html
 
 from django.core import management
 
-from uwsgidecorators import *
+from uwsgidecorators import cron
 from datetime import datetime
 
 

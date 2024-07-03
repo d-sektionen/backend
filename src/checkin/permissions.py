@@ -27,6 +27,9 @@ class DoorkeeperPermission(BasePermission):
     Assumes the model instance has an `owner` attribute.
     """
 
+    def event_permission(self, event_meta, t):
+        return event_meta.app_label + "." + t + "_" + event_meta.model
+
     def has_permission(self, request, view):
         # return True
         event_id = request.data.get("event_id")
@@ -49,17 +52,14 @@ class DoorkeeperPermission(BasePermission):
         # It will check if a user has permission to manipulate the EventBase type instead of a Doorkeeper.
         # Which is not entirely correct but should be fine.
         event_meta = ContentType.objects.get_for_model(event)
-        event_permission = (
-            lambda t: event_meta.app_label + "." + t + "_" + event_meta.model
-        )
 
         if request.method == "GET":
             return request.user.has_perms(
-                ["checkin.view_doorkeeper", event_permission("view")]
+                ["checkin.view_doorkeeper", self.event_permission(event_meta, "view")]
             )
         if request.method == "POST":
             return request.user.has_perms(
-                ["checkin.add_doorkeeper", event_permission("add")]
+                ["checkin.add_doorkeeper", self.event_permission(event_meta, "add")]
             )
 
         return True
@@ -71,18 +71,17 @@ class DoorkeeperPermission(BasePermission):
         # It will check if a user has permission to manipulate the EventBase type instead of a Doorkeeper.
         # Which is not entirely correct but should be fine.
         event_meta = ContentType.objects.get_for_model(event)
-        event_permission = (
-            lambda t: event_meta.app_label + "." + t + "_" + event_meta.model
-        )
 
         if request.method == "GET":
             return request.user.has_perms(
-                ["checkin.view_doorkeeper", event_permission("view")]
+                ["checkin.view_doorkeeper", self.event_permission(event_meta, "view")]
             )
         if request.method == "DELETE":
             return request.user.has_perms(
-                ["checkin.delete_doorkeeper", event_permission("delete")]
+                [
+                    "checkin.delete_doorkeeper",
+                    self.event_permission(event_meta, "delete"),
+                ]
             )
 
         return True
-

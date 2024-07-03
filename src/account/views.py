@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.views.decorators.csrf import csrf_exempt
 
 from app.permissions import FixedDjangoModelPermissions
 from booking.models import Booking
@@ -51,9 +51,6 @@ def generate_token(request):
         return JsonResponse(
             {"refresh": str(refresh), "access": str(refresh.access_token)}
         )
-
-
-from django.views.decorators.csrf import csrf_exempt
 
 
 @csrf_exempt
