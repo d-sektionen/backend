@@ -20,7 +20,18 @@ class CommitteeUserSerializer(serializers.ModelSerializer):
 class CommitteeSerializer(serializers.ModelSerializer):
     treasurer = CommitteeUserSerializer()
     chair = CommitteeUserSerializer()
+    members = CommitteeUserSerializer(many=True)
 
     class Meta:
         model = Committee
-        fields = "id", "name", "description", "treasurer", "treasurer_email", "chair", "chair_email"
+        fields = (
+            "id",
+            "name",
+            "description",
+            "treasurer",
+            "treasurer_email",
+            "chair",
+            "chair_email",
+            "members",
+        )
+

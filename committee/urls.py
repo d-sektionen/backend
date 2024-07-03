@@ -1,10 +1,12 @@
+from django.conf.urls import include, url
 from django.urls import path
+from rest_framework import routers
 
-from committee import views
+from . import views
+
+router = routers.DefaultRouter()
+router.register(r"", views.CommitteeViewSet, basename="committees")
 
 urlpatterns = [
-    path('all/', views.get_committees),
-    path('<int:id>/', views.get_committee),
-    path('<int:id>/members/', views.get_committee_members),
-    path('set_dependents/', views.set_committee_dependents)
+    url(r"^", include(router.urls)),
 ]
