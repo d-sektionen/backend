@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.conf import settings
-from django_ical.views import ICalFeed
+from django_ical.views import ICalFeed, ObjectDoesNotExist
 from django.utils.timezone import get_current_timezone
 from django.views.generic import TemplateView
 from rest_framework import mixins, viewsets, status, exceptions
@@ -35,6 +35,7 @@ from .idtoken import generate_id_token, read_id_token
 from .models import CalendarSubscription
 from account.adfs_token_validation import get_public_key
 
+
 @login_required
 def generate_token(request):
     refresh = RefreshToken.for_user(request.user)
@@ -51,22 +52,25 @@ def generate_token(request):
             {"refresh": str(refresh), "access": str(refresh.access_token)}
         )
 
+
 from django.views.decorators.csrf import csrf_exempt
+
+
 @csrf_exempt
 def device_login(request):
-    if len(request.body) == 0 or 'device_code' not in request.body.decode('utf-8'):
+    if len(request.body) == 0 or "device_code" not in request.body.decode("utf-8"):
 
-        #user = User.objects.get(username__iexact="felli675")
+        # user = User.objects.get(username__iexact="felli675")
 
         payload = {
             "client_id": settings.CLIENT_ID,
-            "scope":"openid",
-        }       
+            "scope": "openid",
+        }
         response = requests.post(
             "https://fs.liu.se/adfs/oauth2/devicecode",
             data=payload,
         )
-        data = response.json() 
+        data = response.json()
         return JsonResponse(data)
     else:
         req = json.loads(request.body)
@@ -74,42 +78,49 @@ def device_login(request):
         payload = {
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
             "client_id": settings.CLIENT_ID,
-            "device_code": device_code
+            "device_code": device_code,
         }
-        
+
         # Poll for 5 seconds
-        for _ in range(5):    
+        for _ in range(5):
             response = requests.post(
                 "https://fs.liu.se/adfs/oauth2/token",
                 data=payload,
             )
-            if response.status_code == 200:        
+            if response.status_code == 200:
                 data = response.json()
                 id_token = data["id_token"]
                 access_token = data["access_token"]
-                public_key = get_public_key(id_token, "https://fs.liu.se/adfs/discovery/keys")
-                decoded = jwt.decode(id_token,
-                    key=public_key,
-                    algorithms=['RS256'],
-                    audience=[settings.CLIENT_ID]
+                public_key = get_public_key(
+                    id_token, "https://fs.liu.se/adfs/discovery/keys"
                 )
-                user = get_or_create_user(decoded['winaccountname'])[0]
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')#, backend=backend)
+                decoded = jwt.decode(
+                    id_token,
+                    key=public_key,
+                    algorithms=["RS256"],
+                    audience=[settings.CLIENT_ID],
+                )
+                user = get_or_create_user(decoded["winaccountname"])[0]
+                login(
+                    request, user, backend="django.contrib.auth.backends.ModelBackend"
+                )  # , backend=backend)
 
                 decoded["access_token"] = access_token
-                return JsonResponse({
-                    "code":decoded, 
-                    "user": str(user), 
-                })
+                return JsonResponse(
+                    {
+                        "code": decoded,
+                        "user": str(user),
+                    }
+                )
             time.sleep(1)
-        return JsonResponse({"code":device_code})
+        return JsonResponse({"code": device_code})
 
 
 def device_logout(request):
 
     logout(request)
-    
-    return JsonResponse({"user":str(request.user)})
+
+    return JsonResponse({"user": str(request.user)})
 
 
 class MeView(mixins.RetrieveModelMixin, GenericAPIView):
@@ -122,9 +133,11 @@ class MeView(mixins.RetrieveModelMixin, GenericAPIView):
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+
 # Should be removed when a more suitable login view is implemented
 class AdminLoginView(TemplateView):
     template_name = "admin.html"
+
 
 class IdentificationTokenView(APIView):
     """
@@ -142,7 +155,7 @@ class IdentificationTokenView(APIView):
     def post(self, request, *args, **kwargs):
         """
         Verify a token (returns a user)
-        
+
         example input:
         ```
         {
@@ -152,7 +165,7 @@ class IdentificationTokenView(APIView):
         """
         try:
             user = read_id_token(request.data["token"])
-        except:
+        except ObjectDoesNotExist:
             raise exceptions.ParseError(detail="Token is invalid.")
 
         return Response(SimpleUserSerializer(user).data, status.HTTP_200_OK)
@@ -173,7 +186,7 @@ class InfomailSubscriberView(mixins.ListModelMixin, GenericAPIView):
 
 class InfomailEveryoneView(mixins.ListModelMixin, GenericAPIView):
     """
-    Returns all users 
+    Returns all users
     """
 
     permission_classes = [FixedDjangoModelPermissions]
@@ -258,7 +271,7 @@ class CalendarFeed(ICalFeed):
         return item["title"]
 
     def item_guid(self, item):
-        return item['id'] + "@d-sektionen.se"
+        return item["id"] + "@d-sektionen.se"
 
     def item_description(self, item):
         return item["description"]

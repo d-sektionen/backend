@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import F, Q, ObjectDoesNotExist
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -54,9 +54,8 @@ class MeetingGuestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     # permission_classes = (AllowMembers,)
 
     def get_queryset(self):
-        queryset = (
-            Meeting.objects.filter(archived=False)
-            .filter(Q(attendants__user=self.request.user))
+        queryset = Meeting.objects.filter(archived=False).filter(
+            Q(attendants__user=self.request.user)
         )
         return queryset
 
@@ -170,17 +169,14 @@ class AttendantViewSet(
     serializer_class = AttendantSerializer
     permission_classes = (FixedDjangoModelPermissions,)
 
-
-
-    # OBS: hantera i denna så att en person som inte har 
+    # OBS: hantera i denna så att en person som inte har
     # voting rights inte räknas in här. Den ska istället räknas
     # till guests eller liknande...
 
     # denna kanske kan innehålla member_attendants och
-    # guest_attendants som skickas till frontenden 
-    # genom att serializern separerar dem i två olika 
-    # dictionaries...? 
-
+    # guest_attendants som skickas till frontenden
+    # genom att serializern separerar dem i två olika
+    # dictionaries...?
 
     def get_queryset(self, meeting_specific=False):
         if self.request.method == "GET" or meeting_specific:
@@ -204,7 +200,7 @@ class AttendantViewSet(
             # do not remove guests from meeting:
             if check_membership(attendant.user.username):
                 attendant.delete()
-                
+
         # attendants.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -243,15 +239,17 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
             )
 
         if "vote_id" not in request.query_params:
-            raise exceptions.ParseError(
-                detail='Missing required parameter "vote_id"'
-            )
+            raise exceptions.ParseError(detail='Missing required parameter "vote_id"')
 
-        vote = Vote.objects.filter(id=request.query_params["vote_id"], meeting_id=request.query_params["meeting_id"])
+        vote = Vote.objects.filter(
+            id=request.query_params["vote_id"],
+            meeting_id=request.query_params["meeting_id"],
+        )
         if vote:
             vote.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class MadeVoteViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
@@ -260,9 +258,7 @@ class MadeVoteViewSet(viewsets.ViewSet):
     @transaction.atomic
     def create(self, request):
         if "vote_id" not in request.data:
-            raise exceptions.ParseError(
-                detail='Missing required parameter "vote_id"'
-            )
+            raise exceptions.ParseError(detail='Missing required parameter "vote_id"')
 
         if "alternative_id" not in request.data:
             raise exceptions.ParseError(
@@ -273,9 +269,11 @@ class MadeVoteViewSet(viewsets.ViewSet):
 
         try:
             alternative = Alternative.objects.get(id=alternative_id)
-        except:
+        except ObjectDoesNotExist:
             return Response(
-                {"error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"},
+                {
+                    "error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -287,7 +285,7 @@ class MadeVoteViewSet(viewsets.ViewSet):
 
         try:
             vote = Vote.objects.get(id=vote_id)
-        except:
+        except ObjectDoesNotExist:
             return Response(
                 {"error": "Omröstningen hittades inte"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -302,7 +300,10 @@ class MadeVoteViewSet(viewsets.ViewSet):
             )
 
         # Make sure that no one can make a vote after the meeting's voting admins have set the Vote to inactive:
-        if vote.meeting.current_vote.id != vote.id or not vote.meeting.current_vote.open:
+        if (
+            vote.meeting.current_vote.id != vote.id
+            or not vote.meeting.current_vote.open
+        ):
             return Response(
                 {"error": "Den här omröstningen är inte aktiv"},
                 status=status.HTTP_403_FORBIDDEN,
