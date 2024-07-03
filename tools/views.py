@@ -46,8 +46,8 @@ class SectionCalendarViewSet(viewsets.ViewSet):
             data["url"] = CAL_URL
             data["events"] = []
 
-            not_started = request.query_params.get("not_started") != None
-            not_ended = request.query_params.get("not_ended") != None
+            not_started = request.query_params.get("not_started") is not None
+            not_ended = request.query_params.get("not_ended") is not None
 
             for event in cal.walk("VEVENT"):
                 if isinstance(event, Event):
