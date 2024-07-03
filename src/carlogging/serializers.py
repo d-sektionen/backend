@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import LogEntry
 from account.serializers import SimpleUserSerializer
-from django.contrib.auth.models import User
 
 
 class LogEntrySerializer(serializers.ModelSerializer):

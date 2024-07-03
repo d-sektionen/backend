@@ -34,7 +34,6 @@ import budgetportal.urls
 import committee.urls
 import locks.urls
 
-from django.views.decorators.csrf import csrf_exempt
 
 
 def redirect_to_my_auth(request):

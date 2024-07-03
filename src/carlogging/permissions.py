@@ -1,5 +1,4 @@
 from rest_framework import permissions
-from membership.utils import check_membership
 
 
 class LoggingPermissions(permissions.BasePermission):

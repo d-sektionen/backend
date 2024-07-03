@@ -25,7 +25,7 @@ class Command(BaseCommand):
         print(yale_authenticate.state)
 
         if yale_authenticate.state == AuthenticationState.BAD_PASSWORD:
-            return self.stdout.write(f"Email or password is invalid")
+            return self.stdout.write("Email or password is invalid")
 
         if yale_authenticate.state == AuthenticationState.REQUIRES_VALIDATION:
             yale_authenticator.send_verification_code()

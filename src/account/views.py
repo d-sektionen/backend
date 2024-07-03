@@ -12,11 +12,10 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.http import HttpResponse
 
 from app.permissions import FixedDjangoModelPermissions
 from booking.models import Booking
-from django.contrib.auth import login, logout, authenticate, get_backends
+from django.contrib.auth import login, logout
 
 import requests
 import time
@@ -32,7 +31,6 @@ from .serializers import (
     CalendarSubscriptionSerializer,
     ProfileSerializer,
 )
-from .permissions import IsUser
 from .idtoken import generate_id_token, read_id_token
 from .models import CalendarSubscription
 from account.adfs_token_validation import get_public_key

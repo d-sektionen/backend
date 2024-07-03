@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.db.models import F, Q
-from rest_framework import mixins, viewsets, status, serializers, exceptions
+from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView

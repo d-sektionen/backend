@@ -40,7 +40,7 @@ class VoteTest(AuthenticatedTestCase):
         self.assertEqual(len(data[0]["alternatives"]), 4)
 
     def test_list_all_votes_as_admin(self):
-        response = self.admin_client.get(f"/voting/admin-votes/")
+        response = self.admin_client.get("/voting/admin-votes/")
 
         self.assertEqual(response.status_code, 200)
 

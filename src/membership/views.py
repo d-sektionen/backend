@@ -1,13 +1,9 @@
 from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
-from rest_framework import mixins, viewsets, status
-from django.contrib.auth.models import User
+from rest_framework import mixins
 from django.shortcuts import get_object_or_404
 
-from account.models import Profile
-from account.idtoken import read_id_token
 from . import serializers
-from .models import Request, Member
+from .models import Request
 
 
 class RequestView(

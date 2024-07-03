@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from .models import LogEntry
 from rest_framework import viewsets, mixins
 from .serializers import LogEntrySerializer

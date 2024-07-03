@@ -1,9 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 import json
 
 from account.user import get_or_create_user
-from membership.models import Member, ProgramRegistration
 
 
 class Command(BaseCommand):

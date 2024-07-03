@@ -1,12 +1,8 @@
 import json
-from django.test import TestCase
 
 import datetime as dt
 from .models import Item, Booking
-from .admin import BookingAdmin, ItemAdmin
-from account.tests import AuthenticatedTestCase, create_admin, create_user
-from django.contrib.auth.models import User
-from django.test import TestCase
+from account.tests import AuthenticatedTestCase, create_admin
 
 # Create your tests here.
 
