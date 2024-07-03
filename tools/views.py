@@ -9,10 +9,10 @@ from icalendar import Calendar, Event
 import datetime
 from django.utils import timezone
 
+from django.conf import settings
 import requests
 
-# move to settings if you cba.
-CAL_URL = "https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics"
+CAL_URL = settings.CAL_URL
 LOCAL_TIMEZONE = datetime.timedelta(hours=2)
 
 
