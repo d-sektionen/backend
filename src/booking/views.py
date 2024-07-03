@@ -34,11 +34,11 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         if item:
             queryset = queryset.filter(item=item)
-        if future != None:
+        if future is not None:
             queryset = queryset.filter(end__gt=timezone.now())
-        if after != None:
+        if after is not None:
             queryset = queryset.filter(start__gt=after)
-        if before != None:
+        if before is not None:
             queryset = queryset.filter(end__lt=before)
         if user:
             queryset = queryset.filter(user=user)
@@ -49,7 +49,9 @@ class BookingViewSet(viewsets.ModelViewSet):
         return queryset
 
     @action(
-        detail=True, methods=["put"], permission_classes=[FixedDjangoModelPermissions],
+        detail=True,
+        methods=["put"],
+        permission_classes=[FixedDjangoModelPermissions],
     )
     def confirm(self, request, pk=None):
         booking = self.get_object()
@@ -84,7 +86,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         auto_confirm = self.should_auto_confirm(data)
         serializer.save(confirmed=auto_confirm)
 
-        if auto_confirm == False:
+        if auto_confirm is False:
             notify_werk_unconfirmed_booking(data, False)
 
     def perform_update(self, serializer):
@@ -99,7 +101,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         serializer.save(confirmed=auto_confirm)
 
-        if auto_confirm == False:
+        if auto_confirm is False:
             notify_werk_unconfirmed_booking(new_data, True)
 
 
