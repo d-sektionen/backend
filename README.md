@@ -20,18 +20,22 @@ Should be at least python version 3.7.
 Setup and activate virtualenv
 
 ### Linux/Mac
+
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
 ### Windows
-Open Powershell as Administer 
+
+Open Powershell as Administer
+
 ```
 set-executionpolicy remotesigned
 ```
 
 In repository root folder
+
 ```
 python -m venv .venv
 .venv/Scripts/activate
@@ -44,6 +48,12 @@ Then install the needed Python dependencies:
 
 ```sh
 pip install -r development.txt
+```
+
+**Optional but recommended:** Install pre-commit hooks using (linting, formatting, etc):
+
+```
+pre-commit install
 ```
 
 Every time you make a modification to the database structure, run this:
@@ -66,14 +76,15 @@ Start the Django development server and begin developing:
 ./manage.py runserver
 ```
 
-If you're using MAC OS, check out: https://stackoverflow.com/a/53310545/9966843
+If you're using MAC OS, check out: <https://stackoverflow.com/a/53310545/9966843>
 
 ## Accessing content
 
 For now, the only way to access content is to visit the Django admin
-site. This can be found at http://127.0.0.1:8000/admin.
+site. This can be found at <http://127.0.0.1:8000/admin>.
 
 If you are denied access to anything, try running the following in your terminal:
+
 ```sh
 ./manage.py add_super_user <username>
 ```
@@ -82,7 +93,7 @@ If you are denied access to anything, try running the following in your terminal
 
 ## uwsgitop
 
-If you want to run something like "top" but for uwsgi. 
+If you want to run something like "top" but for uwsgi.
 Go into the .venv in the backend-project and run:
 
 ```sh
