@@ -13,3 +13,5 @@ django-treebeard==4.5.1
 django-auth-adfs==1.10.1
 factory_boy==3.3.0
 yalexs==3.0.1
+ruff==0.5.0
+pre-commit==3.7.1
