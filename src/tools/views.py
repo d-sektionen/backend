@@ -10,6 +10,7 @@ from rest_framework import viewsets
 from icalendar import Calendar, Event
 import datetime
 from django.utils import timezone
+from django.conf import settings
 
 CAL_URL = settings.CAL_URL
 LOCAL_TIMEZONE = datetime.timedelta(hours=2)
@@ -30,7 +31,7 @@ class SectionCalendarViewSet(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
     def list(self, request):
-        r = requests.get(CAL_URL)  # TODO: Cache request for a few minutes.
+        r = request.get(CAL_URL)  # TODO: Cache request for a few minutes.
         if r.status_code == 200:
             cal = Calendar.from_ical(r.text)
             data = {}
