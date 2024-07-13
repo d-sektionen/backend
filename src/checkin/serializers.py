@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -29,7 +30,7 @@ class UserIdentifierField(serializers.Field):
             raise serializers.ValidationError(msg % type(data).__name__)
         try:
             identifier_type, identifier = data.split(":", 1)
-        except (ValueError):
+        except ValueError:
             raise serializers.ValidationError(
                 f"Incorrect format. Expected `TYPE:VALUE`. Where TYPE is one of {', '.join(idtypes)}."
             )
@@ -58,7 +59,7 @@ class UserIdentifierField(serializers.Field):
                 user = User.objects.get(username__iexact=identifier)
             elif identifier_type == IDTYPE_ID_TOKEN:
                 user = read_id_token(identifier)
-        except:
+        except ObjectDoesNotExist:
             pass  # if exception we return none user (could be more specific)
 
         return user

@@ -1,6 +1,6 @@
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
 from account.models import is_user_in_group

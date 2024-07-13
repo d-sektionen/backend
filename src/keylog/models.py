@@ -5,7 +5,7 @@ import re
 
 
 def is_color_validator(value):
-    if not len(value) in [7, 4]:
+    if len(value) not in [7, 4]:
         raise ValidationError("Must be 7 or 4 characters.")
     pattern = re.compile("#[A-F0-9]*")
     if not pattern.fullmatch(value.upper()):

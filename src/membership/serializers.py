@@ -13,7 +13,9 @@ class RequestSerializer(serializers.ModelSerializer):
         # validators=[UniqueValidator(queryset=User.objects.all())],
     )
 
-    infomail_subscriber = serializers.BooleanField(default=False, required=False, write_only=True)
+    infomail_subscriber = serializers.BooleanField(
+        default=False, required=False, write_only=True
+    )
 
     class Meta:
         model = Request
@@ -28,11 +30,7 @@ class RequestSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        user.profile.infomail_subscriber = validated_data.pop('infomail_subscriber')
+        user = self.context["request"].user
+        user.profile.infomail_subscriber = validated_data.pop("infomail_subscriber")
         user.profile.save()
         return super().create(validated_data)
-            
-
-        read_only_fields = ("username",)
-        

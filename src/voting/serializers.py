@@ -73,12 +73,12 @@ class AttendantSerializer(serializers.ModelSerializer):
         user = User.objects.get(username=value)
         is_member = check_membership(user.get_username())
         requested_voting_rights = self.initial_data.get("has_voting_rights")
-        
-        if not is_member and requested_voting_rights == True:
+
+        if not is_member and requested_voting_rights is True:
             raise serializers.ValidationError(
                 "User is not a member and voting rights were requested to be set to True"
             )
-        elif is_member and requested_voting_rights == False:
+        elif is_member and requested_voting_rights is False:
             raise serializers.ValidationError(
                 "User is a member and voting rights were requested to be set to False"
             )
@@ -89,8 +89,14 @@ class AttendantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attendant
-        fields = ("id", "user", "meeting", "user_username", "meeting_id", 
-                  "has_voting_rights")
+        fields = (
+            "id",
+            "user",
+            "meeting",
+            "user_username",
+            "meeting_id",
+            "has_voting_rights",
+        )
 
 
 class SelfAttendSerializer(serializers.ModelSerializer):

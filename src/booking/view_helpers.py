@@ -10,7 +10,9 @@ def notify_werk_unconfirmed_booking(booking_data, is_updated):
         booking_data: Data from the booking, either model or serializer.
         is_updated: If an existing booking is being updated.
     """
-    user_fullname = f"{booking_data.get('user').first_name} {booking_data.get('user').last_name}"
+    user_fullname = (
+        f"{booking_data.get('user').first_name} {booking_data.get('user').last_name}"
+    )
     start = booking_data.get("start").strftime("*%d/%m %H:%M*")
     end = booking_data.get("end").strftime("*%d/%m %H:%M*")
 
@@ -19,7 +21,9 @@ def notify_werk_unconfirmed_booking(booking_data, is_updated):
     dur_hours = duration_until.seconds // (60 * 60)
     dur_minutes = (duration_until.seconds // 60) % 60
 
-    restricted_emoji = ":white_check_mark:" if booking_data.get("restricted_timeslot") else ":x:"
+    restricted_emoji = (
+        ":white_check_mark:" if booking_data.get("restricted_timeslot") else ":x:"
+    )
 
     content = "*Uppdaterad bokning:*\n" if is_updated else "*Ny bokning:*\n"
     content += (
@@ -31,10 +35,7 @@ def notify_werk_unconfirmed_booking(booking_data, is_updated):
         f"Ändamål: {booking_data.get('description')}\n"
     )
 
-    try:
-        notify_werk(content)
-    except:
-        print("Could not send booking notification to werk.")
+    notify_werk(content)
 
 
 def notify_werk(content):

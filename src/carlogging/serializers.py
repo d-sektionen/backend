@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import LogEntry
 from account.serializers import SimpleUserSerializer
-from django.contrib.auth.models import User
 
 
 class LogEntrySerializer(serializers.ModelSerializer):
@@ -30,17 +29,17 @@ class LogEntrySerializer(serializers.ModelSerializer):
         return LogEntry.objects.create(**validated_data)
 
     def validate(self, attrs):
-        if attrs["start_km"] == None:
+        if attrs["start_km"] is None:
             attrs["start_km"] = 0
-        if attrs["end_km"] == None:
+        if attrs["end_km"] is None:
             attrs["end_km"] = 0
         if attrs["start_km"] > attrs["end_km"]:
             raise serializers.ValidationError(
                 "Start kilometer should be less than end kilometer"
             )
-        if attrs["trailer_days"] == None:
+        if attrs["trailer_days"] is None:
             attrs["trailer_days"] = 0
-        if attrs["car_days"] == None:
+        if attrs["car_days"] is None:
             attrs["car_days"] = 0
         if attrs["trailer_days"] < 0:
             raise serializers.ValidationError(

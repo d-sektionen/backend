@@ -2,9 +2,8 @@ from rest_framework.permissions import BasePermission
 
 
 from membership.utils import check_membership
-from app.permissions import RestPermission
 from .models import Meeting
-from django.db.models import F, Q
+from django.db.models import Q
 
 
 class SpeakerRequestPermission(BasePermission):

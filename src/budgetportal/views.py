@@ -7,7 +7,12 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 from . import email
 from .models import BudgetEntry, File
-from .serializers import BudgetEntrySerializer,  ApprovalSerializer, CommentSerializer, FileSerializer
+from .serializers import (
+    BudgetEntrySerializer,
+    ApprovalSerializer,
+    CommentSerializer,
+    FileSerializer,
+)
 from .permissions import BudgetEntryPermissions
 
 from app.permissions import FixedDjangoModelPermissions
@@ -56,7 +61,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(user=user)
         """
 
-        if date != None:
+        if date is not None:
             queryset = queryset.filter(date__gt=date)
         if user:
             queryset = queryset.filter(user__username=user)
@@ -77,7 +82,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         query_filter = Q(user=self.request.user)
         for committee in self.request.user.treasurer_for.all():
             query_filter = query_filter | Q(committee__id=committee.id)
-            
+
         return queryset.filter(query_filter)
 
     def perform_create(self, serializer):
@@ -85,17 +90,19 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         email.send_new_entry_mails(self.request.user, instance)
 
     def perform_update(self, serializer):
-        #print(f"{self.request.data = }")
+        # print(f"{self.request.data = }")
         # Maybe needs to be re-approved?
         serializer.save()
 
-    @action(detail=True, methods=["put"], permission_classes=[FixedDjangoModelPermissions]) 
+    @action(
+        detail=True, methods=["put"], permission_classes=[FixedDjangoModelPermissions]
+    )
     def approve(self, request: Request, pk=None):
         data_keys = request.data.keys()
         entry = self.get_object()
 
         if entry.denied:
-            return Response("Entry is denied", status.HTTP_403_FORBIDDEN)   
+            return Response("Entry is denied", status.HTTP_403_FORBIDDEN)
 
         deg_committee = get_deg_committee()
         is_in_deg = deg_committee.members.filter(id=request.user.id).exists()
@@ -104,18 +111,24 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         is_section_cashier = True
 
         # If approveKas is sent, mark field if user is cashier of the entry committee
-        if 'approvedKas' in data_keys:
-            committee_cashier = Committee.objects.filter(name=entry.committee.name).first().treasurer
+        if "approvedKas" in data_keys:
+            committee_cashier = (
+                Committee.objects.filter(name=entry.committee.name).first().treasurer
+            )
             print("committee cashier", committee_cashier)
-            if request.user == committee_cashier or is_in_deg or is_section_cashier: # TODO: should is_in_deg be here
+            if (
+                request.user == committee_cashier or is_in_deg or is_section_cashier
+            ):  # TODO: should is_in_deg be here
                 entry.approvedKas = bool(request.data["approvedKas"])
         else:
             entry.approvedKas = False
 
         # If approveDeg is sent, mark field if user is in deg
-        if 'approvedDeg' in data_keys:
+        if "approvedDeg" in data_keys:
             if is_in_deg or is_section_cashier:
-                approvedDegChanged = bool(request.data["approvedDeg"]) != entry.approvedDeg
+                approvedDegChanged = (
+                    bool(request.data["approvedDeg"]) != entry.approvedDeg
+                )
                 entry.approvedDeg = bool(request.data["approvedDeg"])
                 if entry.approvedDeg and approvedDegChanged:
                     email.send_unpayed_entries_mail(entry)
@@ -123,7 +136,7 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             entry.approvedDeg = False
 
         # If payed is sent, mark field if user is section cashier
-        if 'payed' in data_keys:
+        if "payed" in data_keys:
             if is_section_cashier:
                 entry.payed = bool(request.data["payed"])
                 if entry.payed:
@@ -132,10 +145,14 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
             entry.payed = False
 
         # If denied is sent, mark field if user is section cashier
-        if 'denied' in data_keys:
-            committee_cashier = Committee.objects.filter(name=entry.committee.name).first().treasurer
+        if "denied" in data_keys:
+            committee_cashier = (
+                Committee.objects.filter(name=entry.committee.name).first().treasurer
+            )
             print("committee cashier", committee_cashier)
-            if request.user == committee_cashier or is_in_deg or is_section_cashier: # TODO: should is_in_deg be here
+            if (
+                request.user == committee_cashier or is_in_deg or is_section_cashier
+            ):  # TODO: should is_in_deg be here
                 entry.denied = bool(request.data["denied"])
                 if entry.denied:
                     email.send_entry_denied_mail(request.user, entry)
@@ -145,18 +162,22 @@ class BudgetEntryViewSet(viewsets.ModelViewSet):
         entry.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["put"], permission_classes=[FixedDjangoModelPermissions]) 
+    @action(
+        detail=True, methods=["put"], permission_classes=[FixedDjangoModelPermissions]
+    )
     def comment(self, request: Request, pk=None):
         entry = self.get_object()
 
         # TODO: check if user is allowed to comment (user in correct section)
         if False:
-            return Response(status=status.HTTP_403_FORBIDDEN, data="Not allowed to comment")
+            return Response(
+                status=status.HTTP_403_FORBIDDEN, data="Not allowed to comment"
+            )
         elif entry.comment:
             print("test")
             entry.comment += " " + str(request.data["comment"])
         else:
-            entry.comment = str(request.data["comment"]) 
+            entry.comment = str(request.data["comment"])
         entry.save()
         print(entry.comment)
         return Response(status=status.HTTP_200_OK)

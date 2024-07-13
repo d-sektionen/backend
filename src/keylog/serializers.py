@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 
 from account.serializers import SimpleUserSerializer
 from checkin.serializers import UserIdentifierField

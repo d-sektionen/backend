@@ -9,7 +9,7 @@ from django.conf import settings
 from yalexs.const import Brand
 from yalexs.exceptions import AugustApiHTTPError
 from yalexs.api import Api
-from yalexs.authenticator import Authenticator, AuthenticationState
+from yalexs.authenticator import Authenticator
 from account.permissions import AllowMembers
 from logger.utils import log, Entry
 
@@ -87,7 +87,7 @@ def lock_command(command, lock_id, user):
             {"detail": "Dörren är nu på väg att bli " + msg + "."},
             status=status.HTTP_200_OK,
         )
-    except AugustApiHTTPError as e:
+    except AugustApiHTTPError:
         return Response(
             {
                 "detail": "Problem i kommunikationen med låset. Kontakta webmaster!",
@@ -101,7 +101,7 @@ def get_lock_status(lock_id):
         lock = yale_api.get_lock_detail(
             lock_id=lock_id, access_token=yale_authenticate.access_token
         )
-    except AugustApiHTTPError as e:
+    except AugustApiHTTPError:
         return Response(
             {
                 "detail": "Problem i kommunikationen med låset. Kontakta webmaster!",

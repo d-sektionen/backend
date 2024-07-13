@@ -2,7 +2,6 @@ from datetime import datetime
 
 from rest_framework import serializers
 
-from account.models import is_user_in_group
 #from account.serializers import CommitteeSerializer
 from storage.models import StorageRoom, Location, Booking, Object
 

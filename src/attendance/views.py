@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, viewsets
 
 from app.permissions import FixedDjangoModelPermissions
 

@@ -8,7 +8,6 @@ from account.serializers import SimpleUserSerializer
 from committee.serializers import CommitteeSerializer
 from committee.models import Committee
 
-from membership.utils import check_membership
 from account.user import get_or_create_user
 from .permissions import CommitteePermissions
 

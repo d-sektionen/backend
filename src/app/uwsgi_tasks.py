@@ -3,10 +3,9 @@ In this file you can add cronjobs and timers using uwsgi decorators, see:
 https://uwsgi-docs.readthedocs.io/en/latest/PythonDecorators.html
 """
 
-from django.conf import settings
 from django.core import management
 
-from uwsgidecorators import *
+from uwsgidecorators import cron
 from datetime import datetime
 
 

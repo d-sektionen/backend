@@ -9,7 +9,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for profile in Profile.objects.all():
-            if type(profile.liu_card_id) == str:
+            if isinstance(profile.liu_card_id, str):
                 profile.liu_card_id = None
                 profile.save()
-

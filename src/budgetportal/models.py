@@ -2,7 +2,6 @@ import json
 from django.contrib.auth.models import User
 from django.db import models
 
-from .validators import validate_datetime_future, validate_datetime_within_year
 
 from committee.models import Committee
 

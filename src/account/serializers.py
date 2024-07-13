@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import serializers
 
@@ -7,7 +7,6 @@ from checkin.models import Doorkeeper
 from committee.serializers import CommitteeSerializer
 
 from .models import Profile, CalendarSubscription
-from . import user
 
 
 class ProfileSerializer(serializers.ModelSerializer):

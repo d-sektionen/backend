@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.mail import get_connection
 from django.core.mail.message import EmailMessage
-from django.core.mail.backends.smtp import EmailBackend
 
 from .models import BudgetEntry
 
