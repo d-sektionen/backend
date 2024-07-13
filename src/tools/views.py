@@ -1,3 +1,4 @@
+from django.http.response import JsonResponse
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -5,6 +6,7 @@ from rest_framework.decorators import (
 )
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework import viewsets
 from icalendar import Calendar, Event
 import datetime
 from django.utils import timezone
@@ -97,3 +99,10 @@ def section_calendar(request):
         return Response(
             ["This endpoint is a WIP you should not get this response when it's ready."]
         )
+
+
+class StatusViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def list(self, request):
+        return JsonResponse({"status": "UP"})
