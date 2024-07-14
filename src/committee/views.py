@@ -5,14 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from account.permissions import IsUser
-from account.serializers import SimpleUserSerializer
-from committee.serializers import CommitteeSerializer
-from committee.models import Committee
-
-from account.user import get_or_create_user
-from .permissions import CommitteePermissions
 from .serializers import CommitteeSerializer
+from .models import Committee
+from .permissions import CommitteePermissions
 
 
 class CommitteeViewSet(viewsets.ReadOnlyModelViewSet):
