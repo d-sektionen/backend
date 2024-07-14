@@ -1,9 +1,4 @@
 from django.http.response import JsonResponse
-from rest_framework.decorators import (
-    api_view,
-    authentication_classes,
-    permission_classes,
-)
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
@@ -94,7 +89,9 @@ class SectionCalendarViewSet(viewsets.ViewSet):
             return Response(data)
         else:
             return Response(
-                ["This endpoint is a WIP you should not get this response when it's ready."]
+                [
+                    "This endpoint is a WIP you should not get this response when it's ready."
+                ]
             )
 
 
