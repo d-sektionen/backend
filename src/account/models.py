@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import uuid
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 # Can be moved if you cba.
 def is_user_in_group(group, user):
@@ -16,6 +18,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     liu_card_id = models.CharField(max_length=17, null=True, blank=True, default=None)
     infomail_subscriber = models.BooleanField(default=False)
+    phonenumber = PhoneNumberField(blank=True)
 
     def __str__(self):
         return self.user.username

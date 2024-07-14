@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "imagekit",
     "django_auth_adfs",
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
