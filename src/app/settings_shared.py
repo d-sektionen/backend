@@ -210,3 +210,5 @@ CHANNEL_LAYERS = {
 }
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
