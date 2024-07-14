@@ -9,12 +9,13 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE app.settings_production
 
-# Copy the requirements file into the container
+# Copy the requirements files into the container
 COPY requirements.txt .
+COPY requirements-prod.txt .
 
 # Install the project dependencies
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy the project code into the container
 COPY . .
