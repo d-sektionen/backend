@@ -4,6 +4,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import uuid
 
+
 # Can be moved if you cba.
 def is_user_in_group(group, user):
     if group is None or user is None:
@@ -42,5 +43,3 @@ class CalendarSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     include_bookings = models.BooleanField(default=True)
-    include_events_attending = models.BooleanField(default=True)
-    include_events_not_attending = models.BooleanField(default=True)

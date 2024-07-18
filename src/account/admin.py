@@ -19,8 +19,6 @@ class CalendarSubscriptionAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "include_bookings",
-        "include_events_attending",
-        "include_events_not_attending",
     )
 
 

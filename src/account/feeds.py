@@ -22,10 +22,6 @@ class CalendarFeed(ICalFeed):
         features = []
         if subscription.include_bookings:
             features.append("bokningar från bokningssystemet")
-        if subscription.include_events_attending:
-            features.append("evenemang du är registrerad på")
-        if subscription.include_events_not_attending:
-            features.append("evenemang du inte är registrerad på")
         features_string = "ingenting" if len(features) == 0 else ", ".join(features)
         return f"Kalender för tjänster på D-sektionens medlemsportal. Prenumerationen innehåller {features_string}."
 
@@ -45,7 +41,6 @@ class CalendarFeed(ICalFeed):
             ]
             items.extend(bookings)
 
-        # TODO: include events
         return items
 
     def item_title(self, item):
