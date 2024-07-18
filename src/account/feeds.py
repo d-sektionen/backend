@@ -20,14 +20,14 @@ class CalendarFeed(ICalFeed):
 
     def description(self, subscription):
         features = []
-        if subscription.include_bookings:
-            features.append("bokningar från bokningssystemet")
+        if subscription.include_bookings_by_user:
+            features.append("dina bokningar från bokningssystemet")
         features_string = "ingenting" if len(features) == 0 else ", ".join(features)
         return f"Kalender för tjänster på D-sektionens medlemsportal. Prenumerationen innehåller {features_string}."
 
     def items(self, subscription):
         items = []
-        if subscription.include_bookings:
+        if subscription.include_bookings_by_user:
             bookings = [
                 {
                     "id": f"booking-{b.id}",

@@ -42,4 +42,4 @@ def post_delete_user(sender, instance, *args, **kwargs):
 class CalendarSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    include_bookings = models.BooleanField(default=True)
+    include_bookings_by_user = models.BooleanField(default=True)
