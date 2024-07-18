@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import uuid
+from booking.models import Item
 
 
 # Can be moved if you cba.
@@ -43,3 +44,4 @@ class CalendarSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     include_bookings_by_user = models.BooleanField(default=True)
+    include_bookable_items = models.ManyToManyField(Item)

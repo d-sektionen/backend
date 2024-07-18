@@ -20,8 +20,14 @@ class CalendarFeed(ICalFeed):
 
     def description(self, subscription):
         features = []
+        bookable_items = subscription.include_bookable_items.all()
+
         if subscription.include_bookings_by_user:
             features.append("dina bokningar från bokningssystemet")
+        if len(bookable_items) > 0:
+            item_names = [i.name for i in bookable_items]
+
+            features.append(f'alla bokningar för: {", ".join(item_names)}')
         features_string = "ingenting" if len(features) == 0 else ", ".join(features)
         return f"Kalender för tjänster på D-sektionens medlemsportal. Prenumerationen innehåller {features_string}."
 
@@ -38,6 +44,19 @@ class CalendarFeed(ICalFeed):
                     "title": f"Bokning av {b.item.name}",
                 }
                 for b in Booking.objects.filter(user=subscription.user)
+            ]
+            items.extend(bookings)
+
+        for i in subscription.include_bookable_items.all():
+            bookings = [
+                {
+                    "id": f"booking-all-{b.id}",
+                    "start": b.start,
+                    "end": b.end,
+                    "description": b.description,
+                    "title": f"{b.item.name} - {b.user.get_full_name()}",
+                }
+                for b in Booking.objects.filter(item=i)
             ]
             items.extend(bookings)
 

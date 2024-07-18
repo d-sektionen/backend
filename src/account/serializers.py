@@ -129,5 +129,6 @@ class CalendarSubscriptionSerializer(serializers.ModelSerializer):
             "url",
             "user",
             "include_bookings_by_user",
+            "include_bookable_items",
         )
         read_only_fields = ("id", "user", "url")
