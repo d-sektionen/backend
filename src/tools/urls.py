@@ -7,5 +7,5 @@ router = routers.DefaultRouter()
 router.register(r"status", views.StatusViewSet, basename="status")
 urlpatterns = [
     url(r"^", include(router.urls)),
-    url(r"calendar", views.section_calendar),
+    url(r"calendar", views.SectionCalendarViewSet),
 ]
