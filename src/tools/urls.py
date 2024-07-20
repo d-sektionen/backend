@@ -7,6 +7,6 @@ from . import views
 router = routers.DefaultRouter()
 router.register(r"status", views.StatusViewSet, basename="status")
 urlpatterns = [
-    url(r"^", include(router.urls)),
-    url(r"calendar", views.SectionCalendarViewSet),
+    re_path(r"^", include(router.urls)),
+    re_path(r"calendar", views.SectionCalendarViewSet),
 ]
