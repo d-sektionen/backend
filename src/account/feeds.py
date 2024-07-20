@@ -79,3 +79,7 @@ class CalendarFeed(ICalFeed):
 
     def item_link(self, item):
         return ""
+
+    def item_location(self, item):
+        # Workaround to show descriptions in Google calendar
+        return item["description"]
