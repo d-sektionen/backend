@@ -116,8 +116,6 @@ TIME_ZONE = "Europe/Stockholm"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -213,8 +211,4 @@ CHANNEL_LAYERS = {
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
-# URL to D-sektionens calendar
-CAL_URL = os.getenv(
-    "CAL_URL",
-    "https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics",
-)
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

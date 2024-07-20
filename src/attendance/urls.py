@@ -1,11 +1,12 @@
-from django.conf.urls import url, include
+from django.conf.urls import include
+from django.urls import re_path
 from rest_framework import routers
 
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r'occurrences', views.OccurrenceViewSet, basename='occurrence')
+router.register(r"occurrences", views.OccurrenceViewSet, basename="occurrence")
 
 urlpatterns = [
-    url(r'^', include(router.urls)),
+    re_path(r"^", include(router.urls)),
 ]

@@ -13,12 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
+
+from django.conf.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.views import redirect_to_login
-from django.urls import reverse
+from django.urls import re_path, reverse
 
 import account.urls
 import voting.urls
@@ -35,42 +36,41 @@ import committee.urls
 import locks.urls
 
 
-
 def redirect_to_my_auth(request):
     return redirect_to_login(reverse("wagtailadmin_home"), login_url="/account/login")
 
 
 urlpatterns = [
     # Admin pages
-    url(r"^admin/", admin.site.urls),
+    re_path(r"^admin/", admin.site.urls),
     # Account
-    url(r"^account/", include(account.urls)),
+    re_path(r"^account/", include(account.urls)),
     # Voting
-    url(r"^voting/", include(voting.urls)),
+    re_path(r"^voting/", include(voting.urls)),
     # Storage
-    url(r"^storage/", include(storage.urls)),
+    re_path(r"^storage/", include(storage.urls)),
     # Booking
-    url(r"^booking/", include(booking.urls)),
+    re_path(r"^booking/", include(booking.urls)),
     # Tools
-    url(r"^tools/", include(tools.urls)),
+    re_path(r"^tools/", include(tools.urls)),
     # Checkin
-    url(r"^checkin/", include(checkin.urls)),
+    re_path(r"^checkin/", include(checkin.urls)),
     # Attendance
-    url(r"^attendance/", include(attendance.urls)),
+    re_path(r"^attendance/", include(attendance.urls)),
     # Membership
-    url(r"^membership/", include(membership.urls)),
+    re_path(r"^membership/", include(membership.urls)),
     # Carloggin
-    url(r"^carlogging/", include(carlogging.urls)),
+    re_path(r"^carlogging/", include(carlogging.urls)),
     # Committee
-    url(r'^committee/', include(committee.urls)),
+    re_path(r"^committee/", include(committee.urls)),
     # Keylog
-    url(r"^keylog/", include(keylog.urls)),
+    re_path(r"^keylog/", include(keylog.urls)),
     # Keylog
-    url(r"^budget/", include(budgetportal.urls)),
+    re_path(r"^budget/", include(budgetportal.urls)),
     # Locks
-    url(r"^locks/", include(locks.urls)),
+    re_path(r"^locks/", include(locks.urls)),
     # Login to backend
-    url('oauth2/', include('django_auth_adfs.urls')),
+    re_path("oauth2/", include("django_auth_adfs.urls")),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # TODO: Change for production
