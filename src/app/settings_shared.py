@@ -212,3 +212,9 @@ CHANNEL_LAYERS = {
 TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+# URL to D-sektionens calendar
+CAL_URL = os.getenv(
+    "CAL_URL",
+    "https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics",
+)
