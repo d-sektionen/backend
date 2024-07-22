@@ -93,11 +93,7 @@ class MeSerializer(serializers.ModelSerializer):
                     "voting.view_meeting",
                 )
             ),
-            "voting_counter": obj.has_perms(
-                (
-                    "voting.view_meeting",
-                )
-            ),
+            "voting_counter": obj.has_perms(("voting.view_meeting",)),
             "not_member": not check_membership(obj.username),
             "member": check_membership(obj.username),
             "staff": obj.is_staff,
@@ -132,8 +128,7 @@ class CalendarSubscriptionSerializer(serializers.ModelSerializer):
             "id",
             "url",
             "user",
-            "include_bookings",
-            "include_events_attending",
-            "include_events_not_attending",
+            "include_bookings_by_user",
+            "include_bookable_items",
         )
         read_only_fields = ("id", "user", "url")

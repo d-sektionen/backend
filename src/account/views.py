@@ -3,8 +3,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.conf import settings
-from django_ical.views import ICalFeed, ObjectDoesNotExist
-from django.utils.timezone import get_current_timezone
+from django_ical.views import ObjectDoesNotExist
 from django.views.generic import TemplateView
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.views import APIView
@@ -14,7 +13,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 
 from app.permissions import FixedDjangoModelPermissions
-from booking.models import Booking
 from django.contrib.auth import login, logout
 
 import requests
@@ -56,7 +54,6 @@ def generate_token(request):
 @csrf_exempt
 def device_login(request):
     if len(request.body) == 0 or "device_code" not in request.body.decode("utf-8"):
-
         # user = User.objects.get(username__iexact="felli675")
 
         payload = {
@@ -114,7 +111,6 @@ def device_login(request):
 
 
 def device_logout(request):
-
     logout(request)
 
     return JsonResponse({"user": str(request.user)})
@@ -219,65 +215,3 @@ class CalendarSubscriptionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return CalendarSubscription.objects.filter(user=self.request.user)
-
-
-class CalendarFeed(ICalFeed):
-    """
-    A calendar
-    """
-
-    product_id = "-//d-sektionen.se//calendar//SV"
-    timezone = str(get_current_timezone())
-    file_name = "d-sektionen.ics"
-    title = "D-sektionen kalender"
-
-    def get_object(self, request, pk):
-        return CalendarSubscription.objects.get(pk=pk)
-
-    def description(self, subscription):
-        features = []
-        if subscription.include_bookings:
-            features.append("bokningar från bokningssystemet")
-        if subscription.include_events_attending:
-            features.append("evenemang du är registrerad på")
-        if subscription.include_events_not_attending:
-            features.append("evenemang du inte är registrerad på")
-        features_string = "ingenting" if len(features) == 0 else ", ".join(features)
-        return f"Kalender för tjänster på D-sektionens medlemsportal. Prenumerationen innehåller {features_string}."
-
-    def items(self, subscription):
-        items = []
-        if subscription.include_bookings:
-            bookings = [
-                {
-                    "id": f"booking-{b.id}",
-                    "start": b.start,
-                    "end": b.end,
-                    # TODO extend with link etc
-                    "description": b.description,
-                    "title": f"Bokning av {b.item.name}",
-                }
-                for b in Booking.objects.filter(user=subscription.user)
-            ]
-            items.extend(bookings)
-
-        # TODO: include events
-        return items
-
-    def item_title(self, item):
-        return item["title"]
-
-    def item_guid(self, item):
-        return item["id"] + "@d-sektionen.se"
-
-    def item_description(self, item):
-        return item["description"]
-
-    def item_start_datetime(self, item):
-        return item["start"]
-
-    def item_end_datetime(self, item):
-        return item["end"]
-
-    def item_link(self, item):
-        return ""

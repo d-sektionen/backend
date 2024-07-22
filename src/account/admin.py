@@ -16,12 +16,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 
 class CalendarSubscriptionAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "include_bookings",
-        "include_events_attending",
-        "include_events_not_attending",
-    )
+    list_display = ("user", "include_bookings_by_user")
 
 
 admin.site.register(CalendarSubscription, CalendarSubscriptionAdmin)
