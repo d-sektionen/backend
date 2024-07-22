@@ -1,31 +1,32 @@
-version: "3.12"
-
 services:
   backend:
-    image: registry.d-sektionen.se/backend:prod # Specify backend image
+    container_name: D-Sektionen-Backend
+    image: registry.d-sektionen.se/backend:latest
     restart: always
-    command: uwsgi --ini /srv/backend.uwsgi.ini
+    command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
     volumes:
       # Set the paths when deploying to production.
-      #- [ini file path]:/srv/backend.uwsgi.ini
-      #- [static files path]:/code/static
-      #- [log file path]:/var/log/uwsgi/
+      - ${BACKEND_BASEDIR}/backend.uwsgi.ini:/etc/uwsgi/backend.uwsgi.ini
+      - ${BACKEND_BASEDIR}/static:/code/static
+      - ${BACKEND_BASEDIR}/media:/code/media
+      - ${BACKEND_BASEDIR}/log:/var/log/
     ports:
       # Update for production environment
-      - 127.0.0.1:XXXX:8000
+      - 13337:8000
     environment:
       # Set these when deploying to production
-      POSTGRES_NAME: XXXX
-      POSTGRES_USER: XXXX
+      POSTGRES_NAME: backend
+      POSTGRES_USER: backend
       POSTGRES_PASSWORD: XXXX
-      POSTGRES_HOST: XXXX
-      POSTGRES_PORT: XXXX
+      POSTGRES_HOST: 172.17.0.1
+      POSTGRES_PORT: 5432
     env_file:
-      # Environment variable file for keys and secrets for azure authentication.
-      - XXXX/.env
+      # Environment variables set in portainer gui.
+      - stack.env
     networks:
-      - default # network outside
+      - default
 
 networks:
   default:
+    driver: bridge
     name: backend_network

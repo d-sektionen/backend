@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import datetime
 import os
-import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -111,11 +110,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "Europe/Stockholm"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -158,15 +154,6 @@ AUTH_ADFS = {
 LOGIN_URL = "django_auth_adfs:login"
 LOGIN_REDIRECT_URL = "/oauth2/callback"
 
-# User configuration sheet (for getting user info from a google docs sheet)
-# TODO: this is outdated, look into this and remove.
-# SA_CREDENTIALS_FILE = 'credentials.json'
-# SA_FILE_ID = '1vgN5ds5LMUZ0V3lG_sHcjxCRD3NmaOTc6uVamSOxEOQ'
-# SA_COL_NAME = 'Namn'
-# SA_COL_LIU_ID = 'Liu-Id'
-# SA_COL_UTSKOTT = 'Utskott'
-# SA_COL_TITLE = 'Post utskott'
-
 # Django REST Framework
 REST_FRAMEWORK = {
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
@@ -200,16 +187,6 @@ SIMPLE_JWT = {
 }
 
 # LOGIN_URL = "/account/login/"
-
-# Websocket channels configuration
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "asgiref.inmemory.ChannelLayer",
-        "ROUTING": "voting.sockets.channel_routing",
-    }
-}
-
-TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
