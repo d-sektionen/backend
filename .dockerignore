@@ -1,4 +1,6 @@
 Dockerfile
+deploy.sh
+push_image.sh
 __pycache__/
 static/
 media/
