@@ -2,19 +2,20 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 arg=$1
+registry_url="registry.d-sektionen.se"
 backend_dev_tag="development"
 backend_prod_tag="latest"
 
 if [ "$arg" = "dev" ]; then
-    tag="$backend_dev_webhook"
+    tag=$backend_dev_tag
 elif [ "$arg" = "prod" ]; then
-    tag="$backend_prod_webhook"
+    tag=$backend_prod_tag
 else
     echo "First argument should be either 'dev' or 'prod'"
     exit
 fi
 
 set -x
-# Credentials are given by webmaster
-docker login https://registry.d-sektionen.se
-docker build --push -t registry.d-sektionen.se/backend:$tag -f $SCRIPT_DIR/Dockerfile
+docker login https://$registry_url
+docker build -t $registry_url/backend:$tag -f $SCRIPT_DIR/Dockerfile .
+docker push $registry_url/backend:$tag
