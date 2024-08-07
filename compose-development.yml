@@ -1,12 +1,12 @@
 services:
   postgres:
     image: postgres:16.3-alpine
-    restart: on-failure[:5]
+    restart: unless-stopped
     environment:
       POSTGRES_USER: django
       POSTGRES_PASSWORD: django
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:
@@ -14,7 +14,7 @@ services:
 
   backend:
     image: registry.d-sektionen.se/backend:development
-    restart: on-failure[:5]
+    restart: unless-stopped
     command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
     volumes:
       # Set the paths when deploying to development environment.
