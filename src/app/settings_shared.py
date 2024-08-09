@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     # Project apps
     # ---
     "account",
-    "storage",
     "voting.apps.VotingConfig",
     "tools",
     "locks",

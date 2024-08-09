@@ -6,13 +6,6 @@ import uuid
 from booking.models import Item
 
 
-# Can be moved if you cba.
-def is_user_in_group(group, user):
-    if group is None or user is None:
-        return False
-
-    return group in user.groups.all()
-
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
