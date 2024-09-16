@@ -1,0 +1,36 @@
+name: Test backend
+
+on:
+  pull_request:
+    branches:
+      - master
+      - development
+
+jobs:
+  unit-test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r development.txt
+
+      - name: Run tests
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        run: python manage.py test voting

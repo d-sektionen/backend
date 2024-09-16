@@ -6,6 +6,7 @@ requests==2.32.3
 drf-writable-nested==0.7.0
 django-cors-headers==4.4.0
 icalendar==4.0.7
+python-dotenv==0.15.0
 django-model-utils==4.0.0
 django-imagekit==5.0.0
 django-auth-adfs==1.14.0

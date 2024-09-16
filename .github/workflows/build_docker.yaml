@@ -37,7 +37,7 @@ jobs:
         with:
           images: registry.d-sektionen.se/backend
           tags: |
-            type=ref,event=branch,branch=master,tag=latest
+            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch,branch=${{ env.BRANCH_NAME }} 
 
       - name: Build and push Docker image
