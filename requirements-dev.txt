@@ -1,0 +1,4 @@
+-r requirements.txt
+factory_boy==3.3.0
+ruff==0.5.2
+pre-commit==3.7.1

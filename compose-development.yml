@@ -1,50 +1,51 @@
-version: "3.12"
-
 services:
-  dev_database:
-    image: postgres:16.2-alpine
-    restart: on-failure
+  postgres:
+    image: postgres:16.3-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: django
       POSTGRES_PASSWORD: django
     volumes:
-      - dev_db_data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
     ports:
-      - 127.0.0.1:5432:5432
+      - 5432:5432
     networks:
-      - internal # network internal
+      - internal
 
-  dev_app:
-    image: registry.d-sektionen.se/backend:development # Specify backend image
-    restart: on-failure
-    command: uwsgi --ini /srv/backend.uwsgi.ini
+  backend:
+    image: registry.d-sektionen.se/backend:development
+    restart: unless-stopped
+    command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
     volumes:
       # Set the paths when deploying to development environment.
-      #- [ini file path]:/srv/backend.uwsgi.ini
-      #- [static files path]:/code/static
-      #- [log file path]:/var/log/uwsgi/
+      - ${BACKEND_DEV_BASEDIR}/backend.uwsgi.ini:/etc/uwsgi/backend.uwsgi.ini
+      - ${BACKEND_DEV_BASEDIR}/static:/code/static
+      - ${BACKEND_DEV_BASEDIR}/media:/code/media
+      - ${BACKEND_DEV_BASEDIR}/log:/var/log
     ports:
-      - 127.0.0.1:XXXX:8000
+      # Update for development environment
+      - 10000:8000
     environment:
       POSTGRES_NAME: django
       POSTGRES_USER: django
       POSTGRES_PASSWORD: django
-      POSTGRES_HOST: dev_database
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
     env_file:
-      # Environment variable file for keys and secrets for azure authentication.
-      - XXXX/.env
+      # Environment variables set in portainer gui.
+      - stack.env
     networks:
-      - internal # network internal
-      - default # network outside
+      - internal
+      - default
     depends_on:
-      - dev_database
+      - postgres
 
 volumes:
-  dev_db_data:
+  postgresql_data:
 
 networks:
   default:
+    driver: bridge
     name: backend_dev_network
   internal:
     internal: true

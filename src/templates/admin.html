@@ -1,0 +1,94 @@
+<script>
+
+    let deviceCode = ''
+    let verificationURI = ''
+    let url = ''
+
+    const deviceLogin = '/account/device/'
+    const host = window.location.host;
+
+    // The following function are copyied from
+    // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
+    function getCookie(name) {
+    var cookieValue = null
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';')
+        for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim()
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+        }
+        }
+    }
+    return cookieValue
+    }
+
+    let csrftoken = getCookie('csrftoken');
+    
+    const deviceFunc = () => {
+        if (host.includes('localhost') || host.includes('127.0.0.1')) {
+            url = `http://${host}${deviceLogin}`
+        } else {
+            url = `https://${host}${deviceLogin}`
+        }
+
+        fetch(url, {
+            method:'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+            },
+            credentials: 'include',
+        })
+        .then(res => res.json())
+        .then(js => {
+            // Set id of requesting device (This user)
+            deviceCode = js['device_code']
+            // Set verification url (sends user to LiU ADFS login)
+            // Code is pre-filled
+            verificationURI = js['verification_uri_complete']
+            document.getElementById('verification-uri').href = verificationURI
+            document.getElementById('verification-uri').innerHTML = "authenticate"
+        })
+    }
+
+
+    const deviceFuncLogin = () => {
+        const payload = { device_code: deviceCode }
+        fetch(deviceLogin, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(js => {
+            // Save the accesstoken recieved from the server
+            console.log(js);
+            //window.localStorage.setItem('token', js['code']['access_token'])
+            //window.location.reload(true)
+        })
+  }
+
+</script>
+
+
+<body>
+    <b>Temporary admin login</b>
+    <br><br><br>
+    <button id="btn-login" onclick=deviceFunc()>Login</button>
+    <br>
+    <p id="device-code"></p>
+    <br>
+    <a target="_blank" href="" onclick=deviceFuncLogin() id="verification-uri"></a>
+    <br>
+    
+
+
+
+</body>
