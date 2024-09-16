@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "imagekit",
     "django_auth_adfs",
+    "post_office",
 ]
 
 MIDDLEWARE = [
@@ -198,3 +199,11 @@ CAL_URL = os.getenv(
     "CAL_URL",
     "https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics",
 )
+
+
+EMAIL_BACKEND = "post_office.EmailBackend"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)
+EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_USE_TLS = True
