@@ -95,3 +95,11 @@ class BookingSerializer(serializers.ModelSerializer):
         if overlap_query.exists():
             raise serializers.ValidationError("Booking overlaps with another booking.")
         return attrs
+
+
+class DenyBookingSerializer(serializers.ModelSerializer):
+    reason = serializers.CharField(max_length=255)
+
+    class Meta:
+        model = Booking
+        fields = ("id", "reason")

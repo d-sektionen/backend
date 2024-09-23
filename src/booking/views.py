@@ -2,10 +2,12 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
+from post_office import mail
 
 from app.permissions import FixedDjangoModelPermissions
 from .models import Booking, Item
 from .serializers import BookingSerializer, ItemSerializer
+from .serializers import BookingSerializer, DenyBookingSerializer, ItemSerializer
 from .permissions import BookingPermissions
 from .view_helpers import notify_werk_unconfirmed_booking
 
@@ -103,6 +105,32 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         if auto_confirm is False:
             notify_werk_unconfirmed_booking(new_data, True)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[FixedDjangoModelPermissions],
+    )
+    def deny(self, request, pk=None):
+        serializer = DenyBookingSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        booking = self.get_object()
+        booking.delete()
+
+        # Notify the user that the booking has been denied.
+        mail.send(
+            recipients=[booking.user.email],
+            template="denied_booking",
+            context={
+                "item": booking.item.name,
+                "startdate": booking.start,
+                "reason": serializer.validated_data["reason"],
+            },
+        )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ItemViewSet(viewsets.ReadOnlyModelViewSet):
