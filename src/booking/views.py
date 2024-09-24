@@ -10,6 +10,7 @@ from .serializers import BookingSerializer, ItemSerializer
 from .serializers import BookingSerializer, DenyBookingSerializer, ItemSerializer
 from .permissions import BookingPermissions
 from .view_helpers import notify_werk_unconfirmed_booking
+from app.utils import render_email
 
 
 class BookingViewSet(viewsets.ModelViewSet):
@@ -120,14 +121,16 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.delete()
 
         # Notify the user that the booking has been denied.
-        mail.send(
-            recipients=[booking.user.email],
-            template="denied_booking",
+        subject, content = render_email(
+            "email/denied_booking",
             context={
                 "item": booking.item.name,
                 "startdate": booking.start,
                 "reason": serializer.validated_data["reason"],
             },
+        )
+        mail.send(
+            recipients=[booking.user.email], subject=subject, html_message=content
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
