@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "imagekit",
     "django_auth_adfs",
+    "post_office",
 ]
 
 MIDDLEWARE = [
@@ -90,7 +91,23 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ]
         },
-    }
+    },
+    {
+        "BACKEND": "post_office.template.backends.post_office.PostOfficeTemplates",
+        "APP_DIRS": True,
+        "DIRS": [],
+        "OPTIONS": {
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.template.context_processors.request",
+            ]
+        },
+    },
 ]
 
 WSGI_APPLICATION = "app.wsgi.application"
@@ -198,3 +215,11 @@ CAL_URL = os.getenv(
     "CAL_URL",
     "https://calendar.google.com/calendar/ical/webmaster%40d.lintek.liu.se/public/basic.ics",
 )
+
+
+EMAIL_BACKEND = "post_office.EmailBackend"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)
+EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_USE_TLS = True
