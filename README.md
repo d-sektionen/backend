@@ -89,6 +89,17 @@ If you are denied access to anything, try running the following in your terminal
 ./manage.py add_super_user <username>
 ```
 
+## Email
+
+Email needs to be configured through the .env file.
+
+```bash
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+```
+
 # Documentation
 
 ## uwsgitop
