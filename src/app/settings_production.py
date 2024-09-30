@@ -6,7 +6,6 @@ SECRET_KEY = os.getenv("SECRET_KEY", "INSECURE_SECRET_KEY")
 DEBUG = False
 
 EMAIL_ENABLED = True
-EMAIL_HOST = "localhost"
 SERVER_EMAIL = "no-reply@d-sektionen.se"
 
 ADMINS = (("WebbU", "webbutskottet@d.lintek.liu.se"),)
