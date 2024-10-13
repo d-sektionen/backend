@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "committee",
     "keylog",
     "budgetportal",
+    "infomail",
     # ---
     # Django related
     # ---
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     "imagekit",
     "django_auth_adfs",
     "post_office",
+    "django_bleach",
 ]
 
 MIDDLEWARE = [

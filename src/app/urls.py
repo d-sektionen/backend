@@ -33,6 +33,7 @@ import keylog.urls
 import budgetportal.urls
 import committee.urls
 import locks.urls
+import infomail.urls
 
 
 def redirect_to_my_auth(request):
@@ -66,6 +67,8 @@ urlpatterns = [
     re_path(r"^budget/", include(budgetportal.urls)),
     # Locks
     re_path(r"^locks/", include(locks.urls)),
+    # Infomail
+    re_path(r"^infomail/", include(infomail.urls)),
     # Login to backend
     re_path("oauth2/", include("django_auth_adfs.urls")),
 ] + static(
