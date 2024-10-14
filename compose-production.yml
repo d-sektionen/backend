@@ -10,6 +10,7 @@ services:
       - ${BACKEND_BASEDIR}/static:/code/static
       - ${BACKEND_BASEDIR}/media:/code/media
       - ${BACKEND_BASEDIR}/log:/var/log/
+      - ${BACKEND_BASEDIR}/.YALE_ACCESS_TOKEN_CACHE:/code/.YALE_ACCESS_TOKEN_CACHE
     ports:
       # Update for production environment
       - 13337:8000
@@ -29,4 +30,3 @@ services:
 networks:
   default:
     driver: bridge
-    name: backend_network
