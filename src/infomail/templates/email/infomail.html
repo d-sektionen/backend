@@ -1,5 +1,7 @@
+{% spaceless %}
 {% load bleach_tags %}
 {% load static %}
 <img style="width:100%; " src="{% static 'sektionslogga.png' %}" />
 <h3 style="text-align:center;">Infomail - Vecka 40</h3>
 <p style="max-width:50%; text-align: center;">{{ body|bleach }}</p>
+{% endspaceless %}

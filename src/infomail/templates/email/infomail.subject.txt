@@ -1,1 +1,3 @@
+{% spaceless %}
 Infomail vecka 40
+{% endspaceless %}
