@@ -30,19 +30,33 @@ SECURE_BROWSER_XSS_FILTER = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
 
-# Log errors to Heroku log
+# Enable file logging for all loggers. Change level with this env variable.
+DJANGO_LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
+    "formatters": {
+        "timestamp": {
+            "format": "[{levelname}] {asctime} ({module}): {message}",
+            "style": "{",
         },
+    },
+    "handlers": {
+        "file": {
+            "level": DJANGO_LOG_LEVEL,
+            "class": "logging.FileHandler",
+            "filename": "/var/log/backend-django.log",
+            "formatter": "timestamp",
+        },
+    },
+    "root": {
+        "handlers": ["file"],
+        "level": DJANGO_LOG_LEVEL,
     },
     "loggers": {
         "django": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "ERROR"),
+            "handlers": ["file"],
+            "level": DJANGO_LOG_LEVEL,
         },
     },
 }
