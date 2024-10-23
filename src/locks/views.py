@@ -5,7 +5,8 @@ from asgiref.sync import async_to_sync
 from rest_framework import throttling, viewsets
 from rest_framework.decorators import action
 
-from .utils import LockCommand, LockID, get_lock_status, handle_lock_command
+from .lock import get_lock_status, handle_lock_command
+from .utils import LockCommand, LockID
 
 
 class LockGlobalThrottle(throttling.BaseThrottle):
