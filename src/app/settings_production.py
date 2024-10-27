@@ -42,20 +42,23 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file": {
+        "rotating_file": {
             "level": DJANGO_LOG_LEVEL,
-            "class": "logging.FileHandler",
-            "filename": "/var/log/backend-django.log",
             "formatter": "timestamp",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "/var/log/backend-django.log",
+            "mode": "a",
+            "maxBytes": 1024*1024 * 5, # 5MB
+            "backupCount": 5
         },
     },
     "root": {
-        "handlers": ["file"],
+        "handlers": ["rotating_file"],
         "level": DJANGO_LOG_LEVEL,
     },
     "loggers": {
         "django": {
-            "handlers": ["file"],
+            "handlers": ["rotating_file"],
             "level": DJANGO_LOG_LEVEL,
         },
     },
