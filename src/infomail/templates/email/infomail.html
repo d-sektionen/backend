@@ -7,7 +7,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <meta name="viewport" content="width=device-width"/>
         <link rel="stylesheet" type="text/css" href="{% static 'email/infomail.css' %}" />
-        <title>Infomail - Vecka {{week_number}}</title>
+        <title>{{ subject }}</title>
     </head>
     <body id="infomail">
         <header id="sektionslogga">
@@ -16,7 +16,7 @@
             </a>
         </header>
         <main id="content">
-            <h1>Infomail - Vecka {{week_number}}</h1>
+            <h1>{{ subject }}</h1>
             <div id="infochef">
                 <h2>{{ infochefCornerTitle }}</h2>
                 <p>{{ infochefCornerText }}</p>
@@ -46,7 +46,7 @@
                     <p>
                         <strong>{{ event.title }}</strong>
                         <br />
-                        {{ start }}
+                        {{ event.start }}
                     </p>
                 {% endfor %}
             {% endif %}

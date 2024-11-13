@@ -1,3 +1,3 @@
 {% spaceless %}
-Infomail vecka 40
+Infomail - Vecka {{ week_number }}
 {% endspaceless %}

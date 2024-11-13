@@ -10,7 +10,8 @@ from post_office import mail
 
 from infomail.serializers import InfomailSerializer
 from account.models import Profile
-
+from datetime import date
+from view_helpers import getEventData
 
 def render_infomail_template(subject_context, content_context):
     subject_template = get_template("email/infomail.subject.txt")
@@ -88,3 +89,12 @@ class InfoMailViewSet(viewsets.ViewSet):
         return Response(
             {"subject": subject_html, "content": content_html},
         )
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+
+        context["week_number"] = date.today().isocalendar()[1]
+        context["events"] = getEventData()
+
+        return context

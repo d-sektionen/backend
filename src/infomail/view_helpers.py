@@ -1,10 +1,12 @@
 import requests
 from icalendar import Calendar, Event
 from datetime import datetime, timedelta
+from django.conf import settings
 
-CAL_URL = "http://kalender.d-sektionen.se"
 
-def eventData(state):
+CAL_URL = settings.CAL_URL
+
+def getEventData():
     res = requests.get(CAL_URL)
     ical_string = res.text
 
@@ -27,4 +29,4 @@ def eventData(state):
                 })
 
     events.sort(key=lambda x: x['start'])
-    state.add_events(events)
+    return events
