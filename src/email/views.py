@@ -13,6 +13,7 @@ from email.models import EmailTemplate
 from account.models import Profile, EmailSubscription
 from datetime import date, datetime
 from view_helpers import getEventData
+from email.permissions import EmailPermission
 
 # render_infomail_template() will be removed
 def render_infomail_template(subject_context, content_context):
@@ -102,7 +103,7 @@ class InfoMailViewSet(viewsets.ViewSet):
         return context
 
 class EmailViewSet(viewsets.ViewSet):
-    permission_classes = (AllowMembers,)
+    permission_classes = (EmailPermission,)
 
     @action(detail=False, methods=["get"])
     def templates(self, request):
