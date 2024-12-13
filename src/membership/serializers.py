@@ -1,16 +1,11 @@
 from rest_framework import serializers
 
-# from rest_framework.validators import UniqueValidator
-# from django.contrib.auth.models import User
-
 from .models import Request
 
 
 class RequestSerializer(serializers.ModelSerializer):
-
     username = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
-        # validators=[UniqueValidator(queryset=User.objects.all())],
     )
 
     infomail_subscriber = serializers.BooleanField(
