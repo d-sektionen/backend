@@ -6,7 +6,7 @@ from membership.utils import check_membership
 from checkin.models import Doorkeeper
 from committee.serializers import CommitteeSerializer
 
-from .models import Profile, CalendarSubscription
+from .models import Profile, CalendarSubscription, EmailSubscription
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -132,3 +132,9 @@ class CalendarSubscriptionSerializer(serializers.ModelSerializer):
             "include_bookable_items",
         )
         read_only_fields = ("id", "user", "url")
+
+class EmailSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailSubscription
+        fields = ("id", "user", "include_infomail", "include_announcement")
+        read_only_fields = ("id", "user")

@@ -28,9 +28,10 @@ from .serializers import (
     InfomailUserSerializer,
     CalendarSubscriptionSerializer,
     ProfileSerializer,
+    EmailSubscriptionSerializer,
 )
 from .idtoken import generate_id_token, read_id_token
-from .models import CalendarSubscription
+from .models import CalendarSubscription, EmailSubscription
 from account.adfs_token_validation import get_public_key
 
 
@@ -215,3 +216,13 @@ class CalendarSubscriptionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return CalendarSubscription.objects.filter(user=self.request.user)
+
+class EmailSubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = EmailSubscription.objects.all()
+    serializer_class = EmailSubscriptionSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return EmailSubscription.objects.filter(user=self.request.user)
