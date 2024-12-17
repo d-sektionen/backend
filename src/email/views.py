@@ -137,11 +137,21 @@ class EmailViewSet(viewsets.ViewSet):
                 subject=email.subject,
                 message=email.html,
                 from_email='info@d-sektionen.se',
-                to= self.get_subscribers_emails(email.category), # NOTE: Unsure on the category functionality
+                to=email.sendTo if email.sendTo else self.get_subscribers_emails(email.category),
                 scheduled_time=schedule_time,
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_subscribers_emails(self, category):
+        # Note: Basic implementation, not very flexible.
+        if category == "infomail":
+            email_subscribers = EmailSubscription.objects.filter(include_infomail=True)
+        elif category == "announcement":
+            email_subscribers = EmailSubscription.objects.filter(include_announcement=True)
+        else:
+            email_subscribers = EmailSubscription.objects.none()
+        return [i.user.email for i in email_subscribers]
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -151,7 +161,3 @@ class EmailViewSet(viewsets.ViewSet):
         context["events"] = getEventData()
 
         return context
-
-    def get_subscribers_emails(self, category):
-        email_subscribers = EmailSubscription.objects.filter(category=category)
-        return [i.user.email for i in email_subscribers]

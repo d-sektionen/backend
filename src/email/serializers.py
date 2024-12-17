@@ -14,4 +14,4 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Email
-        fields = ['id', 'subject', 'html', 'sendAt', 'category']
+        fields = ['id', 'subject', 'html', 'sendAt', 'category', 'sendTo']
