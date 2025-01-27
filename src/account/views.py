@@ -27,10 +27,11 @@ from .serializers import (
     SimpleUserSerializer,
     InfomailUserSerializer,
     CalendarSubscriptionSerializer,
-    ProfileSerializer,
+    PublicProfileSerializer,
+    PrivateProfileSerializer,
 )
 from .idtoken import generate_id_token, read_id_token
-from .models import CalendarSubscription
+from .models import CalendarSubscription, Profile
 from account.adfs_token_validation import get_public_key
 
 
@@ -54,6 +55,7 @@ def generate_token(request):
 @csrf_exempt
 def device_login(request):
     if len(request.body) == 0 or "device_code" not in request.body.decode("utf-8"):
+
         # user = User.objects.get(username__iexact="felli675")
 
         payload = {
@@ -111,6 +113,7 @@ def device_login(request):
 
 
 def device_logout(request):
+
     logout(request)
 
     return JsonResponse({"user": str(request.user)})
@@ -190,22 +193,34 @@ class InfomailEveryoneView(mixins.ListModelMixin, GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
-class ProfileView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, GenericAPIView):
-    serializer_class = ProfileSerializer
+class ProfileView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = PublicProfileSerializer
+
+    def get(self, request, *args, **kwargs):
+        if "pk" in kwargs:
+            return self.retrieve(request, *args, **kwargs)
+        else:
+            return self.list(request, *args, **kwargs)
+
+
+class MeProfileView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericAPIView):
+    serializer_class = PrivateProfileSerializer
+
+    def get_queryset(self):
+        return Profile.objects.filter(user=self.request.user).first()
 
     def get_object(self):
-        return self.request.user.profile
+        return Profile.objects.filter(user=self.request.user).first()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-
 class CalendarSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = CalendarSubscription.objects.all()
     serializer_class = CalendarSubscriptionSerializer
