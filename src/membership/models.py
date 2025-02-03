@@ -34,7 +34,7 @@ class ProgramRegistration(models.Model):
     registration = models.CharField(max_length=15)  # For example 6cite-10-ht2018
 
     def __str__(self):
-        return self.registration + " - " + self.member.liu_id
+        return f"{self.registration} - {self.member.liu_id}"
 
 
 class Request(models.Model):
@@ -48,6 +48,7 @@ class Request(models.Model):
         ("IT", "Informationsteknologi"),
         ("IP", "Innovativ Programering"),
         ("CS", "Computer Science"),
+        ("CY", "Cyber Security"),
     )
 
     username = models.CharField(max_length=200, unique=True)
@@ -59,5 +60,4 @@ class Request(models.Model):
     timestamp = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.username + ", " + self.program
-
+        return f"{self.username}, {self.program}"

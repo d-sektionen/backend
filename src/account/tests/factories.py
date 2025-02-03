@@ -15,8 +15,16 @@ class UserFactory(django.DjangoModelFactory):
     class Meta:
         model = User
 
-    username = Faker("lexify", letters="abcdefghijklmnopqrstuvwxyz", text=Faker("numerify", text="?????###"))  # Get a believable LiU ID
-    RelatedFactory(
+    first_name = Faker("first_name")
+    last_name = Faker("last_name")
+    username = Faker(
+        "lexify",
+        letters="abcdefghijklmnopqrstuvwxyz",
+        text=Faker("numerify", text="?????###"),
+    )  # Get a believable LiU ID
+
+    # Not one to one with how the model is laid out, but works for testing
+    profile = RelatedFactory(
         ProfileFactory,
         factory_related_name="user",
     )
