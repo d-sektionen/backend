@@ -26,7 +26,7 @@ def lock_command_response(lock, message: str, status: int):
     return Response(
         {
             "message": message,
-            "battery_percentage": lock.battery_percentage,
+            "battery_percentage": lock.battery_level,
             "online": lock.bridge_is_online,
         },
         status=status,
@@ -37,7 +37,7 @@ def lock_not_online_response(lock):
     return Response(
         {
             "message": "Låset är inte online. Kontakta webmaster vid frågor.",
-            "battery_percentage": lock.battery_percentage,
+            "battery_percentage": lock.battery_level,
             "online": lock.bridge_is_online,
         },
         status=status,
