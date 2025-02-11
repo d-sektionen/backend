@@ -52,7 +52,7 @@ async def _lock_command(
     Unlocks or locks the door with lock_id.
     """
     lock = await yale_api.async_get_lock_detail(
-        lock_id=lock_id, access_token=yale_authenticate.access_token
+        lock_id=lock_id.value, access_token=yale_authenticate.access_token
     )
 
     now = datetime.datetime.now()
@@ -98,11 +98,11 @@ async def _lock_command(
     match command:
         case LockCommand.UNLOCK:
             await yale_api.async_unlock(
-                access_token=yale_authenticate.access_token, lock_id=lock_id
+                access_token=yale_authenticate.access_token, lock_id=lock_id.value
             )
         case LockCommand.LOCK:
             await yale_api.async_lock(
-                access_token=yale_authenticate.access_token, lock_id=lock_id
+                access_token=yale_authenticate.access_token, lock_id=lock_id.value
             )
 
     # Respond to success
@@ -122,7 +122,7 @@ async def get_lock_status(lock_id: LockID):
 
         try:
             lock = await yale_api.async_get_lock_detail(
-                lock_id=lock_id, access_token=yale_authenticate.access_token
+                lock_id=lock_id.value, access_token=yale_authenticate.access_token
             )
             # If lock is offline return error message.
             if not lock.bridge_is_online:
