@@ -16,7 +16,9 @@ class LockGlobalThrottle(throttling.BaseThrottle):
         current_time = datetime.datetime.now()
         seconds_between_requests = 6
 
-        if (current_time - self.last_request_time) <= seconds_between_requests:
+        if (
+            current_time - self.last_request_time
+        ).total_seconds() <= seconds_between_requests:
             return False
 
         self.last_request_time = current_time
