@@ -1,66 +1,33 @@
 import datetime
 
-from asgiref.sync import async_to_sync
 from django.contrib.auth.models import User
+from app.settings_shared import HOME_ASSISTANT_BASEURL, HOME_ASSISTANT_TOKEN
 from logger.utils import log
 from rest_framework import status
-from yalexs.exceptions import AugustApiAIOHTTPError
-from yalexs.lock import LockStatus
+import requests
 
 from .utils import (
     LOCK_INTERNAL_ERROR_RESPONSE,
     LOCK_LOG_ENTRY_TYPE,
     LockCommand,
     LockID,
+    LockStatus,
     lock_command_response,
-    lock_not_online_response,
 )
-from .yaleapi import YaleApi
 
 
-def handle_lock_command(command: LockCommand, lock_id: LockID, user: User):
-    """
-    Handles lock commands in a synchronous context
-    """
+def lock_command(command: LockCommand, lock_id: LockID, user: User):
+    """Unlocks or locks the door with lock_id."""
     try:
-        return async_to_sync(lock_command)(command, lock_id, user)
-    except AugustApiAIOHTTPError:
+        lock = _get_lock_status(lock_id)
+    except requests.RequestException:
         return LOCK_INTERNAL_ERROR_RESPONSE
 
-
-async def lock_command(command: LockCommand, lock_id: LockID, user: User):
-    """
-    Performs a lock command through yale api
-    """
-    response = LOCK_INTERNAL_ERROR_RESPONSE
-
-    async with YaleApi() as api:
-        yale_api = await api.get_api()
-        yale_authenticate = await api.get_authentication()
-
-        response = await _lock_command(
-            yale_api, yale_authenticate, command, lock_id, user
-        )
-
-    return response
-
-
-async def _lock_command(
-    yale_api, yale_authenticate, command: LockCommand, lock_id: LockID, user: User
-):
-    """
-    Unlocks or locks the door with lock_id.
-    """
-    lock = await yale_api.async_get_lock_detail(
-        lock_id=lock_id.value, access_token=yale_authenticate.access_token
-    )
-
-    now = datetime.datetime.now()
-
     # Limit time of day when people can unlock door, they should still be able to lock at any time.
+    now = datetime.datetime.now()
     todayMorningLimit = now.replace(hour=5, minute=0, second=0, microsecond=0)
     todayEveningLimit = now.replace(hour=21, minute=0, second=0, microsecond=0)
-    notWithinLimits = now > todayEveningLimit or now < todayMorningLimit
+    notWithinLimits = todayEveningLimit < now < todayMorningLimit
 
     if command == LockCommand.UNLOCK and notWithinLimits:
         return lock_command_response(
@@ -69,17 +36,14 @@ async def _lock_command(
             status.HTTP_400_BAD_REQUEST,
         )
 
-    if not lock.bridge_is_online:
-        return lock_not_online_response(lock)
-
-    if lock.lock_status == LockStatus.LOCKED and command == LockCommand.LOCK:
+    if lock.get("lock_status") == LockStatus.LOCKED and command == LockCommand.LOCK:
         return lock_command_response(
             lock,
             "Låset är redan låst!",
             status.HTTP_200_OK,
         )
 
-    if lock.lock_status == LockStatus.UNLOCKED and command == LockCommand.UNLOCK:
+    if lock.get("lock_status") == LockStatus.UNLOCKED and command == LockCommand.UNLOCK:
         return lock_command_response(
             lock,
             "Låset är redan upplåst!",
@@ -95,15 +59,13 @@ async def _lock_command(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    match command:
-        case LockCommand.UNLOCK:
-            await yale_api.async_unlock(
-                access_token=yale_authenticate.access_token, lock_id=lock_id.value
-            )
-        case LockCommand.LOCK:
-            await yale_api.async_lock(
-                access_token=yale_authenticate.access_token, lock_id=lock_id.value
-            )
+    headers = {"Authorization": f"Bearer {HOME_ASSISTANT_TOKEN}"}
+    data = {"entity_id": lock_id.value}
+    requests.post(
+        f"{HOME_ASSISTANT_BASEURL}/services/lock/{command.value}",
+        headers=headers,
+        json=data,
+    )
 
     # Respond to success
     locking_action = "upplåst" if command == LockCommand.UNLOCK else "låst"
@@ -112,27 +74,32 @@ async def _lock_command(
     )
 
 
-async def get_lock_status(lock_id: LockID):
+def get_lock_status(lock_id: LockID):
     """
     Responds with lock status data for lock with lock_id'
     """
-    async with YaleApi() as api:
-        yale_api = await api.get_api()
-        yale_authenticate = await api.get_authentication()
+    try:
+        lock_status = _get_lock_status(lock_id)
+    except requests.RequestException:
+        return LOCK_INTERNAL_ERROR_RESPONSE
 
-        try:
-            lock = await yale_api.async_get_lock_detail(
-                lock_id=lock_id.value, access_token=yale_authenticate.access_token
-            )
-            # If lock is offline return error message.
-            if not lock.bridge_is_online:
-                return lock_not_online_response(lock)
+    # When all is good, return lock data with no message
+    return lock_command_response(lock_status, "", status=status.HTTP_200_OK)
 
-            # When all is good, return lock data with no message
-            return lock_command_response(
-                lock,
-                "",
-                status=status.HTTP_200_OK,
-            )
-        except AugustApiAIOHTTPError:
-            return LOCK_INTERNAL_ERROR_RESPONSE
+
+def _get_lock_status(lock_id: LockID):
+    headers = {"Authorization": f"Bearer {HOME_ASSISTANT_TOKEN}"}
+    lock = requests.get(
+        f"{HOME_ASSISTANT_BASEURL}/states/{lock_id.value}", headers=headers
+    )
+
+    lock_json = lock.json()
+
+    if lock_json["state"] == "unavailable":
+        return {"battery_level": 0, "bridge_is_online": False, "is_unlocked": False}
+
+    return {
+        "battery_level": lock_json["attributes"]["battery_level"],
+        "bridge_is_online": True,
+        "is_unlocked": True if lock_json["state"] == "unlocked" else False,
+    }

@@ -1,45 +1,33 @@
-import datetime
-
 from account.permissions import AllowMembers
-from asgiref.sync import async_to_sync
 from rest_framework import throttling, viewsets
 from rest_framework.decorators import action
 
-from .lock import get_lock_status, handle_lock_command
+from .lock import get_lock_status, lock_command
 from .utils import LockCommand, LockID
 
 
-class LockGlobalThrottle(throttling.BaseThrottle):
-    last_request_time = datetime.datetime.now()
-
-    def allow_request(self, request, view):
-        current_time = datetime.datetime.now()
-        seconds_between_requests = 6
-
-        if (
-            current_time - self.last_request_time
-        ).total_seconds() <= seconds_between_requests:
-            return False
-
-        self.last_request_time = current_time
-        return True
+class LockRateLimit(throttling.UserRateThrottle):
+    def __init__(self):
+        self.rate = 0  # Required to be set for some reason despite not being used.
+        # 1 request per 3 seconds
+        self.num_requests = 1
+        self.duration = 6
 
 
 class BaseLockViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
-    throttle_classes = (LockGlobalThrottle,)
     lock_id = None
 
     def list(self, request):
-        return async_to_sync(get_lock_status)(lock_id=self.lock_id)
+        return get_lock_status(lock_id=self.lock_id)
 
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["post"], throttle_classes=[LockRateLimit])
     def unlock(self, request):
-        return handle_lock_command(LockCommand.UNLOCK, self.lock_id, request.user)
+        return lock_command(LockCommand.UNLOCK, self.lock_id, request.user)
 
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["post"], throttle_classes=[LockRateLimit])
     def lock(self, request):
-        return handle_lock_command(LockCommand.LOCK, self.lock_id, request.user)
+        return lock_command(LockCommand.LOCK, self.lock_id, request.user)
 
 
 class ConfiguraViewSet(BaseLockViewSet):
