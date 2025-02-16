@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import datetime
 import os
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -200,6 +201,7 @@ WERK_WEBHOOK_URL = os.getenv("WERK_WEBHOOK_URL", "")
 
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=5),
