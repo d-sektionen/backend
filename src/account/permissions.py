@@ -1,5 +1,13 @@
 from rest_framework.permissions import BasePermission
+from account.models import Profile
 from membership.utils import check_membership
+
+
+class IsSectionActive(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        profile = Profile.objects.get(user=request.user)
+
+        return profile.has_active_committee_membership()
 
 
 class IsUser(BasePermission):
