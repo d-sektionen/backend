@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 from membership.utils import check_membership
 from checkin.models import Doorkeeper
-from committee.serializers import CommitteeSerializer
 
 from .models import Profile, CalendarSubscription
 
@@ -55,8 +54,6 @@ class PrivateProfileSerializer(PublicProfileSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    committees = serializers.SerializerMethodField()
-    treasurer_for = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     pretty_name = serializers.SerializerMethodField()
     privileges = serializers.SerializerMethodField()
@@ -70,8 +67,6 @@ class MeSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "pretty_name",
-            "committees",
-            "treasurer_for",
             "membership",
             "profile",
             "privileges",
@@ -83,13 +78,9 @@ class MeSerializer(serializers.ModelSerializer):
     def get_pretty_name(self, obj):
         return obj.get_full_name() if obj.get_full_name() else obj.get_username()
 
-    def get_committees(self, obj):
-        return CommitteeSerializer(obj.committees, many=True).data
-
-    def get_treasurer_for(self, obj):
-        return CommitteeSerializer(obj.treasurer_for, many=True).data
-
     def get_privileges(self, obj):
+        profile = Profile.objects.get(user=obj)
+
         return {
             "booking_admin": obj.has_perms(
                 (
@@ -120,6 +111,7 @@ class MeSerializer(serializers.ModelSerializer):
             "not_member": not check_membership(obj.username),
             "member": check_membership(obj.username),
             "staff": obj.is_staff,
+            "section_active": profile.has_active_committee_membership(),
         }
 
 
