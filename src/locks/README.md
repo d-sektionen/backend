@@ -1,5 +1,14 @@
 # Locks
-This app has endpoints and functionality related to the smart locks used on our rented rooms. Currently it uses Seam API to integrate with a Yale Linus lock. The documentation can be found [here](https://docs.seam.co/latest/).
+
+This app has endpoints and functionality related to the smart locks used on our rented rooms. Currently it uses Home assistant as a middleware.
+
+## Why Home Assistant?
+
+Yale provides OAuth access exclusively to their partners. Since December 2024, the old API has been deprecated, and the new one requires OAuth. Therefore, we use Home Assistant as a middleware to utilize their OAuth access.
 
 ## Development
-It is recommended to use a sandbox when developing as it allows to test on fake locks. It can be enabled when creating a new workspace in the Seam dashboard. It can be specified through the `SEAM_API_KEY` environment variable. Fake locks can be added using the fake login details [here](https://docs.seam.co/latest/developer-tools/sandbox-and-sample-data)
+
+There are two alternatives for local development:
+
+- Running a local instance of Home Assistant.
+- Connecting to the production server using a SSH tunnel.
