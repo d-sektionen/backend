@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import Permission
 
-from account.models import Profile
-
 
 ROLE_TYPES = (
     ("tr", "treasurer"),
@@ -15,13 +13,13 @@ class Committee(models.Model):
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=255, blank=True)
     chairman_permissions = models.ManyToManyField(
-        Permission, related_name="chairman_permissions"
+        Permission, related_name="chairman_permissions", blank=True
     )
     treasurer_permissions = models.ManyToManyField(
-        Permission, related_name="treasurer_permissions"
+        Permission, related_name="treasurer_permissions", blank=True
     )
     other_permissions = models.ManyToManyField(
-        Permission, related_name="other_permissions"
+        Permission, related_name="other_permissions", blank=True
     )
 
     def __str__(self):
@@ -29,7 +27,7 @@ class Committee(models.Model):
 
 
 class CommitteeMember(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey("account.Profile", on_delete=models.CASCADE)
     email = models.EmailField(null=True)
     role_name = models.CharField(max_length=255)
     role_type = models.CharField(
