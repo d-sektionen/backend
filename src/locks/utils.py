@@ -44,8 +44,9 @@ def lock_not_online_response(lock):
     return Response(
         {
             "message": "Låset är inte online. Kontakta webmaster vid frågor.",
-            "battery_percentage": lock.battery_level,
-            "online": lock.bridge_is_online,
+            "battery_percentage": lock.get("battery_level"),
+            "online": lock.get("bridge_is_online"),
+            "unlocked": lock.get("is_unlocked"),
         },
         status=status,
     )
