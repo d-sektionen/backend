@@ -5,7 +5,7 @@ from .models import Profile, CalendarSubscription
 
 class ProfileAdmin(admin.ModelAdmin):
     readonly_fields = ("user",)
-    list_display = ("user", "liu_card_id", "infomail_subscriber")
+    list_display = ("user", "full_name", "liu_card_id", "infomail_subscriber")
     list_filter = ("infomail_subscriber",)
     search_fields = (
         "user__username",
@@ -13,6 +13,9 @@ class ProfileAdmin(admin.ModelAdmin):
         "user__last_name",
         "liu_card_id",
     )
+
+    def full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
 
 
 class CalendarSubscriptionAdmin(admin.ModelAdmin):
