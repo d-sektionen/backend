@@ -10,5 +10,9 @@ Yale provides OAuth access exclusively to their partners. Since December 2024, t
 
 There are two alternatives for local development:
 
-- Running a local instance of Home Assistant.
-- Connecting to the production server using a SSH tunnel.
+- Running a local instance of Home Assistant. For example through the docker [image](https://hub.docker.com/r/homeassistant/home-assistant).
+- Connecting to the production server using a SSH tunnel (on port 8123). A ready-made script is available [here](https://github.com/d-sektionen/d-sektionen-server/blob/nyserver/bin/ssh_tunnel)
+
+You then need to get an access token from Home Assistant. This can be done by following the instructions [here](https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token)
+
+Once a token is acquired, it should be stored in the environment variable `HOME_ASSISTANT_TOKEN`.
