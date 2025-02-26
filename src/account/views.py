@@ -55,9 +55,6 @@ def generate_token(request):
 @csrf_exempt
 def device_login(request):
     if len(request.body) == 0 or "device_code" not in request.body.decode("utf-8"):
-
-        # user = User.objects.get(username__iexact="felli675")
-
         payload = {
             "client_id": settings.CLIENT_ID,
             "scope": "openid",
@@ -113,7 +110,6 @@ def device_login(request):
 
 
 def device_logout(request):
-
     logout(request)
 
     return JsonResponse({"user": str(request.user)})
@@ -221,6 +217,8 @@ class MeProfileView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericA
 
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
+
+
 class CalendarSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = CalendarSubscription.objects.all()
     serializer_class = CalendarSubscriptionSerializer
