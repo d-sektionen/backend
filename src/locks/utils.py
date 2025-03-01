@@ -1,64 +1,63 @@
-import os
-import aiohttp
-from yalexs.api_async import ApiAsync
-from yalexs.authenticator_async import AuthenticatorAsync
-from yalexs.const import Brand
+from enum import Enum
+
+from django.conf import settings
+from logger.models import Entry
+from rest_framework import status
+from rest_framework.response import Response
 
 
-class YaleApi:
-    """Context manager for yalexs."""
+class LockID(Enum):
+    BETTAN = settings.BETTAN_LOCK_ID
+    CONFIGURA = settings.CONFIGURA_LOCK_ID
 
-    _session = None
-    _yale_api = None
-    _yale_authenticator = None
-    _yale_authentication = None
 
-    def __init__(self):
-        self._session = aiohttp.ClientSession()
+class LockCommand(Enum):
+    LOCK = "lock"
+    UNLOCK = "unlock"
 
-    async def get_session(self):
-        if not self._session:
-            self._session = aiohttp.ClientSession()
-        return self._session
 
-    async def get_authentication(self):
-        if self._yale_authentication is None:
-            authenticator = await self.get_authenticator()
-            await authenticator.async_setup_authentication()
-            self._yale_authentication = await authenticator.async_authenticate()
+class LockStatus(Enum):
+    # Replace with yalexs LockStatus if we ever use that again
+    LOCKED = "locked"
+    UNLOCKED = "unlocked"
 
-        return self._yale_authentication
 
-    async def get_authenticator(self):
-        """Constructs an AuthenticatorAsync instance."""
-        if self._yale_authenticator is None:
-            YALE_EMAIL = os.getenv("YALE_EMAIL")
-            YALE_PASSWORD = os.getenv("YALE_PASSWORD")
+LOCK_LOG_ENTRY_TYPE = {
+    LockID.BETTAN: Entry.NETLIGHT,
+    LockID.CONFIGURA: Entry.CONFIGURA,
+}
 
-            api = await self.get_api()
-            self._yale_authenticator = AuthenticatorAsync(
-                api,
-                "email",
-                YALE_EMAIL,
-                YALE_PASSWORD,
-                access_token_cache_file=".YALE_ACCESS_TOKEN_CACHE",
-            )
 
-        return self._yale_authenticator
+def lock_command_response(lock, message: str, status: int):
+    return Response(
+        {
+            "message": message,
+            "battery_percentage": lock.get("battery_level"),
+            "online": lock.get("bridge_is_online"),
+            "unlocked": lock.get("is_unlocked"),
+        },
+        status=status,
+    )
 
-    async def get_api(self):
-        """Constructs an ApiAsync instance."""
-        if self._yale_api is None:
-            self._yale_api = ApiAsync(
-                aiohttp_session=await self.get_session(),
-                timeout=20,
-                brand=Brand.YALE_HOME,
-            )
 
-        return self._yale_api
+def lock_not_online_response(lock):
+    return Response(
+        {
+            "message": "Låset är inte online. Kontakta webmaster vid frågor.",
+            "battery_percentage": lock.get("battery_level"),
+            "online": lock.get("bridge_is_online"),
+            "unlocked": lock.get("is_unlocked"),
+        },
+        status=status,
+    )
 
-    async def __aenter__(self):
-        return self
 
-    async def __aexit__(self, *excinfo):
-        await self._session.close()
+LOCK_INTERNAL_ERROR_RESPONSE = Response(
+    {
+        "message": "Problem i kommunikationen med låset. Kontakta webmaster!",
+        "battery_percentage": 0,
+        "online": False,
+        "unlocked": False,
+    },
+    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+)
