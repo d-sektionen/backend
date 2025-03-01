@@ -6,11 +6,10 @@ import uuid
 from booking.models import Item
 
 
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     liu_card_id = models.CharField(max_length=17, null=True, blank=True, default=None)
-    infomail_subscriber = models.BooleanField(default=False)
+    infomail_subscriber = models.BooleanField(default=True)
 
     def __str__(self):
         return self.user.username
