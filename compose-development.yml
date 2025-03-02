@@ -45,7 +45,8 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
     network_mode: host
-    ports: "8123:8123"
+    ports:
+      - 8123:8123
 
 volumes:
   postgresql_data:

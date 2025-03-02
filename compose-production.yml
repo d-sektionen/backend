@@ -32,7 +32,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
     network_mode: host
-    ports: "8123:8123"
+    ports:
+      - 8123:8123
 
 networks:
   default:
