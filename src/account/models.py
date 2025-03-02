@@ -36,4 +36,4 @@ class CalendarSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     include_bookings_by_user = models.BooleanField(default=True)
-    include_bookable_items = models.ManyToManyField(Item)
+    include_bookable_items = models.ManyToManyField(Item, default=None, blank=True)
