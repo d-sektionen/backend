@@ -41,12 +41,16 @@ services:
       - postgres
 
   home_assistant:
+    container_name: D-sektionen-HA
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-    network_mode: host
+      - ${BACKEND_DEV_BASEDIR}/HA-config:/config
     ports:
       - 8123:8123
+    networks:
+      - default
+      - backend-homeassistant
 
 volumes:
   postgresql_data:
@@ -56,4 +60,6 @@ networks:
     driver: bridge
     name: backend_dev_network
   internal:
+    internal: true
+  backend-homeassistant:
     internal: true

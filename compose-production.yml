@@ -27,15 +27,20 @@ services:
       - default
 
   home_assistant:
+    container_name: D-sektionen-HA
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
-    network_mode: host
+      - ${BACKEND_BASEDIR}/HA-config:/config
     ports:
       - 8123:8123
+    networks:
+      - default
+      - backend-homeassistant
 
 networks:
   default:
     driver: bridge
     name: backend_network
+  backend-homeassistant:
+    internal: true
