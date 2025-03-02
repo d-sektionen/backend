@@ -25,13 +25,13 @@ class ProfileTest(AuthenticatedTestCase):
         """Test that a user can PATCH update their own profile."""
         response = self.member_client.patch(
             "/account/profile/me/",
-            data={"liu_card_id": self.member.profile.liu_card_id},
+            data={"liu_card_id": self.other_member.profile.liu_card_id},
             format="json",
         )
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content.decode("utf-8"))
         self.assertEqual(
-            int(response_data.get("liu_card_id")), self.member.profile.liu_card_id
+            int(response_data.get("liu_card_id")), self.other_member.profile.liu_card_id
         )
 
     def test_put_own_profile(self):
@@ -62,6 +62,7 @@ class ProfileTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content.decode("utf-8"))
         self.assertEqual(response_data["first_name"], self.other_member.first_name)
+        self.assertNotIn("liu_card_id", response_data)
 
     def test_patch_other_profile(self):
         """Test that a user cannot update another user's profile."""
