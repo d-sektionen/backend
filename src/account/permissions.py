@@ -3,7 +3,7 @@ from account.models import Profile
 from membership.utils import check_membership
 
 
-class IsSectionActive(BasePermission):
+class IsCommitteeActive(BasePermission):
     def has_object_permission(self, request, view, obj):
         profile = Profile.objects.get(user=request.user)
 

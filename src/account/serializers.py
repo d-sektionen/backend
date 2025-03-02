@@ -111,7 +111,7 @@ class MeSerializer(serializers.ModelSerializer):
             "not_member": not check_membership(obj.username),
             "member": check_membership(obj.username),
             "staff": obj.is_staff,
-            "section_active": profile.has_active_committee_membership(),
+            "committee_active": profile.has_active_committee_membership(),
         }
 
 
