@@ -27,6 +27,14 @@ services:
     networks:
       - default
 
+    home_assistant:
+      image: "ghcr.io/home-assistant/home-assistant:stable"
+      volumes:
+        - /etc/localtime:/etc/localtime:ro
+      restart: unless-stopped
+      network_mode: host
+      ports: "8123:8123"
+
 networks:
   default:
     driver: bridge

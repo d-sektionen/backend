@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import datetime
 import os
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -188,11 +189,11 @@ REST_FRAMEWORK = {
     ),
 }
 
-# Yale Api
+# Home Assistant API (Locks)
 BETTAN_LOCK_ID = os.getenv("BETTAN_LOCK_ID")
 CONFIGURA_LOCK_ID = os.getenv("CONFIGURA_LOCK_ID")
-YALE_EMAIL = os.getenv("YALE_EMAIL")
-YALE_PASSWORD = os.getenv("YALE_PASSWORD")
+HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
+HOME_ASSISTANT_BASEURL = os.getenv("HOME_ASSISTANT_BASEURL")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
 
@@ -200,6 +201,7 @@ WERK_WEBHOOK_URL = os.getenv("WERK_WEBHOOK_URL", "")
 
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=5),
