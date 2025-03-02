@@ -9,17 +9,8 @@ from .models import Profile, CalendarSubscription
 
 
 class PublicProfileSerializer(serializers.ModelSerializer):
-    # WARN: first_name and last_name is updated by ADFS on each request.
     first_name = serializers.CharField(source="user.first_name", read_only=True)
     last_name = serializers.CharField(source="user.last_name", read_only=True)
-
-    def update(self, instance, validated_data):
-        instance.first_name = validated_data.get("first_name", instance.user.first_name)
-        instance.last_name = validated_data.get("last_name", instance.user.last_name)
-        instance.user.save()
-        instance.save()
-
-        return instance
 
     class Meta:
         model = Profile
@@ -28,13 +19,7 @@ class PublicProfileSerializer(serializers.ModelSerializer):
 
 class PrivateProfileSerializer(PublicProfileSerializer):
     def update(self, instance, validated_data):
-        user_data = validated_data.get("user", {})
-        user = instance.user
-
-        user.first_name = user_data.get("first_name", user.first_name)
-        user.last_name = user_data.get("last_name", user.last_name)
-        user.save()
-
+        # WARN: first_name and last_name is updated by ADFS on each request.
         instance.liu_card_id = validated_data.get("liu_card_id", instance.liu_card_id)
         instance.infomail_subscriber = validated_data.get(
             "infomail_subscriber", instance.infomail_subscriber
