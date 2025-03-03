@@ -1,52 +1,28 @@
 from account.permissions import AllowMembers
-from account.user import get_or_create_user
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.request import Request
-from rest_framework.response import Response
+from rest_framework import viewsets
 
-from .serializers import CommitteeSerializer
-from .models import Committee
-from .permissions import CommitteePermissions
+from .serializers import CommitteeMemberSerializer, CommitteeSerializer
+from .models import Committee, CommitteeMember
 
 
-class CommitteeViewSet(viewsets.ReadOnlyModelViewSet):
+class CommitteesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Committee.objects.all()
     serializer_class = CommitteeSerializer
     permission_classes = (AllowMembers,)
 
-    @action(detail=False, methods=["post"], permission_classes=[CommitteePermissions])
-    def set_committee_dependents(request: Request, format=None):
-        """Set the dependents (ordförande & kassör) using data from Dsek-FetchR."""
-        members = request.data
 
-        for member in members:
-            user, _ = get_or_create_user(member)
-            committee = members[member]["Utskott"]
-            committee_obj, _ = Committee.objects.get_or_create(name=committee)
-            if committee_obj is not None:
-                # Update committee
-                committee_obj.members.add(user)
-                committee_obj.save()
+class CommitteeMembershipsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CommitteeMemberSerializer
+    permission_classes = (AllowMembers,)
 
-                # Update treasurer
-                if members[member]["Kassör"] == "TRUE":
-                    committee_obj.treasurer = user
-                    if user.email != "":
-                        committee_obj.treasurer_email = user.email
+    def get_queryset(self):
+        queryset = CommitteeMember.objects.filter(
+            committee__id=self.kwargs.get("committee_id")
+        )
 
-                # Update chairman
-                elif members[member]["Ordförande"] == "TRUE":
-                    committee_obj.chair = user
-                    if user.email != "":
-                        committee_obj.chair_email = user.email
+        year = self.request.query_params.get("year")
 
-                committee_obj.save()
+        if year:
+            queryset = queryset.filter(year=year)
 
-            else:
-                return Response(
-                    {"error": "Det finns inget utskott med det ID:t"},
-                    status.HTTP_400_BAD_REQUEST,
-                )
-
-        return Response({"ok": "Sektionsmedlemmar uppdaterade"}, status.HTTP_200_OK)
+        return queryset
