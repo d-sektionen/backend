@@ -11,7 +11,6 @@ from .utils import (
     LOCK_LOG_ENTRY_TYPE,
     LockCommand,
     LockID,
-    LockStatus,
     lock_command_response,
 )
 
@@ -27,23 +26,23 @@ def lock_command(command: LockCommand, lock_id: LockID, user: User):
     now = datetime.datetime.now()
     todayMorningLimit = now.replace(hour=5, minute=0, second=0, microsecond=0)
     todayEveningLimit = now.replace(hour=21, minute=0, second=0, microsecond=0)
-    notWithinLimits = todayEveningLimit < now < todayMorningLimit
+    withinLimits = todayEveningLimit < now < todayMorningLimit
 
-    if command == LockCommand.UNLOCK and notWithinLimits:
+    if command == LockCommand.UNLOCK and not withinLimits:
         return lock_command_response(
             lock,
             f"Det går endast att låsa upp mellan {todayMorningLimit.strftime('%H:%M')} och {todayEveningLimit.strftime('%H:%M')}.",
             status.HTTP_400_BAD_REQUEST,
         )
 
-    if lock.get("lock_status") == LockStatus.LOCKED and command == LockCommand.LOCK:
+    if not lock.get("is_unlocked") and command == LockCommand.LOCK:
         return lock_command_response(
             lock,
             "Låset är redan låst!",
             status.HTTP_200_OK,
         )
 
-    if lock.get("lock_status") == LockStatus.UNLOCKED and command == LockCommand.UNLOCK:
+    if lock.get("is_unlocked") and command == LockCommand.UNLOCK:
         return lock_command_response(
             lock,
             "Låset är redan upplåst!",
