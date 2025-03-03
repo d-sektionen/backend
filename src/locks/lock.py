@@ -26,7 +26,7 @@ def lock_command(command: LockCommand, lock_id: LockID, user: User):
     now = datetime.datetime.now()
     todayMorningLimit = now.replace(hour=5, minute=0, second=0, microsecond=0)
     todayEveningLimit = now.replace(hour=21, minute=0, second=0, microsecond=0)
-    withinLimits = todayEveningLimit < now < todayMorningLimit
+    withinLimits = todayMorningLimit < now < todayEveningLimit
 
     if command == LockCommand.UNLOCK and not withinLimits:
         return lock_command_response(
