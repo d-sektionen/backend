@@ -13,7 +13,7 @@ class PublicProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ("first_name", "last_name")
+        fields = ("first_name", "last_name", "phone_number")
 
 
 class PrivateProfileSerializer(PublicProfileSerializer):
@@ -22,6 +22,9 @@ class PrivateProfileSerializer(PublicProfileSerializer):
         instance.liu_card_id = validated_data.get("liu_card_id", instance.liu_card_id)
         instance.infomail_subscriber = validated_data.get(
             "infomail_subscriber", instance.infomail_subscriber
+        )
+        instance.phone_number = validated_data.get(
+            "phone_number", instance.phone_number
         )
         instance.save()
 
@@ -34,6 +37,7 @@ class PrivateProfileSerializer(PublicProfileSerializer):
             "last_name",
             "liu_card_id",
             "infomail_subscriber",
+            "phone_number",
         )
 
 

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "imagekit",
     "post_office",
     "identity",
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
