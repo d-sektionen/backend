@@ -12,7 +12,7 @@ class Occurrence(EventBase):
     ACTIONS = ["Registrera"]
 
     members_only = models.BooleanField(default=False)
-    attendant_limit = models.IntegerField(
+    attendant_limit = models.PositiveSmallIntegerField(
         default=0, help_text="For no limit the value should be 0."
     )
     attendants = models.ManyToManyField(User, related_name="+", blank=True)
