@@ -2,35 +2,13 @@
 
 from django.db import migrations, models
 
-# NOTE: this migration is a bit dangerous since it modifies data
-def fix_liu_id(apps, schema_editor):
-    Profile = apps.get_model('account', 'Profile')
-    for profile in Profile.objects.all():
-        try:
-            int(profile.liu_card_id)
-        except:
-            profile.liu_card_id = "0"
-        profile.save()
-
-
-def fix_zero(apps, schema_editor):
-    Profile = apps.get_model('account', 'Profile')
-    for profile in Profile.objects.all():
-        if profile.liu_card_id == 0:
-            profile.liu_card_id = None
-            profile.save()
-
 
 class Migration(migrations.Migration):
 
     dependencies = [("account", "0006_profile_infomail_subscriber")]
 
     operations = [
-        migrations.RunPython(fix_liu_id),
-        migrations.AlterField(
-            model_name="profile",
-            name="liu_card_id",
-            field=models.BigIntegerField(blank=True, null=True),
-        ),
-        migrations.RunPython(fix_zero),
+        # INFO: Used to contain a profile migration changing liu_card_id to a integer field.
+        # That migration causes issues when adding fields to profile.
+        # Since we switched back to a string field there's no point keeping it.
     ]
