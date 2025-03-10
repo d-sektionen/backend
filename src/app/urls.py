@@ -33,6 +33,7 @@ import keylog.urls
 import budgetportal.urls
 import committee.urls
 import locks.urls
+import photoalbum.urls
 
 
 def redirect_to_my_auth(request):
@@ -68,6 +69,8 @@ urlpatterns = [
     re_path(r"^locks/", include(locks.urls)),
     # Login to backend
     re_path("oauth2/", include("django_auth_adfs.urls")),
+    # Photoalbum
+    re_path(r"^photoalbum/", include(photoalbum.urls)),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # TODO: Change for production

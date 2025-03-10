@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "committee",
     "keylog",
     "budgetportal",
+    "photoalbum",
     # ---
     # Django related
     # ---
