@@ -62,6 +62,7 @@ class ProfileTest(AuthenticatedTestCase):
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content.decode("utf-8"))
         self.assertEqual(response_data["first_name"], self.other_member.first_name)
+        self.assertNotIn("liu_card_id", response_data)
 
     def test_patch_other_profile(self):
         """Test that a user cannot update another user's profile."""

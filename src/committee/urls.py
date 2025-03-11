@@ -5,7 +5,12 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r"", views.CommitteeViewSet, basename="committees")
+router.register(
+    r"committeemembers/(?P<committee_id>.+)",
+    views.CommitteeMembershipsViewSet,
+    basename="committeemembers",
+)
+router.register(r"committees", views.CommitteesViewSet, basename="committee")
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
