@@ -8,6 +8,7 @@ class ProfileFactory(django.DjangoModelFactory):
         model = Profile
 
     liu_card_id = Faker("random_number", digits=17, fix_len=True)
+    infomail_subscriber = True
 
 
 @django.mute_signals(post_save)
