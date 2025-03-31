@@ -113,4 +113,7 @@ class ProfileTest(AuthenticatedTestCase):
 
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content.decode("utf-8"))
-        self.assertEqual(len(response_data), 4)
+
+        len_profiles_from_db = Profile.objects.all().count()
+
+        self.assertEqual(len(response_data), len_profiles_from_db)
