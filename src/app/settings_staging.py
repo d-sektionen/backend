@@ -2,6 +2,9 @@
 Staging settings are used to develop the backend when hosted remotely behind a webserver with HTTPS.
 It does not implement login towards LiU as that requires specific settings to make LiU trust the login.
 This requires accounts with passwords to allow login as with debug.
+
+The DJANGO_SETTINGS_MODULE environment variable has to be upated in the dockerfile
+to enable staging settings during image build.
 """
 
 from app.settings_production import *
