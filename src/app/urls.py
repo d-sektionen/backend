@@ -14,30 +14,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import include
+import account.urls
+import attendance.urls
+import booking.urls
+import budgetportal.urls
+import carlogging.urls
+import checkin.urls
+import committee.urls
+import keylog.urls
+import locks.urls
+import membership.urls
+import oauth2.urls
+import tools.urls
+import voting.urls
 from django.conf import settings
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth.views import redirect_to_login
-from django.urls import re_path, reverse
-
-import account.urls
-import voting.urls
-import booking.urls
-import tools.urls
-import checkin.urls
-import attendance.urls
-import membership.urls
-import carlogging.urls
-import keylog.urls
-import budgetportal.urls
-import committee.urls
-import locks.urls
-
-
-def redirect_to_my_auth(request):
-    return redirect_to_login(reverse("wagtailadmin_home"), login_url="/account/login")
-
+from django.urls import re_path
 
 urlpatterns = [
     # Admin pages
@@ -66,12 +60,12 @@ urlpatterns = [
     re_path(r"^budget/", include(budgetportal.urls)),
     # Locks
     re_path(r"^locks/", include(locks.urls)),
-    # Login to backend
-    re_path("oauth2/", include("django_auth_adfs.urls")),
-] + static(
-    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-)  # TODO: Change for production
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# TODO: define custom error handlers https://www.django-rest-framework.org/api-guide/exceptions/#generic-error-views
-# handler500 = 'rest_framework.exceptions.server_error'
-# handler400 = 'rest_framework.exceptions.bad_request'
+# Production/staging settings
+if not (settings.DEBUG or settings.STAGING):
+    urlpatterns += [
+        # Login to backend
+        re_path(r"^oauth2/", include(oauth2.urls)),
+        settings.MICROSOFT_IDENTITY.urlpattern,
+    ]
