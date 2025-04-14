@@ -7,15 +7,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from post_office import mail
 
-from email.serializers import (
-    EmailTemplateSerializer,
-    EmailSerializer,
+from .serializers import (
+    MailTemplateSerializer,
+    MailSerializer,
 )
-from email.models import EmailTemplate
+from .models import MailTemplate
 from account.models import EmailSubscription
 from datetime import date, datetime
-from view_helpers import getEventData
-from email.permissions import EmailPermission
+from .view_helpers import getEventData
+from .permissions import EmailPermission
 
 
 class EmailViewSet(viewsets.ViewSet):
@@ -31,11 +31,13 @@ class EmailViewSet(viewsets.ViewSet):
             return Response(
                 {"error": "No templates found"}, status=status.HTTP_404_NOT_FOUND
             )
+class MailViewSet(viewsets.ViewSet):
+    permission_classes = (EmailPermission,)
 
     @action(detail=False, methods=["get"])
     def send_preview(self, request):
         try:
-            template = EmailTemplate.objects.get(pk=request.query_params["id"])
+            template = MailTemplate.objects.get(pk=request.query_params["id"])
             context = self.get_context_data()
             html_code = render_to_string(template.template_file, context).strip()
             return Response(
@@ -47,14 +49,14 @@ class EmailViewSet(viewsets.ViewSet):
                 },
                 status=status.HTTP_200_OK,
             )
-        except EmailTemplate.DoesNotExist:
+        except MailTemplate.DoesNotExist:
             return Response(
                 {"error": "Template not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
     @action(detail=False, methods=["post"])
     def send_email(self, request):
-        serializer = EmailSerializer(data=request.data)
+        serializer = MailSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.save()
             schedule_time = (

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import EmailTemplate, Email
+from .models import MailTemplate, Mail
 
 
 class InfomailSerializer(serializers.Serializer):
@@ -7,13 +7,13 @@ class InfomailSerializer(serializers.Serializer):
     content = serializers.CharField(max_length=4000, required=True)
 
 
-class EmailTemplateSerializer(serializers.ModelSerializer):
+class MailTemplateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EmailTemplate
+        model = MailTemplate
         fields = ["id", "name", "category", "subject", "description"]
 
 
-class EmailSerializer(serializers.ModelSerializer):
+class MailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Email
+        model = Mail
         fields = ["id", "subject", "html", "sendAt", "category", "sendTo"]

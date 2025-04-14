@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Email(models.Model):
+class Mail(models.Model):
     category = models.CharField(max_length=255)
     subject = models.CharField(max_length=255)
     html = models.TextField()
@@ -11,7 +11,7 @@ class Email(models.Model):
         return self.subject
 
 
-class EmailTemplate(models.Model):
+class MailTemplate(models.Model):
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
     subject = models.CharField(max_length=255)
