@@ -10,6 +10,7 @@ services:
       - ${BACKEND_BASEDIR}/static:/code/static
       - ${BACKEND_BASEDIR}/media:/code/media
       - ${BACKEND_BASEDIR}/log:/var/log/
+      - ${BACKEND_BASEDIR}/.YALE_ACCESS_TOKEN_CACHE:/code/.YALE_ACCESS_TOKEN_CACHE
     ports:
       # Update for production environment
       - 13337:8000
@@ -26,7 +27,21 @@ services:
     networks:
       - default
 
+  home_assistant:
+    container_name: D-sektionen-HA
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${BACKEND_BASEDIR}/HA-config:/config
+    ports:
+      - 8123:8123
+    networks:
+      - default
+      - backend-homeassistant
+
 networks:
   default:
     driver: bridge
     name: backend_network
+  backend-homeassistant:
+    internal: true

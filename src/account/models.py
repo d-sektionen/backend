@@ -1,10 +1,11 @@
+from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import uuid
 from booking.models import Item
-
+from committee.models import CommitteeMember
 
 
 class Profile(models.Model):
@@ -14,6 +15,11 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    def has_active_committee_membership(self):
+        return CommitteeMember.objects.filter(
+            profile_id=self.id, has_permissions_until__gte=datetime.now()
+        ).exists()
 
 
 @receiver(post_save, sender=User)
@@ -37,7 +43,8 @@ class CalendarSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     include_bookings_by_user = models.BooleanField(default=True)
-    include_bookable_items = models.ManyToManyField(Item)
+    include_bookable_items = models.ManyToManyField(Item, default=None, blank=True)
+
 
 class EmailSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

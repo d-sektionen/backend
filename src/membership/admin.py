@@ -5,7 +5,6 @@ from .utils import check_membership
 
 
 class ProgramRegistrationAdminInline(admin.TabularInline):
-    # readonly_fields = ('registration', )
     model = ProgramRegistration
 
 
@@ -19,12 +18,13 @@ class MemberAdmin(admin.ModelAdmin):
 admin.site.register(Member, MemberAdmin)
 
 
-program_codes = {
+PROGRAM_CODES = {
     "D": "6cddd",
     "U": "6cmju",
     "IT": "6cite",
     "IP": "6kipr",
     "CS": "6mics",
+    "CY": "6mcys",
 }
 
 
@@ -38,23 +38,19 @@ def accept_request(modeladmin, request, queryset):
             },
         )
         if created:
-            registration = (
-                program_codes[member_request.program]
-                + "-1-ht"
-                + str(member_request.starting_year)
-            )
+            program_code = PROGRAM_CODES[member_request.program]
+            registration = f"{program_code}-1-ht{member_request.starting_year}"
 
             ProgramRegistration.objects.create(member=member, registration=registration)
             member_request.delete()
         else:
             modeladmin.message_user(
                 request,
-                "Something went wrong, the issue is likely that "
-                + member_request.username
-                + " is already a member.",
+                f"Something went wrong, the issue is likely that {member_request.username} is already a member.",
                 level=messages.ERROR,
             )
             return
+
     modeladmin.message_user(request, "Requests were successfully accepted.")
 
 

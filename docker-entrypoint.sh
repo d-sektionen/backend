@@ -1,5 +1,5 @@
 #!/bin/sh
-SRC_PATH=/code/src/
+SRC_PATH=/code/
 
 cd $SRC_PATH
 echo 'Run migration'

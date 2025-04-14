@@ -1,36 +1,50 @@
+from django.contrib.auth.models import Permission
 from rest_framework import serializers
-from django.contrib.auth.models import User
 
-from committee.models import Committee
+from committee.models import Committee, CommitteeMember
 
 
-class CommitteeUserSerializer(serializers.ModelSerializer):
-    pretty_name = serializers.SerializerMethodField()
-
+class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = "id", "username", "email", "pretty_name"
-
-    def get_pretty_name(self, obj):
-        full_name = obj.get_full_name()
-        return full_name if full_name else obj.username
+        model = Permission
+        fields = (
+            "codename",
+            "id",
+        )
 
 
 class CommitteeSerializer(serializers.ModelSerializer):
-    treasurer = CommitteeUserSerializer()
-    chair = CommitteeUserSerializer()
-    members = CommitteeUserSerializer(many=True)
-
     class Meta:
         model = Committee
+        fields = ("name", "id")
+
+
+class CommitteeMemberWithoutProfileSerializer(serializers.ModelSerializer):
+    """Avoid recursion when serializing CommitteeMembers in ProfileSerializer."""
+
+    committee = CommitteeSerializer()
+
+    class Meta:
+        model = CommitteeMember
         fields = (
-            "id",
-            "name",
-            "description",
-            "treasurer",
-            "treasurer_email",
-            "chair",
-            "chair_email",
-            "members",
+            "email",
+            "role_name",
+            "role_type",
+            "year",
+            "committee",
+            "has_permissions_until",
         )
 
+
+class CommitteeMemberSerializer(CommitteeMemberWithoutProfileSerializer):
+    class Meta:
+        model = CommitteeMember
+        fields = (
+            "email",
+            "role_name",
+            "role_type",
+            "year",
+            "committee",
+            "has_permissions_until",
+            "profile",
+        )
