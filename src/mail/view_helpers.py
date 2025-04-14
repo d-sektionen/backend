@@ -6,6 +6,7 @@ from django.conf import settings
 
 CAL_URL = settings.CAL_URL
 
+
 def getEventData():
     res = requests.get(CAL_URL)
     ical_string = res.text
@@ -18,15 +19,17 @@ def getEventData():
     for component in cal.walk():
         if component.name == "VEVENT":
             event = Event(component)
-            start = event.get('dtstart').dt
-            end = event.get('dtend').dt
+            start = event.get("dtstart").dt
+            end = event.get("dtend").dt
 
             if end >= now and start <= now_plus_21_days:
-                events.append({
-                    'summary': event.get('summary'),
-                    'start': start.isoformat(),
-                    'end': end.isoformat()
-                })
+                events.append(
+                    {
+                        "summary": event.get("summary"),
+                        "start": start.isoformat(),
+                        "end": end.isoformat(),
+                    }
+                )
 
-    events.sort(key=lambda x: x['start'])
+    events.sort(key=lambda x: x["start"])
     return events

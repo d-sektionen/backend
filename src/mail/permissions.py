@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 # NOTE: Copied from src/booking/permissions.py and modified to fit the email functionality
 class EmailPermission(permissions.BasePermission):
     """
@@ -11,9 +12,7 @@ class EmailPermission(permissions.BasePermission):
             return False
 
         # Create only allowed if section member
-        if request.method == "POST" and not (
-            request.user.has_perm("email.add_email")
-        ):
+        if request.method == "POST" and not (request.user.has_perm("email.add_email")):
             return False
 
         return True
@@ -28,9 +27,7 @@ class EmailPermission(permissions.BasePermission):
             return True
 
         # Allow delete if admin
-        if request.method == "DELETE" and request.user.has_perm(
-            "email.delete_email"
-        ):
+        if request.method == "DELETE" and request.user.has_perm("email.delete_email"):
             return True
 
         # Write permissions are only allowed to the owner of the email.
