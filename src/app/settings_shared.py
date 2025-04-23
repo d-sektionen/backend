@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "committee",
     "keylog",
     "budgetportal",
-    "infomail",
+    "mail",
     # ---
     # Django related
     # ---
