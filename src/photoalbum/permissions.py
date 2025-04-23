@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from membership.utils import check_membership
+
 
 class PhotoPermissions(permissions.BasePermission):
     """
@@ -12,6 +14,13 @@ class PhotoPermissions(permissions.BasePermission):
 
         # Create only allowed if section member
         if request.method == "POST" and not request.user.has_perm("photo.add_photo"):
+            return False
+
+        # Allow viewing if member or has perms to view photo
+        if request.method == "GET" and not (
+            request.user.has_perm("photo.view_photo")
+            or check_membership(request.user.username)
+        ):
             return False
 
         return True
