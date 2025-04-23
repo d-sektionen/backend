@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Profile, CalendarSubscription
+from .models import Profile, CalendarSubscription, EmailSubscription
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -22,5 +22,10 @@ class CalendarSubscriptionAdmin(admin.ModelAdmin):
     list_display = ("user", "include_bookings_by_user")
 
 
+class EmailSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("user", "include_infomail", "include_announcement")
+
+
+admin.site.register(EmailSubscription, EmailSubscriptionAdmin)
 admin.site.register(CalendarSubscription, CalendarSubscriptionAdmin)
 admin.site.register(Profile, ProfileAdmin)
