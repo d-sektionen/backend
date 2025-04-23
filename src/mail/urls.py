@@ -6,7 +6,8 @@ from . import views
 
 
 router = routers.DefaultRouter()
-router.register(r"mail", views.EmailTemplateViewSet, basename="email")
+router.register(r"mail-template", views.MailTemplateViewSet, basename="mail-template")
+router.register(r"mail", views.MailViewSet, basename="mail")
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
