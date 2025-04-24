@@ -10,7 +10,7 @@ from post_office import mail
 
 from .serializers import (
     MailTemplateSerializer,
-    MailSerializer,
+    SendMailSerializer,
 )
 from .models import MailTemplate, Mail
 from account.models import EmailSubscription
@@ -28,7 +28,7 @@ class MailTemplateViewSet(viewsets.ReadOnlyModelViewSet):
     def get_html(self, request, pk=None):
         template = MailTemplate.objects.get(pk=pk)
         context = self.get_context_data()
-        html_code = render_to_string(template.template_file.name, context).strip()
+        html_code = render_to_string(template.template_filename, context).strip()
 
         return Response(html_code, status=status.HTTP_200_OK)
 
@@ -47,22 +47,23 @@ class MailViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def send(self, request):
-        serializer = MailSerializer(data=request.data)
+        serializer = SendMailSerializer(data=request.data)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
         bcc = self.get_subscribers_emails(serializer.validated_data["category"])
 
-        # TODO: Handle sent at a later date
         email = mail.send(
             recipients=[request.user.email],
             bcc=bcc,
-            message=serializer.validated_data["html"],
+            html_message=serializer.validated_data["html"],
             subject=serializer.validated_data["subject"],
+            scheduled_time=serializer.validated_data["send_at"],
         )
 
         Mail.objects.create(
+            sender=request.user,
             subject=serializer.validated_data["subject"],
             category=serializer.validated_data["category"],
             post_office_mail=email,
@@ -72,14 +73,14 @@ class MailViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def send_sample(self, request):
-        serializer = MailSerializer(data=request.data)
+        serializer = SendMailSerializer(data=request.data)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
         mail.send(
             recipients=[request.user.email],
-            message=serializer.validated_data["html"],
+            html_message=serializer.validated_data["html"],
             subject=serializer.validated_data["subject"],
         )
 

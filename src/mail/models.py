@@ -27,11 +27,15 @@ class Mail(models.Model):
 
 class MailTemplate(models.Model):
     name = models.CharField(max_length=255)
-    category = models.CharField(max_length=255)
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORIES,
+        default="uncategorized",
+    )
     subject = models.CharField(max_length=255)
     description = models.TextField(max_length=500)
     # TODO: Different field type?
-    template_filename = models.TextField(max_length=500)
+    template_filename = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
