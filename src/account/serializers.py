@@ -97,6 +97,14 @@ class MeSerializer(serializers.ModelSerializer):
             "member": check_membership(obj.username),
             "staff": obj.is_staff,
             "committee_active": profile.has_active_committee_membership(),
+            "mail_admin": obj.has_perms(
+                (
+                    "mail.add_mail",
+                    "mail.change_mail",
+                    "mail.delete_mail",
+                    "mail.view_mail",
+                )
+            ),
         }
 
 
