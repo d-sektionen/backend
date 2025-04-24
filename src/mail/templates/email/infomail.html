@@ -1,62 +1,30 @@
 {% spaceless %}
-{% load static %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-        <meta name="viewport" content="width=device-width"/>
-        <link rel="stylesheet" type="text/css" href="{% static 'email/infomail.css' %}" />
-        <title>{{ subject }}</title>
-    </head>
-    <body id="infomail">
-        <header id="sektionslogga">
-            <a href="https://d-sektionen.se/" alt="Hemsidan för D-sektionen vid LiU">
-                <img src="{% static 'sektionslogga.png' %}" alt="Sektionslogga för D-sektionen"/>
-            </a>
-        </header>
-        <main id="content">
-            <h1>{{ subject }}</h1>
-            <div id="infochef">
-                <h2>{{ infochefCornerTitle }}</h2>
-                <p>{{ infochefCornerText }}</p>
-            </div>
-            <hr />
-        </main>
-        <aside id="socialMedia">
-            <h2>Sociala medier</h2>
-            <button class="facebook social" href="https://www.facebook.com/datateknologsektionen/">
-                <p>Facebook</p>
-            </button>
-            <button class="facebook social" href="https://www.facebook.com/groups/detbasta/">
-                <p>Facebook-grupp</p>
-            </button>
-            <button class="instagram social" href="https://www.instagram.com/dsektionen/">
-                <p>Instagram</p>
-            </button>
-            <button class="social" href="https://d-sektionen.se/socialamedier">
-                <p>Fler sociala medier</p>
-            </button>
-        </aside>
-        <div id="events">
-            <h2>Evenemang på gång</h2>
-            {% if events %}
-                {% for event in events %}
-                    <p>
-                        <strong>{{ event.title }}</strong>
-                        <br />
-                        {{ event.start }}
-                    </p>
-                {% endfor %}
-            {% endif %}
-        </div>
-        <footer id="footer">
-            <p>
-                Några frågor, tankar eller inlägg? Skicka iväg ett mail till <a href="mailto:info@d-sektionen.se">info@d-sektionen.se</a>!
-            </p>
-            <p>
-            Om du inte vill ha dessa mail kan du <a href="https://medlem.d-sektionen.se/preferences">avregistrera dig här</a>.
-            </p>
-        </footer>
-    </body>
-</html>
+    <main id="content">
+        <h3>Infochefens hörna</h3>
+    </main>
+    <hr/>
+    <h3>Utskotten har ordet</h3>
+    <hr/>
+    <div id="events">
+        <h3>Evenemang på gång</h3>
+        {% if events %}
+            {% for event in events %}
+                <p>
+                    <strong>{{ event.summary }}</strong>
+                    <br />
+                    {{ event.start }}
+                </p>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <hr/>
+    <p><i>
+      Några frågor, tankar eller inlägg? Skicka iväg ett mail till <a href="mailto:info@d-sektionen.se">info@d-sektionen.se</a>!
+    </i></p>
+    <p><i>
+      Personuppgiftshantering: <a href="https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf">https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf</a>
+    </i></p>
+    <p><i>
+      Om du inte vill ha dessa mail kan du <a href="https://medlem.d-sektionen.se/preferences">avregistrera dig här</a>.
+    </i></p>
 {% endspaceless %}
