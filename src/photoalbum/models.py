@@ -1,10 +1,6 @@
 from django.db import models
 from committee.models import Committee
-
-
-def get_photo_path(instance, filename):
-    ext = filename.split(".")[-1]
-    return f"photoalbum/{instance.date.year}/{instance.title}.{ext}"
+from photoalbum.utils import get_photo_path
 
 
 class Photo(models.Model):
