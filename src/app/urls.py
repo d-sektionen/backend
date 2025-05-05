@@ -77,11 +77,13 @@ urlpatterns = [
 if settings.DEBUG:  # Serve it statically for development
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:  # This is for setting up protected media paths with nginx
-    urlpatterns += re_path(
-        r"^media/(?P<path>.*)$",
-        views.ProtectedMediaView.as_view(),
-        name="protected_media",
-    )
+    urlpatterns += [
+        re_path(
+            r"^media/(?P<path>.*)$",
+            views.ProtectedMediaView.as_view(),
+            name="protected_media",
+        )
+    ]
 
 # TODO: define custom error handlers https://www.django-rest-framework.org/api-guide/exceptions/#generic-error-views
 # handler500 = 'rest_framework.exceptions.server_error'
