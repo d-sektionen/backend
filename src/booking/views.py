@@ -73,6 +73,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
             # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
             queryset = Booking.objects.filter(
+                item=data["item"],
                 restricted_timeslot=True,
                 confirmed=True,
                 start__lte=data["end"],
