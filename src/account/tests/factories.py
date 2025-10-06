@@ -1,7 +1,9 @@
-from factory import RelatedFactory, Trait, django, Faker
+from factory import RelatedFactory, Trait, django, Faker, LazyAttribute
 from account.models import Profile, User
 from django.db.models.signals import post_save
+from faker import Faker as RealFaker
 
+RealFaker = RealFaker()
 
 class ProfileFactory(django.DjangoModelFactory):
     class Meta:
@@ -13,17 +15,18 @@ class ProfileFactory(django.DjangoModelFactory):
 
 @django.mute_signals(post_save)
 class UserFactory(django.DjangoModelFactory):
+    """
+    Creates a batch of users in the system according the LiU ID system ABCXY123 base on first and last name and some random numbers
+    """
     class Meta:
         model = User
 
     first_name = Faker("first_name")
     last_name = Faker("last_name")
-    username = Faker(
-        "lexify",
-        letters="abcdefghijklmnopqrstuvwxyz",
-        text=Faker("numerify", text="?????###"),
-    )  # Get a believable LiU ID
-
+    username = LazyAttribute(
+        lambda obj: obj.first_name[:3].lower() + obj.last_name[:2].lower() + RealFaker.numerify(text="###")
+    )
+    email = LazyAttribute(lambda obj: obj.username+"@student.liu.se")
     # Not one to one with how the model is laid out, but works for testing
     profile = RelatedFactory(
         ProfileFactory,
