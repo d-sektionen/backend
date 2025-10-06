@@ -1,5 +1,4 @@
-from factory import RelatedFactory, Trait, Faker
-import factory.django as django
+from factory import RelatedFactory, Trait, django, Faker
 from ..models import Profile, User
 from django.db.models.signals import post_save
 
