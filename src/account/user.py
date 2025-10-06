@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
-
-from membership.utils import get_name
+from ..membership.utils import get_name
 
 """
 Sets the name of a user based on data in the Membership database.

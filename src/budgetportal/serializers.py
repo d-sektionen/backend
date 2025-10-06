@@ -6,9 +6,9 @@ from rest_framework import serializers
 
 from .models import BudgetEntry, File
 
-from account.serializers import SimpleUserSerializer
-from committee.serializers import CommitteeSerializer
-from committee.models import Committee
+from ..account.serializers import SimpleUserSerializer
+from ..committee.serializers import CommitteeSerializer
+from ..committee.models import Committee
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -29,13 +29,13 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
     articles = serializers.JSONField()
-   
+
     committee_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=Committee.objects.all(),
         source="committee",
         default=CommitteeSerializer(),
-        
+
     )
     committee = CommitteeSerializer(read_only=True)
     receipts = FileSerializer(many=True, read_only=True)
@@ -57,7 +57,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             "user",
             "location",
             "date",
-            "ipaddr",  
+            "ipaddr",
             "confirmed",
             "approvedKas",
             "approvedDeg",
@@ -68,7 +68,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "ipaddr",
-            "confirmed", 
+            "confirmed",
             "approvedKas",
             "approvedDeg",
             "payed",
@@ -80,20 +80,20 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         validated_data["ipaddr"] = self.context.get("request").META.get("REMOTE_ADDR")
         instance = BudgetEntry.objects.create(**validated_data)
         raw_file = request.data.get("files[]")
-        
+
         if raw_file:
-            format, imgstr = raw_file.split(';base64,') 
-            ext = format.split('/')[-1] 
+            format, imgstr = raw_file.split(';base64,')
+            ext = format.split('/')[-1]
             data = ContentFile(base64.b64decode(imgstr), name=request.data["name"] + "." + ext)
             mf = File.objects.create(file=data, expense=instance)
-            mf.save()  
+            mf.save()
         else:
             error = {"message": "Missing receipt"}
             raise serializers.ValidationError(error)
         return instance
 
     def validate_user_id(self, value):
-        user = self.context["request"].user   
+        user = self.context["request"].user
         if user != value:
             raise serializers.ValidationError(
                 "You are only allowed to add expenses for yourself."
@@ -115,7 +115,7 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             spec = article.get("spec")
             amount = article.get("amount")
             price = article.get("price")
-            
+
             if type(spec) is not str or \
                     type(int(amount)) is not int or \
                     type(float(price)) is not float:
@@ -159,7 +159,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "date",
             "ipaddr",
-            "confirmed", 
+            "confirmed",
         )
 
 
@@ -183,5 +183,5 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "date",
             "ipaddr",
-            "confirmed", 
+            "confirmed",
         )

@@ -1,6 +1,5 @@
 import os
-
-from app.settings_shared import *
+from .settings_shared import *
 
 SECRET_KEY = os.getenv("SECRET_KEY", "INSECURE_SECRET_KEY")
 DEBUG = False

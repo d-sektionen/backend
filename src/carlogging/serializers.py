@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import LogEntry
-from account.serializers import SimpleUserSerializer
+from ..account.serializers import SimpleUserSerializer
 
 
 class LogEntrySerializer(serializers.ModelSerializer):

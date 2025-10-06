@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from voting.models import Meeting, Attendant, Vote, Alternative, MadeVote, SpeakerRequest
+from ..voting.models import Meeting, Attendant, Vote, Alternative, MadeVote, SpeakerRequest
 
 
 class MeetingAdmin(admin.ModelAdmin):

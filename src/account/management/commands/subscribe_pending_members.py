@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from membership.models import Request
+from ....membership.models import Request
 
 
 class Command(BaseCommand):
@@ -13,4 +13,3 @@ class Command(BaseCommand):
             user = User.objects.get(username=request.username)
             user.profile.infomail_subscriber = True
             user.save()
-

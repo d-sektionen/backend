@@ -1,7 +1,7 @@
 
 from rest_framework import permissions
 
-from membership.utils import check_membership
+from ..membership.utils import check_membership
 
 
 class CommitteePermissions(permissions.BasePermission):
@@ -11,13 +11,13 @@ class CommitteePermissions(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated or not request.user.has_perm("committee.add_committee"):
-            
+
             return False
 
         # Create only allowed if section member
-        if request.method == "POST" and not check_membership(request.user.username):            
+        if request.method == "POST" and not check_membership(request.user.username):
             return False
-        
+
         return True
 
     def has_object_permission(self, request, view, obj):

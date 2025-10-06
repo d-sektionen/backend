@@ -2,9 +2,9 @@ from django.contrib.auth.models import User
 from django.core.mail import get_connection
 from django.core.mail.message import EmailMessage
 
+from ..committee.models import Committee
 from .models import BudgetEntry
 
-from committee.models import Committee
 
 NOREPLY_EMAIL = "noreply.budget@d-sektionen.se"
 
@@ -16,14 +16,14 @@ def send(subject: str, body: str, *recipient_emails: str):
     with get_connection(
         host="smtp.gmail.com",
         port=587,
-        username=NOREPLY_EMAIL, 
+        username=NOREPLY_EMAIL,
         password="budgetteringsportalen2022dsektionen",
         use_tls=True,
     ) as connection:
         EmailMessage(
-            subject, 
-            body, 
-            NOREPLY_EMAIL, 
+            subject,
+            body,
+            NOREPLY_EMAIL,
             recipient_emails,
             connection=connection
         ).send()

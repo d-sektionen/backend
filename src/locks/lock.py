@@ -1,8 +1,8 @@
 import datetime
 
 from django.contrib.auth.models import User
-from app.settings_shared import HOME_ASSISTANT_BASEURL, HOME_ASSISTANT_TOKEN
-from logger.utils import log
+from ..app.settings_shared import HOME_ASSISTANT_BASEURL, HOME_ASSISTANT_TOKEN
+from ..logger.utils import log
 from rest_framework import status
 import requests
 

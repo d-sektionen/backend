@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 
-from app.permissions import FixedDjangoModelPermissions
+from ..app.permissions import FixedDjangoModelPermissions
 from django.contrib.auth import login, logout
 
 import requests

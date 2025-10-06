@@ -1,7 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 
-from membership.utils import check_membership
+from ..membership.utils import check_membership
 from .models import Meeting
 from django.db.models import Q
 

@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 import json
-
-from account.user import get_or_create_user
+from ...user import get_or_create_user
 
 
 class Command(BaseCommand):
@@ -13,7 +12,7 @@ class Command(BaseCommand):
       {"email": "emini757@student.liu.se"},
       {"email": "liuid420@student.liu.se"}
     ]
-    
+
     If email is not a @student.liu.se email it will be ignored.
     """
 
@@ -34,4 +33,3 @@ class Command(BaseCommand):
                 )
                 user.profile.infomail_subscriber = True
                 user.save()
-

@@ -1,7 +1,7 @@
 from enum import Enum
 
 from django.conf import settings
-from logger.models import Entry
+from ..logger.models import Entry
 from rest_framework import status
 from rest_framework.response import Response
 

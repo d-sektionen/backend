@@ -1,7 +1,6 @@
 from django_ical.views import ICalFeed
 from django.utils.timezone import get_current_timezone
-from booking.models import Booking
-
+from ..booking.models import Booking
 from .models import CalendarSubscription
 
 

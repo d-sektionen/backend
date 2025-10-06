@@ -1,9 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
-from .validators import validate_datetime_future, validate_datetime_within_year
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
-
+from .validators import validate_datetime_future, validate_datetime_within_year
 
 class Blacklisted(models.Model):
     user = models.OneToOneField(User, null=False, on_delete=models.CASCADE)

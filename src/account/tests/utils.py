@@ -1,7 +1,7 @@
 from rest_framework.test import APIClient, APITestCase
 
-from account.tests.factories import UserFactory
-from membership.tests.factories import MemberFactory
+from ...account.tests.factories import UserFactory
+from ...membership.tests.factories import MemberFactory
 
 
 class AuthenticatedTestCase(APITestCase):

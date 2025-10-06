@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from account import views
+from ..account import views
 from .views import AdminLoginView
 from .feeds import CalendarFeed
 

@@ -2,8 +2,8 @@ from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from membership.utils import check_membership
-from account.serializers import SimpleUserSerializer
+from ..membership.utils import check_membership
+from ..account.serializers import SimpleUserSerializer
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
 

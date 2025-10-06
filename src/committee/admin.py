@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from committee.models import Committee, CommitteeMember
+from ..committee.models import Committee, CommitteeMember
 
 
 class CommitteeAdmin(admin.ModelAdmin):

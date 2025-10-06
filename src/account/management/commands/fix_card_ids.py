@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
-from account.models import Profile
-
+from ...models import Profile
 
 class Command(BaseCommand):
     help = """

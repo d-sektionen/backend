@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from membership.utils import check_membership
+from ..membership.utils import check_membership
 
 
 class BudgetEntryPermissions(permissions.BasePermission):

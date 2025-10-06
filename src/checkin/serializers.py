@@ -2,9 +2,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from account.serializers import SimpleUserSerializer
-from account.models import Profile
-from account.idtoken import read_id_token
+from ..account.serializers import SimpleUserSerializer
+from ..account.models import Profile
+from ..account.idtoken import read_id_token
 
 from .models import EventBase, Doorkeeper
 

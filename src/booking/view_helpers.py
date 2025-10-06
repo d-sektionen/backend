@@ -1,6 +1,6 @@
+import requests
 from django.conf import settings
 from django.utils import timezone
-import requests
 
 
 def notify_werk_unconfirmed_booking(booking_data, is_updated):

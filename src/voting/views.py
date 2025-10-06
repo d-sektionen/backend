@@ -6,8 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from django.shortcuts import get_object_or_404
 
-from app.permissions import FixedDjangoModelPermissions
-from account.permissions import AllowMembers
+from ..app.permissions import FixedDjangoModelPermissions
+from ..account.permissions import AllowMembers
 from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest

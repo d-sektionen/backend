@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from account.serializers import SimpleUserSerializer
-from checkin.serializers import UserIdentifierField
+from ..account.serializers import SimpleUserSerializer
+from ..checkin.serializers import UserIdentifierField
 from .models import Key, LogEntry
 
 

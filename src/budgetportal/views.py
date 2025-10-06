@@ -15,9 +15,9 @@ from .serializers import (
 )
 from .permissions import BudgetEntryPermissions
 
-from app.permissions import FixedDjangoModelPermissions
-from committee.models import Committee
-from committee.utils import get_deg_committee
+from ..app.permissions import FixedDjangoModelPermissions
+from ..committee.models import Committee
+from ..committee.utils import get_deg_committee
 
 
 class FileViewSet(viewsets.ModelViewSet):

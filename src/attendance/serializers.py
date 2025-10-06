@@ -1,7 +1,5 @@
 from rest_framework import serializers
-
-from account.serializers import SimpleUserSerializer
-
+from ..account.serializers import SimpleUserSerializer
 from .models import Occurrence
 
 

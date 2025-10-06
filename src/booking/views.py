@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from django.utils import timezone
 from post_office import mail
 
-from app.permissions import FixedDjangoModelPermissions
+from ..app.permissions import FixedDjangoModelPermissions
+from ..app.utils import render_email
 from .models import Booking, Item
 from .serializers import BookingSerializer, ItemSerializer
 from .serializers import BookingSerializer, DenyBookingSerializer, ItemSerializer
 from .permissions import BookingPermissions
 from .view_helpers import notify_werk_unconfirmed_booking
-from app.utils import render_email
 
 
 class BookingViewSet(viewsets.ModelViewSet):

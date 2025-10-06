@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
-from account.models import Profile
-from membership.utils import check_membership
+from .models import Profile
+from ..membership.utils import check_membership
 
 
 class IsCommitteeActive(BasePermission):

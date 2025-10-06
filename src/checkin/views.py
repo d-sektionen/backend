@@ -80,4 +80,3 @@ class RegisterView(GenericAPIView):
         return event.on_register(
             user, action
         )  # Response(event.name, status=status.HTTP_200_OK)
-

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from membership.utils import check_membership
+from ..membership.utils import check_membership
 
 
 class LogEntry(models.Model):

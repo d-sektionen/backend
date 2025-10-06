@@ -5,8 +5,8 @@ from django.dispatch import receiver
 from rest_framework.response import Response
 from rest_framework import status
 
-from membership.utils import check_membership
-from checkin.models import EventBase
+from ..membership.utils import check_membership
+from ..checkin.models import EventBase
 
 
 class Meeting(EventBase):

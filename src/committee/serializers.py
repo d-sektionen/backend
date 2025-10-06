@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Permission
 from rest_framework import serializers
 
-from committee.models import Committee, CommitteeMember
+from ..committee.models import Committee, CommitteeMember
 
 
 class PermissionSerializer(serializers.ModelSerializer):

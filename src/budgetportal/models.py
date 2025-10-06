@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-from committee.models import Committee
+from ..committee.models import Committee
 
 
 class BudgetEntry(models.Model):

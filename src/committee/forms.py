@@ -2,12 +2,12 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
-from committee.models import Committee
+from ..committee.models import Committee
 
 
 class CommitteeForm(forms.ModelForm):
     members = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(), 
+        queryset=User.objects.all(),
         required=False,
         widget=FilteredSelectMultiple(verbose_name="Members", is_stacked=False)
     )
@@ -20,7 +20,7 @@ class CommitteeForm(forms.ModelForm):
             ("Treasurer", {"fields": ("treasurer", "treasurer_email")}),
             ("Chair", {"fields": ("chair", "chair_email")}),
         )
-    
+
     def clean(self):
         treasurer = self.cleaned_data.get("treasurer")
         treasurer_email = self.cleaned_data.get("treasurer_email")

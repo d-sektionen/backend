@@ -1,8 +1,8 @@
 from rest_framework import mixins, viewsets
 from rest_framework.generics import GenericAPIView
 
-from app.permissions import FixedDjangoModelPermissions
-from account.permissions import AllowMembers
+from ..app.permissions import FixedDjangoModelPermissions
+from ..account.permissions import AllowMembers
 
 from .models import LogEntry, Key
 from .serializers import KeySerializer, LogEntrySerializer
@@ -33,4 +33,3 @@ class LogEntryViewSet(
     queryset = LogEntry.objects.all()
     serializer_class = LogEntrySerializer
     permission_classes = (FixedDjangoModelPermissions,)
-

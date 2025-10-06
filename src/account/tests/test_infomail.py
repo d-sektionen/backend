@@ -1,7 +1,7 @@
+import json
 from .factories import UserFactory
 from .utils import AuthenticatedTestCase
-import json
-from account.models import Profile
+from ..models import Profile
 
 
 class InfomailTest(AuthenticatedTestCase):
