@@ -39,6 +39,12 @@ virtual environment using `source .venv/bin/activate` in your terminal.**
 pip install -r requirements-dev.txt
 ```
 
+**Optional but recommended:** Install pre-commit hooks using (linting, formatting, etc):
+
+```
+pre-commit install
+```
+
 Every time you make a modification to the database structure, run this:
 
 ```sh

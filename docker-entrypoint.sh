@@ -1,4 +1,7 @@
 #!/bin/sh
+SRC_PATH=/code/
+
+cd $SRC_PATH
 echo 'Run migration'
 python3 manage.py makemigrations
 python3 manage.py migrate
