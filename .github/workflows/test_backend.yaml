@@ -32,4 +32,4 @@ jobs:
       - name: Run tests
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
-        run: python manage.py test voting
+        run: python manage.py test

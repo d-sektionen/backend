@@ -41,7 +41,7 @@ def generate_token(request):
 
     if "redirect" in request.GET:
         redirect_url = request.GET["redirect"]
-        querystring = "access=" + str(refresh.access_token) + "&refresh=" + str(refresh)
+        querystring = "access=" + str(refresh.access_token) + "&refresh=" + str(refresh) # My editor warns about Token not having access_token
 
         return redirect(
             redirect_url + ("&" if "?" in redirect_url else "?") + querystring
