@@ -1,3 +1,5 @@
+# DEVELOPMENT MODE ONLY
+
 services:
   postgres:
     image: postgres:16.3-alpine
@@ -5,6 +7,7 @@ services:
     environment:
       POSTGRES_USER: django
       POSTGRES_PASSWORD: django
+      POSTGRES_NAME: django
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     ports:
@@ -13,18 +16,14 @@ services:
       - internal
 
   backend:
-    image: registry.d-sektionen.se/backend:development
+    build:
+      context: .
+      dockerfile: Dockerfile.development
     restart: unless-stopped
-    command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
     volumes:
-      # Set the paths when deploying to development environment.
-      - ${BACKEND_DEV_BASEDIR}/backend.uwsgi.ini:/etc/uwsgi/backend.uwsgi.ini
-      - ${BACKEND_DEV_BASEDIR}/static:/code/static
-      - ${BACKEND_DEV_BASEDIR}/media:/code/media
-      - ${BACKEND_DEV_BASEDIR}/log:/var/log
+      - ./backend:/app/backend
     ports:
-      # Update for development environment
-      - 10000:8000
+      - 8000:8000
     environment:
       POSTGRES_NAME: django
       POSTGRES_USER: django
@@ -33,7 +32,7 @@ services:
       POSTGRES_PORT: 5432
     env_file:
       # Environment variables set in portainer gui.
-      - stack.env
+      - .env
     networks:
       - internal
       - default
