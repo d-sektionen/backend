@@ -1,6 +1,6 @@
-from account.tests.utils import AuthenticatedTestCase
-from voting.models import Alternative
-from voting.tests.factories import (
+from ...account.tests.utils import AuthenticatedTestCase
+from ..models import Alternative
+from .factories import (
     AlternativeFactory,
     AttendantFactory,
     MadeVoteFactory,

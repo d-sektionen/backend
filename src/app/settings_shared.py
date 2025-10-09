@@ -27,19 +27,19 @@ INSTALLED_APPS = [
     # ---
     # Project apps
     # ---
-    "account",
-    "voting.apps.VotingConfig",
-    "tools",
-    "locks",
-    "membership",
-    "booking",
-    "logger",
-    "checkin",
-    "attendance",
-    "carlogging",
-    "committee",
-    "keylog",
-    "budgetportal",
+    "backend.account",
+    "backend.voting.apps.VotingConfig",
+    "backend.tools",
+    "backend.locks",
+    "backend.membership",
+    "backend.booking",
+    "backend.logger",
+    "backend.checkin",
+    "backend.attendance",
+    "backend.carlogging",
+    "backend.committee",
+    "backend.keylog",
+    "backend.budgetportal",
     # ---
     # Django related
     # ---
@@ -77,7 +77,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
-ROOT_URLCONF = "app.urls"
+ROOT_URLCONF = "backend.app.urls"
 
 TEMPLATES = [
     {
@@ -111,7 +111,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "app.wsgi.application"
+WSGI_APPLICATION = "backend.app.wsgi.application"
 
 
 # Password validation
@@ -178,7 +178,7 @@ LOGIN_REDIRECT_URL = "/oauth2/callback"
 # Django REST Framework
 REST_FRAMEWORK = {
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
-    "DEFAULT_PERMISSION_CLASSES": ("app.permissions.AllowOptionsAuthentication",),
+    "DEFAULT_PERMISSION_CLASSES": ("backend.app.permissions.AllowOptionsAuthentication",),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 import json
 
-from membership.models import Member, ProgramRegistration
+from ...models import Member, ProgramRegistration
 
 class Command(BaseCommand):
     help = """

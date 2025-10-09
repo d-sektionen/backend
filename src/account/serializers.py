@@ -1,9 +1,8 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import serializers
-
-from membership.utils import check_membership
-from checkin.models import Doorkeeper
+from ..membership.utils import check_membership
+from ..checkin.models import Doorkeeper
 
 from .models import Profile, CalendarSubscription
 

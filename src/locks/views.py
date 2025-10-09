@@ -1,4 +1,4 @@
-from account.permissions import AllowMembers
+from ..account.permissions import AllowMembers
 from rest_framework import throttling, viewsets
 from rest_framework.decorators import action
 

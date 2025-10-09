@@ -20,15 +20,15 @@ class AuthenticatedTestCase(APITestCase):
 
         # User with membership privileges
         cls.member = UserFactory()
-        cls.member_membership = MemberFactory.create(
+        cls.member_membership = MemberFactory.create(  # type: ignore[attr-defined]
             liu_id=cls.member.username, membership_type="S"
         )
         cls.member_client = APIClient()
         cls.member_client.force_authenticate(cls.member)
 
         # Admin user
-        cls.admin = UserFactory.create(admin=True)
-        cls.admin_membership = MemberFactory.create(liu_id=cls.admin.username, membership_type="S")
+        cls.admin = UserFactory.create(admin=True)  # type: ignore[attr-defined]
+        cls.admin_membership = MemberFactory.create(liu_id=cls.admin.username, membership_type="S")  # type: ignore[attr-defined]
         cls.admin_client = APIClient()
         cls.admin_client.force_authenticate(cls.admin)
 

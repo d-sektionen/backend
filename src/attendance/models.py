@@ -1,5 +1,5 @@
 from django.db import models
-from checkin.models import EventBase
+from ..checkin.models import EventBase
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status

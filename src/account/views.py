@@ -32,7 +32,7 @@ from .serializers import (
 )
 from .idtoken import generate_id_token, read_id_token
 from .models import CalendarSubscription, Profile
-from account.adfs_token_validation import get_public_key
+from .adfs_token_validation import get_public_key
 
 
 @login_required

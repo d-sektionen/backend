@@ -37,7 +37,7 @@ class CommitteeMemberWithoutProfileSerializer(serializers.ModelSerializer):
 
 
 class CommitteeMemberSerializer(CommitteeMemberWithoutProfileSerializer):
-    class Meta:
+    class Meta:  # type: ignore[assignment]
         model = CommitteeMember
         fields = (
             "email",

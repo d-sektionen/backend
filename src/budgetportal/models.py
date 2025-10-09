@@ -22,11 +22,11 @@ class BudgetEntry(models.Model):
     ipaddr = models.GenericIPAddressField()
     report_pdf = models.FileField(upload_to='documents/%Y/%m/%d/',null=True, blank=True)
 
-    confirmed = models.BooleanField(default=False)
-    approvedKas = models.BooleanField(default=False, blank=True)
-    approvedDeg = models.BooleanField(default=False, blank=True)
-    payed = models.BooleanField(default=False, blank=True)
-    denied = models.BooleanField(default=False, blank=True)
+    confirmed = models.BooleanField(default=False)  # type: ignore[type]
+    approvedKas = models.BooleanField(default=False, blank=True)  # type: ignore[type]
+    approvedDeg = models.BooleanField(default=False, blank=True)  # type: ignore[type]
+    payed = models.BooleanField(default=False, blank=True)  # type: ignore[type]
+    denied = models.BooleanField(default=False, blank=True)  # type: ignore[type]
     comment = models.TextField(default="",blank=True, null=True)
 
     class Meta:
@@ -44,7 +44,7 @@ class BudgetEntry(models.Model):
         return sum
 
     def __str__(self):
-        return self.user.username + " - " + self.description[:32]
+        return self.user.username + " - " + self.description[:32]  # type: ignore[attr-defined]
 
 
 class File(models.Model):

@@ -1,8 +1,8 @@
 import json
 
-from account.tests.utils import AuthenticatedTestCase
-from voting.models import Vote
-from voting.tests.factories import (
+from ...account.tests.utils import AuthenticatedTestCase
+from ..models import Vote
+from .factories import (
     AlternativeFactory,
     AttendantFactory,
     MeetingFactory,

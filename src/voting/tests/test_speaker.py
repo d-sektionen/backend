@@ -1,5 +1,5 @@
-from account.tests.utils import AuthenticatedTestCase
-from voting.tests.factories import (
+from ...account.tests.utils import AuthenticatedTestCase
+from .factories import (
     AttendantFactory,
     MeetingFactory,
 )

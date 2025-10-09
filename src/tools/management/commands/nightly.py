@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
-from checkin.models import EventBase
+from ....checkin.models import EventBase
 import datetime
 
 class Command(BaseCommand):
     help = 'Commands that should run every night'
-    
+
     def handle(self, *args, **options):
 
         """

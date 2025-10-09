@@ -21,7 +21,7 @@ from .serializers import (
     SpeakerRequestSerializer,
 )
 
-from membership.utils import check_membership
+from ..membership.utils import check_membership
 
 
 class NoDeleteViewSet(

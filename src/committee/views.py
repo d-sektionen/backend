@@ -1,4 +1,4 @@
-from account.permissions import AllowMembers
+from ..account.permissions import AllowMembers
 from rest_framework import viewsets
 
 from .serializers import CommitteeMemberSerializer, CommitteeSerializer

@@ -1,5 +1,5 @@
 import json
-from ..account.tests import AuthenticatedTestCase, create_admin, create_user
+from ..account.tests.utils import AuthenticatedTestCase, create_admin, create_user
 from ..checkin.models import Doorkeeper
 from ..voting.models import Meeting
 

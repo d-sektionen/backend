@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=64)),
-                ('archived', models.BooleanField(default=False)),
+                ('archived', models.BooleanField(default=False)),  # type: ignore[type]
                 ('clear_data', models.DateField()),
             ],
         ),

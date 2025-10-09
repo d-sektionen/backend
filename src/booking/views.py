@@ -18,12 +18,12 @@ class BookingViewSet(viewsets.ModelViewSet):
     API endpoint that allows bookings to be viewed, created, edited or deleted.
     """
 
-    queryset = Booking.objects.filter(item__enabled=True)
+    queryset = Booking.objects.filter(item__enabled=True)  # type: ignore[attr-defined]
     serializer_class = BookingSerializer
     permission_classes = (BookingPermissions,)
 
     def get_queryset(self):
-        queryset = Booking.objects.filter(item__enabled=True)
+        queryset = Booking.objects.filter(item__enabled=True)  # type: ignore[attr-defined]
         item = self.request.query_params.get("item", None)
         future = self.request.query_params.get("future", None)
         user = self.request.query_params.get("user", None)
@@ -65,14 +65,14 @@ class BookingViewSet(viewsets.ModelViewSet):
     def should_auto_confirm(self, data, exists=False):
         # If booking is a normal booking.
         if not data["restricted_timeslot"]:
-            queryset = Booking.objects.all()
+            queryset = Booking.objects.all()  # type: ignore[attr-defined]
 
             # on update don't compare with self.
             if exists:
                 queryset = queryset.exclude(pk=self.get_object().id)
 
             # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
-            queryset = Booking.objects.filter(
+            queryset = Booking.objects.filter(  # type: ignore[attr-defined]
                 item=data["item"],
                 restricted_timeslot=True,
                 confirmed=True,
@@ -142,5 +142,5 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
     API endpoint that allows bookable items to be viewed.
     """
 
-    queryset = Item.objects.filter(enabled=True)
+    queryset = Item.objects.filter(enabled=True)  # type: ignore[attr-defined]
     serializer_class = ItemSerializer

@@ -1,8 +1,8 @@
 import json
 
-from account.tests.utils import AuthenticatedTestCase
-from voting.models import Meeting
-from voting.tests.factories import MeetingFactory
+from ...account.tests.utils import AuthenticatedTestCase
+from ..models import Meeting
+from .factories import MeetingFactory
 
 
 class MeetingTest(AuthenticatedTestCase):

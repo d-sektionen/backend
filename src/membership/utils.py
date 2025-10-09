@@ -13,8 +13,8 @@ Checks if a liu_id is a member. Returns True if person is a student member (has 
 def check_membership(liu_id):
     member = None
     try:
-        member = Member.objects.get(liu_id=liu_id)
-    except Member.DoesNotExist:
+        member = Member.objects.get(liu_id=liu_id)  # type: ignore[attr-defined]
+    except Member.DoesNotExist:  # type: ignore[attr-defined]
         return False
 
     return member.membership_type == "S"
@@ -31,8 +31,8 @@ Empty strings can also be returned if a member exists, but has an empty name.
 def get_name(liu_id):
     member = None
     try:
-        member = Member.objects.get(liu_id=liu_id)
-    except Member.DoesNotExist:
+        member = Member.objects.get(liu_id=liu_id)  # type: ignore[attr-defined]
+    except Member.DoesNotExist:  # type: ignore[attr-defined]
         return None, None
 
     return member.first_name, member.last_name

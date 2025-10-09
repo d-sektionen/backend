@@ -1,5 +1,5 @@
 from factory import django, Faker, fuzzy
-from membership.models import Member
+from ..models import Member
 
 class MemberFactory(django.DjangoModelFactory):
     class Meta:

@@ -1,6 +1,6 @@
 from factory import RelatedFactory, django, Faker, SubFactory
-from voting.models import Alternative, Attendant, MadeVote, Meeting, Vote
-from account.tests.factories import UserFactory
+from ..models import Alternative, Attendant, MadeVote, Meeting, Vote
+from ...account.tests.factories import UserFactory
 
 
 class VoteFactory(django.DjangoModelFactory):

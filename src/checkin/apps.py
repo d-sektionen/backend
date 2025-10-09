@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class CheckinConfig(AppConfig):
-    name = 'checkin'
+    name = 'backend.checkin'
