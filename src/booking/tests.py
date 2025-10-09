@@ -1,7 +1,7 @@
 import json
 import datetime as dt
 from .models import Item, Booking
-from ..account.tests import AuthenticatedTestCase, create_admin
+from ..account.tests.utils import AuthenticatedTestCase
 
 # Create your tests here.
 
