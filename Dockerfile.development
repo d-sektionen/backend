@@ -7,8 +7,9 @@ COPY requirements.*txt ./
 RUN pip install --no-cache-dir -r requirements.development.txt
 COPY ./backend ./backend
 COPY ./manage.py .
-RUN mkdir /app/static; \
-    mkdir /app/media; \
+RUN mkdir ./static ./media
+RUN python3 manage.py makemigrations; \
+    python3 manage.py migrate; \
     python3 manage.py createsuperuser --noinput \
     --username=$SUPERUSER_USERNAME \
     --email=$SUPERUSER_EMAIL; \
