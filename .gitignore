@@ -18,3 +18,4 @@ log/
 env
 .YALE_ACCESS_TOKEN_CACHE
 mise.toml
+.zed
