@@ -34,6 +34,7 @@ class Item(models.Model):
         format="JPEG",
         options={"quality": 80},
     )
+    requires_confirmation = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
 
     def __str__(self):

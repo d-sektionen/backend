@@ -63,6 +63,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def should_auto_confirm(self, data, exists=False):
+        # If item requires confirmation, do not auto confirm.
+        if data["item"].requires_confirmation:
+            return False
+
         # If booking is a normal booking.
         if not data["restricted_timeslot"]:
             queryset = Booking.objects.all()  # type: ignore[attr-defined]

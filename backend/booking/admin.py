@@ -30,7 +30,14 @@ class BookingAdmin(admin.ModelAdmin):
 
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ("name", "description", "enabled", "terms", "category")
+    list_display = (
+        "name",
+        "description",
+        "enabled",
+        "requires_confirmation",
+        "terms",
+        "category",
+    )
 
 
 class ItemCategoryAdmin(admin.ModelAdmin):
