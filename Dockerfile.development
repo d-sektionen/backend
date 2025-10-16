@@ -1,0 +1,27 @@
+FROM python:3.12-alpine AS base
+WORKDIR /app
+RUN apk add gcc musl-dev
+
+FROM base AS installer
+COPY requirements.*txt ./
+RUN pip install --no-cache-dir -r requirements.development.txt
+COPY ./backend ./backend
+COPY ./manage.py .
+RUN mkdir /app/static; \
+    mkdir /app/media; \
+    python3 manage.py createsuperuser --noinput \
+    --username=$SUPERUSER_USERNAME \
+    --email=$SUPERUSER_EMAIL; \
+    python3 manage.py collectstatic --noinput
+
+FROM base AS runner
+COPY --from=installer /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=installer /app/media /app/static ./
+COPY --from=installer /app/manage.py .
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=backend.app.settings_development
+
+ENTRYPOINT [ "python", "manage.py", "runserver", "0.0.0.0:8000"]
