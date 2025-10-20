@@ -17,6 +17,7 @@ class Command(BaseCommand):
             data = json.load(json_file)
             for person in data:
                 print(person["Förnamn"], person["Efternamn"], person["E-post"], person["Utskott"], person["Post"])
+                
         #for person in CommitteeMember.objects.all():
             #try:
                 #person.profile.is_active = True
