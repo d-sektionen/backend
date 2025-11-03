@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
-from .validators import validate_datetime_future, validate_datetime_within_year
+from .validators import (
+    validate_datetime_future,
+    validate_datetime_within_year,
+)
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
 
@@ -37,6 +40,7 @@ class Item(models.Model):
     )
     requires_confirmation = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
+    count = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -50,6 +54,7 @@ class Booking(models.Model):
     description = models.TextField()
     confirmed = models.BooleanField(default=False)
     restricted_timeslot = models.BooleanField(default=False, blank=True)
+    count = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
