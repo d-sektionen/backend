@@ -4,6 +4,7 @@ from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
 from .validators import validate_datetime_future, validate_datetime_within_year
 
+
 class Blacklisted(models.Model):
     user = models.OneToOneField(User, null=False, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
@@ -36,6 +37,7 @@ class Item(models.Model):
     )
     requires_confirmation = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
+    count = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -49,6 +51,7 @@ class Booking(models.Model):
     description = models.TextField()
     confirmed = models.BooleanField(default=False)
     restricted_timeslot = models.BooleanField(default=False, blank=True)
+    count = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
