@@ -4,6 +4,7 @@ from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
 from .validators import validate_datetime_future, validate_datetime_within_year
 
+
 class Blacklisted(models.Model):
     user = models.OneToOneField(User, null=False, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
@@ -11,6 +12,20 @@ class Blacklisted(models.Model):
 
     def __str__(self):
         return self.user
+
+
+WEBHOOK_SERVICES_CHOICES = [("discord", "Discord"), ("slack", "Slack")]
+
+
+class Webhook(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    service = models.CharField(
+        max_length=7, choices=WEBHOOK_SERVICES_CHOICES, default="slack"
+    )
+    url = models.CharField(max_length=2048, default=None, null=True, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class ItemCategory(models.Model):
@@ -36,6 +51,9 @@ class Item(models.Model):
     )
     requires_confirmation = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
+    webhook = models.ForeignKey(
+        Webhook, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         return self.name

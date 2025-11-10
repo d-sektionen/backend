@@ -1,10 +1,10 @@
 import requests
-from django.conf import settings
 from django.utils import timezone
+from .models import Webhook
 
 
-def notify_werk_unconfirmed_booking(booking_data, is_updated):
-    """Send notification to Werk with info of an unconfirmed booking.
+def notify_webhook_unconfirmed_booking(booking_data, is_updated):
+    """Send notification to hook with info of an unconfirmed booking.
 
     Args:
         booking_data: Data from the booking, either model or serializer.
@@ -25,7 +25,15 @@ def notify_werk_unconfirmed_booking(booking_data, is_updated):
         ":white_check_mark:" if booking_data.get("restricted_timeslot") else ":x:"
     )
 
-    content = "*Uppdaterad bokning:*\n" if is_updated else "*Ny bokning:*\n"
+    hook = booking_data.get("item").webhook
+
+    content = f":calendar: **bokningsnotifikation till** *{hook.name}*\n"
+
+    if is_updated:
+        content += "**Uppdaterad bokning:**\n"
+    else:
+        content += "**Ny bokning:**\n"
+
     content += (
         "Bekräftad: :x:\n"
         f"Begränsad tidsperiod: {restricted_emoji}\n"
@@ -35,14 +43,26 @@ def notify_werk_unconfirmed_booking(booking_data, is_updated):
         f"Ändamål: {booking_data.get('description')}\n"
     )
 
-    notify_werk(content)
+    if hook is not None:
+        notify_webhook(hook, content)
 
 
-def notify_werk(content):
-    """Notify work through a webhook to their slack.
+def notify_webhook(hook: Webhook, message: str) -> None:
+    """Send a message to a webhook
 
     Args:
+        hook: the webhook to notify
         content: Content to include in the message.
     """
-    if settings.WERK_WEBHOOK_URL != "":
-        requests.post(settings.WERK_WEBHOOK_URL, json={"text": content})
+
+    data = {}
+
+    match hook.service:
+        case "discord":
+            data = {"content": message}
+        case "slack":
+            data = {"text": message}
+        case _:
+            raise Exception(f"Unknown webhook service type ({hook.service})")
+
+    requests.post(hook.url, json=data)
