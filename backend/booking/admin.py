@@ -30,7 +30,7 @@ class BookingAdmin(admin.ModelAdmin):
 
 
 class WebhookAdmin(admin.ModelAdmin):
-    list_display = ("service", "url")
+    list_display = ("name", "service", "url")
 
 
 class ItemAdmin(admin.ModelAdmin):
