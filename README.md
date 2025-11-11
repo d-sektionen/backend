@@ -33,12 +33,12 @@ set-executionpolicy remotesigned
 In repository root folder:
 
 ```
-python -m venv .venv
+python3 -m venv .venv
 .venv/Scripts/activate
 ```
 
 **Note: The rest of the guide will assume that you have activated the
-virtual environment using `source .venv/Scripts/activate` in your terminal.**
+virtual environment using `.venv/Scripts/activate` in your terminal.**
 
 ### Install Python dependencies
 
@@ -89,7 +89,7 @@ When setup is complete, close the server with CTRL + C.
 
 ```sh
 export CLIENT_ID=[VALUE]
-``
+```
 
 ### Making migrations
 
@@ -111,7 +111,7 @@ Run 'python manage.py migrate' to apply them.
 
 ### Start the server
 
-If you are using MAC OS, check out: <https://stackoverflow.com/a/53310545/9966843>
+If you are using MacOS, check out: <https://stackoverflow.com/a/53310545/9966843>
 
 Start the Django development server and begin developing:
 
@@ -143,7 +143,9 @@ To login and access the admin panel visit <http://127.0.0.1:8000/admin>.
 
 ## Frontend
 
-If you want a working frontend, see [LINK TO MEDLEM] and follow the README.md to get started. Having a working frontend is necessary if you want to understand or test how the backend interacts with the user interface presented to ordinary members of D-Sektionen.
+If you want a working frontend, see <https://github.com/d-sektionen/medlem> and follow the README.md to get started. Having a working frontend is necessary if you want to test how the backend interacts with the user interface presented to ordinary members of d-sektionen.
+
+<!-- WIP proposed section to expand or delete, depending on opinion -->
 
 # Is this guide confusing you? 
 
