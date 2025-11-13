@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import URLValidator
 from django.contrib.auth.models import User
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
@@ -22,7 +23,13 @@ class Webhook(models.Model):
     service = models.CharField(
         max_length=7, choices=WEBHOOK_SERVICES_CHOICES, default="slack"
     )
-    url = models.CharField(max_length=2048, default=None, null=True, unique=True)
+    url = models.CharField(
+        max_length=2048,
+        default=None,
+        null=True,
+        unique=True,
+        validators=[URLValidator()],
+    )
 
     def __str__(self):
         return self.name
