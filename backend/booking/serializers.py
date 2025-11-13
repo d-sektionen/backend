@@ -93,11 +93,20 @@ class BookingSerializer(serializers.ModelSerializer):
                 f"Booking should have a duration of at most {str(upper_timedelta)}."
             )
 
+        if attrs["count"] > attrs["item"].count:
+            raise serializers.ValidationError(
+                f"Requested count ({attrs['count']}) exceeds available items ({attrs['item'].count})."
+            )
+
         self.check_overlap(attrs, restricted_timeslot)
 
         return attrs
 
     def check_overlap(self, attrs, restricted_timeslot):
+        """
+        Validates that the new booking does not exceed the allowed number of overlapping bookings for the item.
+        """
+
         # Find all bookings that overlap any part of this booking
         overlap_query = Booking.objects.filter(
             item=attrs["item"], restricted_timeslot=restricted_timeslot
@@ -108,27 +117,30 @@ class BookingSerializer(serializers.ModelSerializer):
             start__lte=attrs["end"], end__gte=attrs["start"]
         )
 
+        # Convert everything to utc to make sure comparisons are correct
+        def ensure_utc(dt):
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt)
+            return dt.astimezone(timezone.utc)
+
+        start_utc = ensure_utc(attrs["start"])
+        end_utc = ensure_utc(attrs["end"])
+
         # Sort the start and end times for each booking
         events: list[tuple[datetime, int]] = []
         for other in overlap_query:
-
-            def ensure_utc(dt):
-                if timezone.is_naive(dt):
-                    dt = timezone.make_aware(dt)
-                return dt.astimezone(timezone.utc)
-
             other_start = ensure_utc(other.start)
             other_end = ensure_utc(other.end)
 
-            clamped_start = max(attrs["start"], other_start)
+            clamped_start = max(start_utc, other_start)
             events.append((clamped_start, other.count))
 
-            clamped_end = min(attrs["end"], other_end)
+            clamped_end = min(end_utc, other_end)
             events.append((clamped_end, -other.count))
 
         events.sort(key=lambda item: item[0])  # sort by time
 
-        # Step through `events` and record whenever count exceeds the available count of this object
+        # Step through `events` and record whenever count exceeds the limit of this object
         count = attrs.get("count") or 1
         limit = attrs["item"].count
         exceeded_periods: list[tuple[datetime, datetime]] = []
@@ -137,32 +149,31 @@ class BookingSerializer(serializers.ModelSerializer):
         for time, delta in events:
             count += delta
 
-            print(f"{time} {delta=} {count=}")
-
             if count > limit:
                 if not exceeded_from:
-                    # we just exceeded the limit
+                    # we just started exceededing the limit
                     exceeded_from = time
+                # otherwise, we are already exceeding and only went beyond
             elif exceeded_from:
                 # we no longer exceed the limit, store the offending period and continue
                 exceeded_periods.append((exceeded_from, time))
                 exceeded_from = None
 
-        if len(exceeded_periods) > 0:
+        if len(exceeded_periods) == 0:
+            # we're good!
+            return
 
-            def format_date(datetime):
-                return datetime.strftime("%Y-%m-%d %H:%M")
+        def format_date(datetime):
+            return datetime.strftime("%Y-%m-%d %H:%M")
 
-            message = ", ".join(
-                [
-                    f"{format_date(start)} to {format_date(end)}"
-                    for start, end in exceeded_periods
-                ]
-            )
+        message = ", ".join(
+            [
+                f"{format_date(start)} to {format_date(end)}"
+                for start, end in exceeded_periods
+            ]
+        )
 
-            raise serializers.ValidationError(
-                f"Item count is exceeded during {message}"
-            )
+        raise serializers.ValidationError(f"Item count is exceeded during {message}")
 
 
 class DenyBookingSerializer(serializers.ModelSerializer):
