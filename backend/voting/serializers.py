@@ -68,12 +68,15 @@ class AttendantSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         try:
-            attendant = Attendant.objects.get(meeting=data["meeting"])
-        except (Attendant.DoesNotExist, Attendant.MultipleObjectsReturned) as e:
+            user = User.objects.get(username=data["user"])
+            attendant = Attendant.objects.get(meeting=data["meeting"], user=user)
+        except User.DoesNotExist:
+            raise serializers.ValidationError(f"User not found: '{data["user"]}'")
+        except Attendant.DoesNotExist:
             attendant = None
 
         if attendant:
-            raise serializers.ValidationError(f"Unique constraint violation: User {data["user"]} is already in meeting.")
+            raise serializers.ValidationError(f"Unique constraint violation: User '{data["user"]}' is already in meeting '{data["meeting"]}'.")
         
         return data
 
