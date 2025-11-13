@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "backend.committee",
     "backend.keylog",
     "backend.budgetportal",
+    "backend.mail",
     # ---
     # Django related
     # ---
@@ -178,7 +179,9 @@ LOGIN_REDIRECT_URL = "/oauth2/callback"
 # Django REST Framework
 REST_FRAMEWORK = {
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
-    "DEFAULT_PERMISSION_CLASSES": ("backend.app.permissions.AllowOptionsAuthentication",),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "backend.app.permissions.AllowOptionsAuthentication",
+    ),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
