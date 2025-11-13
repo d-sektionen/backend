@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import Item, Booking
 from account.serializers import SimpleUserSerializer
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -11,7 +12,15 @@ class ItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = ("id", "name", "description", "category", "terms", "image_processed")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "category",
+            "terms",
+            "image_processed",
+            "count",
+        )
         read_only_fields = (
             "id",
             "name",
@@ -48,6 +57,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "description",
             "confirmed",
             "restricted_timeslot",  # Booking can be changed type by anyone, but will still be validated.
+            "count",
         )
         read_only_fields = ("confirmed",)
 
@@ -101,10 +111,19 @@ class BookingSerializer(serializers.ModelSerializer):
         # Sort the start and end times for each booking
         events: list[tuple[datetime, int]] = []
         for other in overlap_query:
-            clamped_start = max(attrs["start"], other.start)
+
+            def ensure_utc(dt):
+                if timezone.is_naive(dt):
+                    dt = timezone.make_aware(dt)
+                return dt.astimezone(timezone.utc)
+
+            other_start = ensure_utc(other.start)
+            other_end = ensure_utc(other.end)
+
+            clamped_start = max(attrs["start"], other_start)
             events.append((clamped_start, other.count))
 
-            clamped_end = min(attrs["end"], other.end)
+            clamped_end = min(attrs["end"], other_end)
             events.append((clamped_end, -other.count))
 
         events.sort(key=lambda item: item[0])  # sort by time
@@ -125,7 +144,7 @@ class BookingSerializer(serializers.ModelSerializer):
                     # we just exceeded the limit
                     exceeded_from = time
             elif exceeded_from:
-                # we no longer exceed the limit, store the offending period and conitnue
+                # we no longer exceed the limit, store the offending period and continue
                 exceeded_periods.append((exceeded_from, time))
                 exceeded_from = None
 
