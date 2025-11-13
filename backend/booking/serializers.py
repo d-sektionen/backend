@@ -74,7 +74,9 @@ class BookingSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         restricted_timeslot = attrs["restricted_timeslot"]
 
-        lower_duration = 2 * 24 if restricted_timeslot else 0.5
+        # there is no reason to book with restricted timeslot if you are booking
+        # shorter than the maximum time allowed for normal bookings
+        lower_duration = attrs["item"].max_booking_hours if restricted_timeslot else 0.5
         upper_duration = (
             attrs["item"].max_booking_hours_restricted_timeslot
             if restricted_timeslot
