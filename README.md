@@ -7,7 +7,10 @@
 
 ## Setting up a local development environment
 
-**Note: All of the following is done in git branch 'development'. Switch to it using `git switch development` if necessary.**
+**Note**: All of the following is done in git branch 'development'. Switch to it using `git switch development` if necessary.
+
+**Note**: Depending on your system, the Python command may be `python3`, `python`, or `py`.
+Use whichever command runs Python 3 on your machine.
 
 ### Create a virtual environment
 
@@ -19,8 +22,8 @@ Navigate to the projects root directory and create a new virtual environment wit
 python3 -m venv .venv
 ```
 
-**Note: The rest of the guide will assume that you have activated the
-virtual environment using `source .venv/bin/activate` in your terminal.**
+**Note**: The rest of the guide will assume that you have activated the
+virtual environment using `source .venv/bin/activate` in your terminal.
 
 #### Windows
 
@@ -32,13 +35,13 @@ set-executionpolicy remotesigned
 
 In repository root folder:
 
-```
-python3 -m venv .venv
+```sh
+python -m venv .venv
 .venv/Scripts/activate
 ```
 
-**Note: The rest of the guide will assume that you have activated the
-virtual environment using `.venv/Scripts/activate` in your terminal.**
+**Note**: The rest of the guide will assume that you have activated the
+virtual environment using `.venv/Scripts/activate` in your terminal.
 
 ### Install Python dependencies
 
@@ -50,7 +53,7 @@ pip3 install -r requirements.development.txt
 
 **Optional but recommended:** Install pre-commit hooks using (linting, formatting, etc):
 
-```
+```sh
 pre-commit install
 ```
 
@@ -68,9 +71,9 @@ mv .env.sample .env
 
 The following environment variable must be set: (the rest should or can be left blank):
 
-**Note: ask someone on the dev team for the current `CLIENT_ID` value.**
+**Important: ask someone on the dev team for the current `CLIENT_ID` value.**
 
-```
+```sh
 # ADFS Client ID.
 CLIENT_ID=
 ```
@@ -83,7 +86,7 @@ Set up Docker with:
 docker compose up
 ```
 
-When setup is complete, close the server with CTRL + C.
+When setup is complete, close the server
 
 **Note:** If you are not using Docker to run your local server, export the environment variable `CLIENT_ID` manually (**WARNING: Not running the server via Docker sacrifices some functionality like the lock API.**):
 
@@ -147,51 +150,10 @@ If you want a working frontend, see <https://github.com/d-sektionen/medlem> and 
 
 <!-- WIP proposed section to expand or delete, depending on opinion -->
 
-# Is this guide confusing you? 
+# Additional resources
 
-There are many technologies involved in this project, and even more counting the frontend that interacts with it. While following all of these steps should give you a working development environment, they do not give you a full understanding of everything needed to contribute to the project. Below is a list of topics and some helpful links related to each topic to help you get started. Please feel free to ask other developers if you need further assistance, but understanding and learning the following topics will be **necessary** to be able to contribute to the project:
+You can learn more about the technologies used in this project at: 
 
-## REST
-
-* What is REST?
-* API- vs Frontend-routing
-
-## HTTP
-
-* What is a HTTP-request?
-* Request methods; GET, POST, PUT, PATCH and DELETE.
-* What is a HTTP-response?
-* HTTP-response status codes.
-* Browser development tools.
-
-## Databases
-
-* What is SQL/SQLite3?
-* Tables
-* Common commands
-
-## Django
-
-Django is a large framework. Following the official guide is the best way to learn Django quickly (**Tip**: reading the guide **in order** is a lot easier than skipping back and forth. The same goes for the topics discussed in this guide.):
-
-[GUIDE LINK]
-
-Necessary topics:
-
-* Models
-* Views
-* Routing
-* Serializers
-
-Django REST-framework is a separate library for Python that can be used alongside the traditional Django library. Everything that Django REST does can be achieved in the traditional Django library, but with a lot of extra work. This project uses many of the shortcuts available in Django REST-framework: 
-
-Necessary topics:
-
-* ViewSets
-* Routers
-
-Recommended topics:
-
-* Mixins
-
-It is a good idea to experiment with making a simple Django API to understand the limitations of Django, and to run into some common issues that you will encounter while working on this project.
+* <docs.djangoproject.com>
+* <www.django-rest-framework.org/>
+* <docs.docker.com/>
