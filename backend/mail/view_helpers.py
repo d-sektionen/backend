@@ -1,10 +1,13 @@
 import datetime
 from typing import TypedDict
-from django.conf import settings
-from icalendar import Calendar
-import requests
 
-CAL_URL = settings.CAL_URL
+import requests
+from icalendar import Calendar
+from .cache import SingleValueTimedCache
+
+
+# TODO: replace this with the one from settings
+CALENDAR_URL = "https://calendar.google.com/calendar/ical/c_93a709266d679561caf5bcc20fb621fb0af75dd7d6e78c568b65fec39fc34e3b%40group.calendar.google.com/public/basic.ics"
 
 
 class EventDict(TypedDict):
@@ -13,14 +16,10 @@ class EventDict(TypedDict):
 
 
 def week_number() -> int:
-    datetime.date.today().isocalendar()[0]
-    datetime.date.today().isoformat()
+    return datetime.date.today().isocalendar()[0]
 
 
-CALENDAR_URL = "https://calendar.google.com/calendar/ical/c_93a709266d679561caf5bcc20fb621fb0af75dd7d6e78c568b65fec39fc34e3b%40group.calendar.google.com/public/basic.ics"
-
-
-def get_events_data() -> list[EventDict]:
+def update_events_cache() -> None:
     # Extract and format up to 5 upcoming events from the iCal calendar
     response = requests.get(CALENDAR_URL)
     calendar = Calendar.from_ical(response.content)
@@ -82,4 +81,14 @@ def get_events_data() -> list[EventDict]:
         title = event.get("summary", "")
         result.append({"title": title, "date": date_str})
 
-    return result
+    events_cache.set(result)
+
+
+events_cache = SingleValueTimedCache[list[EventDict]]()
+
+
+def get_events_data() -> list[EventDict]:
+    event_list = events_cache.get()
+    if events_cache.get() is None:
+        update_events_cache()
+    return event_list
