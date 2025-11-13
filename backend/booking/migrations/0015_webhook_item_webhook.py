@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=32, unique=True)),
                 ('service', models.CharField(choices=[('discord', 'Discord'), ('slack', 'Slack')], default='slack', max_length=7)),
-                ('url', models.CharField(default=None, max_length=2048, null=True, unique=True)),
+                ('url', models.CharField(default=None, max_length=2048, unique=True)),
             ],
         ),
         migrations.AddField(
