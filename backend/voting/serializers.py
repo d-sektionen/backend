@@ -66,6 +66,17 @@ class AttendantSerializer(serializers.ModelSerializer):
     meeting = MeetingAdminSerializer(read_only=True)
     has_voting_rights = serializers.BooleanField(required=True)
 
+    def validate(self, data):
+        try:
+            attendant = Attendant.objects.get(meeting=data["meeting"])
+        except (Attendant.DoesNotExist, Attendant.MultipleObjectsReturned) as e:
+            attendant = None
+
+        if attendant:
+            raise serializers.ValidationError(f"Unique constraint violation: User {data["user"]} is already in meeting.")
+        
+        return data
+
     def validate_user_username(self, value):
         """
         Validate that user and voting_rights are an allowed combination
