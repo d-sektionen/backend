@@ -66,6 +66,6 @@ def notify_webhook(hook: Webhook, message: str) -> None:
         case "slack":
             data = {"text": message}
         case _:
-            raise Exception(f"Unknown webhook service type ({hook.service})")
+            raise ValueError(f"Unknown webhook service type ({hook.service})")
 
     requests.post(hook.url, json=data)
