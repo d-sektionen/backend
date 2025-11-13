@@ -3,7 +3,7 @@ from typing import TypedDict
 
 import requests
 from icalendar import Calendar
-from .cache import SingleValueTimedCache
+from .timed_cache import SingleValueTimedCache
 
 
 # TODO: replace this with the one from settings
@@ -19,7 +19,7 @@ def week_number() -> int:
     return datetime.date.today().isocalendar()[0]
 
 
-def update_events_cache() -> None:
+def fetch_events() -> list[EventDict]:
     # Extract and format up to 5 upcoming events from the iCal calendar
     response = requests.get(CALENDAR_URL)
     calendar = Calendar.from_ical(response.content)
@@ -81,14 +81,15 @@ def update_events_cache() -> None:
         title = event.get("summary", "")
         result.append({"title": title, "date": date_str})
 
-    events_cache.set(result)
+    return result
 
 
 events_cache = SingleValueTimedCache[list[EventDict]]()
 
 
-def get_events_data() -> list[EventDict]:
+def get_events(force_fetch: bool = False) -> list[EventDict]:
     event_list = events_cache.get()
-    if events_cache.get() is None:
-        update_events_cache()
+    if events_cache.get() is None or force_fetch:
+        event_list = fetch_events()
+        events_cache.set(event_list)
     return event_list

@@ -1,7 +1,7 @@
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
-from .view_helpers import week_number, get_events_data
+from .view_helpers import week_number, get_events
 
 # NOTE: booking views.py har logik för att skicka mail
 
@@ -12,7 +12,7 @@ class GenerateView(views.APIView):
     def get(self, request, format=None):
         context = {
             "week_number": week_number(),
-            "events": get_events_data(),
+            "events": get_events(),
         }
 
         # context = {
