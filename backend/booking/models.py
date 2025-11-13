@@ -26,7 +26,6 @@ class Webhook(models.Model):
     url = models.CharField(
         max_length=2048,
         default=None,
-        null=True,
         unique=True,
         validators=[URLValidator()],
     )

@@ -10,6 +10,12 @@ def notify_webhook_unconfirmed_booking(booking_data, is_updated):
         booking_data: Data from the booking, either model or serializer.
         is_updated: If an existing booking is being updated.
     """
+
+    hook = booking_data.get("item").webhook
+
+    if hook is None:
+        return
+
     user_fullname = (
         f"{booking_data.get('user').first_name} {booking_data.get('user').last_name}"
     )
@@ -24,8 +30,6 @@ def notify_webhook_unconfirmed_booking(booking_data, is_updated):
     restricted_emoji = (
         ":white_check_mark:" if booking_data.get("restricted_timeslot") else ":x:"
     )
-
-    hook = booking_data.get("item").webhook
 
     content = f":calendar: **bokningsnotifikation till** *{hook.name}*\n"
 
@@ -43,8 +47,7 @@ def notify_webhook_unconfirmed_booking(booking_data, is_updated):
         f"Ändamål: {booking_data.get('description')}\n"
     )
 
-    if hook is not None:
-        notify_webhook(hook, content)
+    notify_webhook(hook, content)
 
 
 def notify_webhook(hook: Webhook, message: str) -> None:
