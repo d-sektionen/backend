@@ -88,9 +88,13 @@ class SpeakerRequestView(
         queryset = queryset.order_by("-prioritized", "id")
         return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
+    def perform_create(self, serializer: SpeakerRequestSerializer):
+        SpeakerRequest.objects.get_or_create(
+            user=self.request.user,
+            meeting_id=self.request.data.get("meeting_id"),
+            prioritized=self.request.data.get("prioritized", False),
+        )
+        
     def get_object(self):
         queryset = self.get_queryset()
 
