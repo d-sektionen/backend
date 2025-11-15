@@ -1,17 +1,15 @@
 from datetime import datetime, timedelta
-from typing import Generic, Optional, TypeVar
+from typing import Optional
 from dataclasses import dataclass
-
-T = TypeVar("T")
 
 
 @dataclass
-class CachedValue(Generic[T]):
+class CachedValue[T]:
     value: T
     timestamp: datetime
 
 
-class SingleValueTimedCache(Generic[T]):
+class SingleValueTimedCache[T]:
     def __init__(self, expiration_duration: timedelta = timedelta(days=1)) -> None:
         self._entry: Optional[CachedValue[T]] = None
         self._expiration_duration = expiration_duration
