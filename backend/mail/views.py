@@ -7,13 +7,16 @@ from django.conf import settings
 # NOTE: booking views.py har logik för att skicka mail
 
 
-class GenerateView(views.APIView):
+class PreviewView(views.APIView):
     renderer_classes = [TemplateHTMLRenderer]
 
-    def get(self, request, format=None):
+    def post(self, request):
+        content = request.data.get("content", "")
+
         context = {
             "week_number": week_number(),
             "events": get_events(),
+            "content": content,
             "dsektionen_website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
             "dsektionen_info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
             "dsektionen_gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
