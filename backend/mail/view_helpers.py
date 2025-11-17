@@ -4,10 +4,9 @@ from typing import TypedDict
 import requests
 from icalendar import Calendar
 from .timed_cache import SingleValueTimedCache
+from django.conf import settings
 
-
-# TODO: replace this with the one from settings
-CALENDAR_URL = "https://calendar.google.com/calendar/ical/c_93a709266d679561caf5bcc20fb621fb0af75dd7d6e78c568b65fec39fc34e3b%40group.calendar.google.com/public/basic.ics"
+import bleach
 
 
 class EventDict(TypedDict):
@@ -21,7 +20,7 @@ def week_number() -> int:
 
 def fetch_events() -> list[EventDict]:
     # Extract and format up to 5 upcoming events from the iCal calendar
-    response = requests.get(CALENDAR_URL)
+    response = requests.get(settings.INFO_CALENDAR_ICAL_URL)
     calendar = Calendar.from_ical(response.content)
     events = [c for c in calendar.walk() if c.name == "VEVENT"]
 
@@ -93,3 +92,33 @@ def get_events(force_fetch: bool = False) -> list[EventDict]:
         event_list = fetch_events()
         events_cache.set(event_list)
     return event_list
+
+
+def sanitize_html(content: str) -> str:
+    allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {
+        "h1",
+        "h2",
+        "h3",
+        "p",
+        "br",
+        "strong",
+        "em",
+        "u",
+        "ul",
+        "ol",
+        "li",
+        "a",
+    }
+
+    allowed_attributes = {
+        **bleach.sanitizer.ALLOWED_ATTRIBUTES,
+        "a": ["href", "target", "rel"],
+    }
+
+    sanitized_content = bleach.clean(
+        content,
+        tags=allowed_tags,
+        attributes=allowed_attributes,
+        strip=True,
+    )
+    return sanitized_content

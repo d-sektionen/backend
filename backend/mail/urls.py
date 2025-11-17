@@ -7,6 +7,6 @@ router = routers.DefaultRouter()
 # router.register(r"generate", GenerateView)
 
 urlpatterns = [
-    path("preview", PreviewView.as_view()),
+    path("preview/", PreviewView.as_view()),
     re_path(r"^", include(router.urls)),
 ]
