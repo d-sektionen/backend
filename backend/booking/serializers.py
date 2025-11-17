@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Item, Booking
-from account.serializers import SimpleUserSerializer
+from ..account.serializers import SimpleUserSerializer
 from datetime import datetime, timedelta
 from django.utils import timezone
 
