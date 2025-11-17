@@ -178,7 +178,9 @@ LOGIN_REDIRECT_URL = "/oauth2/callback"
 # Django REST Framework
 REST_FRAMEWORK = {
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
-    "DEFAULT_PERMISSION_CLASSES": ("backend.app.permissions.AllowOptionsAuthentication",),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "backend.app.permissions.AllowOptionsAuthentication",
+    ),
     # Sets default authentication requirements (401 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "django_auth_adfs.rest_framework.AdfsAccessTokenAuthentication",
@@ -196,8 +198,6 @@ HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
 HOME_ASSISTANT_BASEURL = os.getenv("HOME_ASSISTANT_BASEURL")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
-
-WERK_WEBHOOK_URL = os.getenv("WERK_WEBHOOK_URL", "")
 
 # TODO: maybe a bit more limited CORS.
 CORS_ORIGIN_ALLOW_ALL = True
