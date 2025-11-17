@@ -19,17 +19,18 @@ class PreviewView(views.APIView):
             "week_number": week_number(),
             "events": get_events(),
             "content": safe_content,
-            "dsektionen_website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
-            "dsektionen_info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
-            "dsektionen_gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
-            "dsektionen_logo_url": settings.INFO_D_SEKTIONEN_LOGO_URL,
-            "dsektionen_unsubscribe_url": settings.INFO_D_SEKTIONEN_UNSUBSCRIBE_URL,
-            "dsektionen_instagram_url": settings.INFO_D_SEKTIONEN_INSTAGRAM_URL,
-            "dsektionen_facebook_url": settings.INFO_D_SEKTIONEN_FACEBOOK_URL,
-            "dsektionen_facebook_group_url": settings.INFO_D_SEKTIONEN_FACEBOOK_GROUP_URL,
-            "dsektionen_more_social_media_url": settings.INFO_D_SEKTIONEN_MORE_SOCIAL_MEDIA_URL,
+            "website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
+            "info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
+            "gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
+            "logo_url": settings.INFO_D_SEKTIONEN_LOGO_URL,
+            "unsubscribe_url": settings.INFO_D_SEKTIONEN_UNSUBSCRIBE_URL,
+            "instagram_url": settings.INFO_D_SEKTIONEN_INSTAGRAM_URL,
+            "facebook_url": settings.INFO_D_SEKTIONEN_FACEBOOK_URL,
+            "facebook_group_url": settings.INFO_D_SEKTIONEN_FACEBOOK_GROUP_URL,
+            "more_social_media_url": settings.INFO_D_SEKTIONEN_MORE_SOCIAL_MEDIA_URL,
+            "calendar_url": settings.INFO_CALENDAR_ICAL_URL,
         }
 
-        # preview = render_to_string("mail/base.html", context)
+        ## preview = render_to_string("mail/base.html", context)
         # return Response({"preview": preview})
         return Response(context, template_name="mail/base.html")

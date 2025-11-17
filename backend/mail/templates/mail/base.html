@@ -1,29 +1,269 @@
-    <main id="content">
-        <h3>Infochefens hörna</h3>
-    </main>
-    <hr/>
-    <h3>Utskotten har ordet</h3>
-    <hr/>
-    <div id="events">
-        <h3>Evenemang på gång</h3>
-        {% if events %}
-            {% for event in events %}
-                <p>
-                    <strong>{{ event.title }}</strong>
-                    <br />
-                    {{ event.date }}
-                </p>
-            {% endfor %}
-        {% endif %}
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infomail vecka {{week_number}}</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f3f3f3;
+      font-family: Helvetica, Arial, sans-serif;
+      line-height: 1.3;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        background-color: #ffffff;
+      "
+    >
+      <!-- Header with logo -->
+      <div style="padding: 16px; text-align: center">
+        <a href="{{website_url}}">
+          <img
+            src="{{logo_url}}"
+            alt="D-sektionen Logo"
+            style="max-width: 100%; height: auto"
+          />
+        </a>
+      </div>
+
+      <main style="padding: 0 16px">
+        <!-- Main title -->
+        <h1
+          style="
+            font-size: 30px;
+            font-weight: 400;
+            margin: 0 0 10px 0;
+            color: #000;
+          "
+        >
+          Infomail vecka {{week_number}}
+        </h1>
+        <hr style="border: none; border-top: 1px solid #ccc; margin: 16px 0" />
+
+        <!-- Info chief corner with sidebar -->
+        <div style="overflow: hidden; margin-bottom: 32px">
+          <div
+            style="
+              float: left;
+              width: 65%;
+              padding-right: 16px;
+              box-sizing: border-box;
+            "
+          >
+            <h2
+              style="
+                font-size: 24px;
+                font-weight: 400;
+                margin: 0 0 10px 0;
+                color: #000;
+              "
+            >
+              <strong>Infochefens hörna</strong>
+            </h2>
+            <p style="font-size: 16px; color: #000; margin: 0 0 10px 0">
+              $INFOCHEF_GREETING
+            </p>
+            <p style="font-size: 16px; color: #000; margin: 0 0 10px 0">
+              $INFOCHEF_MESSAGE
+            </p>
+            <p style="font-size: 16px; color: #000; margin: 0 0 10px 0">
+              $INFOCHEF_FAREWELL
+            </p>
+          </div>
+
+          <div
+            style="
+              float: right;
+              width: 30%;
+              padding-left: 8px;
+              box-sizing: border-box;
+            "
+          >
+            <div
+              style="
+                background-color: #e6e6e6;
+                padding: 16px;
+                margin: 0 0 16px 0;
+                text-align: center;
+              "
+            >
+              <h3
+                style="
+                  font-size: 22px;
+                  font-weight: 400;
+                  margin: 0 0 10px 0;
+                  color: #000;
+                "
+              >
+                Sociala medier
+              </h3>
+              <a
+                href="{{facebook_url}}"
+                style="
+                  display: block;
+                  padding: 8px;
+                  color: #fff;
+                  text-decoration: none;
+                  text-align: center;
+                  border-radius: 3px;
+                  font-weight: bold;
+                  margin: 8px 0;
+                  background-color: #3b5998;
+                  border: 2px solid #3b5998;
+                "
+                >Facebook</a
+              >
+              <a
+                href="{{facebook_group_url}}"
+                style="
+                  display: block;
+                  padding: 8px;
+                  color: #fff;
+                  text-decoration: none;
+                  text-align: center;
+                  border-radius: 3px;
+                  font-weight: bold;
+                  margin: 8px 0;
+                  background-color: #3b5998;
+                  border: 2px solid #3b5998;
+                "
+                >Facebook-grupp</a
+              >
+              <a
+                href="{{instagram_url}}"
+                style="
+                  display: block;
+                  padding: 8px;
+                  color: #fff;
+                  text-decoration: none;
+                  text-align: center;
+                  border-radius: 3px;
+                  font-weight: bold;
+                  margin: 8px 0;
+                  background-color: #ed4956;
+                  border: 2px solid #ed4956;
+                "
+                >Instagram</a
+              >
+              <a
+                href="{{more_social_media_url}}"
+                style="
+                  display: block;
+                  padding: 8px;
+                  color: #fff;
+                  text-decoration: none;
+                  text-align: center;
+                  border-radius: 3px;
+                  font-weight: bold;
+                  margin: 8px 0;
+                  background-color: #20407c;
+                  border: 2px solid #20407c;
+                "
+                >Fler sociala medier</a
+              >
+            </div>
+
+            <div
+              style="
+                background-color: #e6e6e6;
+                padding: 16px;
+                margin: 0;
+                text-align: center;
+              "
+            >
+              <h3
+                style="
+                  font-size: 22px;
+                  font-weight: 400;
+                  margin: 0 0 10px 0;
+                  color: #000;
+                "
+              >
+                Kommande event
+              </h3>
+              {{ events|safe }}
+              <a
+                href="{{calendar_url}}"
+                style="
+                  display: block;
+                  padding: 8px;
+                  color: #fff;
+                  text-decoration: none;
+                  text-align: center;
+                  border-radius: 3px;
+                  font-weight: bold;
+                  margin: 8px 0;
+                  background-color: #20407c;
+                  border: 2px solid #20407c;
+                "
+                >Kalender länk</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #ccc; margin: 16px 0" />
+
+        <!-- Main content area -->
+        <div
+          style="margin-bottom: 32px; clear: both; display: block; width: 100%"
+        >
+          {{content}}
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer
+        style="
+          background-color: transparent;
+          text-align: center;
+          padding: 8px;
+          font-size: 14px;
+          color: #666;
+        "
+      >
+        <p style="font-size: 16px; color: #666; margin: 0 0 0px 0">
+          Vill du bidra lite extra till Infomailen och PR på sektionen? <br />
+          <strong>Sök Infoutskottet nu!</strong> <br />
+          <a href="https://forms.gle/WMknyhpU5xqA5d8Y7"
+            ><strong>Ansökningsformulär</strong></a
+          >
+        </p>
+        <hr style="border: none; border-top: 1px solid #ccc; margin: 16px 0" />
+
+        <p style="font-size: 16px; color: #666; margin: 0 0 10px 0">
+          Datateknologsektionen, Kårallen, Universitetet, 581 83 Linköping
+        </p>
+        <p style="font-size: 16px; color: #666; margin: 0 0 10px 0">
+          Några frågor, tankar eller inlägg? Skicka iväg ett mall till
+          <a
+            href="mailto:{{info_email}}"
+            style="color: #20407c; text-decoration: none"
+            >{{info_email}}</a
+          >
+        </p>
+        <p style="font-size: 16px; color: #666; margin: 0 0 10px 0">
+          <a
+            href="{{gdpr_url}}"
+            style="color: #20407c; text-decoration: none"
+            >Personuppgiftshantering</a
+          >
+          |
+          <a
+            href="{{unsubscribe_url}}"
+            style="color: #20407c; text-decoration: none"
+            >Avsluta Prenumeration</a
+          >
+        </p>
+      </footer>
     </div>
-    <hr/>
-    <p><i>
-      Några frågor, tankar eller inlägg? Skicka iväg ett mail till <a href="mailto:info@d-sektionen.se">info@d-sektionen.se</a>!
-    </i></p>
-    <p><i>
-      Personuppgiftshantering: <a href="https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf">https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf</a>
-    </i></p>
-    <p><i>
-      Om du inte vill ha dessa mail kan du <a href="https://medlem.d-sektionen.se/preferences">avregistrera dig här</a>.
-      {{ content }}
-    </i></p>
+  </body>
+</html>
