@@ -1,12 +1,11 @@
-from django.conf.urls import include
-from django.urls import re_path, path
-from rest_framework import routers
-from .views import PreviewView
+from django.urls import path
+from .views import PreviewView, SendView
 
-router = routers.DefaultRouter()
+# router = routers.DefaultRouter()
 # router.register(r"generate", GenerateView)
 
 urlpatterns = [
     path("preview/", PreviewView.as_view()),
-    re_path(r"^", include(router.urls)),
+    path("send/", SendView.as_view()),
+    # re_path(r"^", include(router.urls)),
 ]

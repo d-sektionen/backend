@@ -1,9 +1,12 @@
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
-from .view_helpers import sanitize_html, week_number, get_events
-from django.utils.safestring import mark_safe
-from django.conf import settings
+from .view_helpers import generate_mail_context
+from ..app.utils import render_email
+from post_office import mail
+
+# from django.contrib.auth.models import User
+from ..account.models import Profile
 
 # NOTE: booking views.py har logik för att skicka mail
 
@@ -13,24 +16,31 @@ class PreviewView(views.APIView):
 
     def post(self, request):
         content = request.data.get("content", "")
-        safe_content = mark_safe(sanitize_html(content))
+        context = generate_mail_context(content)
 
-        context = {
-            "week_number": week_number(),
-            "events": get_events(),
-            "content": safe_content,
-            "website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
-            "info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
-            "gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
-            "logo_url": settings.INFO_D_SEKTIONEN_LOGO_URL,
-            "unsubscribe_url": settings.INFO_D_SEKTIONEN_UNSUBSCRIBE_URL,
-            "instagram_url": settings.INFO_D_SEKTIONEN_INSTAGRAM_URL,
-            "facebook_url": settings.INFO_D_SEKTIONEN_FACEBOOK_URL,
-            "facebook_group_url": settings.INFO_D_SEKTIONEN_FACEBOOK_GROUP_URL,
-            "more_social_media_url": settings.INFO_D_SEKTIONEN_MORE_SOCIAL_MEDIA_URL,
-            "calendar_url": settings.INFO_CALENDAR_ICAL_URL,
-        }
-
-        ## preview = render_to_string("mail/base.html", context)
-        # return Response({"preview": preview})
         return Response(context, template_name="mail/base.html")
+
+
+class SendView(views.APIView):
+    def post(self, request):
+        context = generate_mail_context(
+            request.data.get("content", ""), request.data.get("subject", "Infomail")
+        )
+        # Notify the user that the booking has been denied.
+        subject, content = render_email("email/newsletter", context)
+
+        mail_recipients: list[str] = list(
+            Profile.objects.filter(infomail_subscriber=True).values_list(
+                "user__email", flat=True
+            )
+        )
+        print(
+            mail.send(
+                recipients=mail_recipients,
+                subject=subject,
+                html_message=content,
+                priority="now",  # High priority
+            )
+        )
+
+        return Response({"status": "sent"})

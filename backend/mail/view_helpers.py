@@ -5,6 +5,7 @@ import requests
 from icalendar import Calendar
 from .timed_cache import SingleValueTimedCache
 from django.conf import settings
+from django.utils.safestring import mark_safe
 
 import bleach
 
@@ -14,13 +15,76 @@ class EventDict(TypedDict):
     date: str
 
 
+def _sanitize_html(content: str) -> str:
+    allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {
+        "h1",
+        "h2",
+        "h3",
+        "p",
+        "br",
+        "strong",
+        "em",
+        "u",
+        "ul",
+        "ol",
+        "li",
+        "a",
+    }
+
+    allowed_attributes = {
+        **bleach.sanitizer.ALLOWED_ATTRIBUTES,
+        "a": ["href", "target", "rel"],
+    }
+
+    sanitized_content = bleach.clean(
+        content,
+        tags=allowed_tags,
+        attributes=allowed_attributes,
+        strip=True,
+    )
+    return sanitized_content
+
+
+events_cache = SingleValueTimedCache[list[EventDict]]()
+
+
+def generate_mail_context(
+    content: str, subject: str = "Infomail", force_fetch: bool = False
+) -> dict:
+    safe_content = mark_safe(_sanitize_html(content))
+
+    event_list = events_cache.get()
+    if events_cache.get() is None or force_fetch:
+        event_list = _fetch_events()
+        events_cache.set(event_list)
+    assert event_list is not None
+
+    return {
+        "week_number": week_number(),
+        "events": event_list,
+        "content": safe_content,
+        "website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
+        "info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
+        "gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
+        "logo_url": settings.INFO_D_SEKTIONEN_LOGO_URL,
+        "unsubscribe_url": settings.INFO_D_SEKTIONEN_UNSUBSCRIBE_URL,
+        "instagram_url": settings.INFO_D_SEKTIONEN_INSTAGRAM_URL,
+        "facebook_url": settings.INFO_D_SEKTIONEN_FACEBOOK_URL,
+        "facebook_group_url": settings.INFO_D_SEKTIONEN_FACEBOOK_GROUP_URL,
+        "more_social_media_url": settings.INFO_D_SEKTIONEN_MORE_SOCIAL_MEDIA_URL,
+        "calendar_url": settings.INFO_CALENDAR_ICAL_URL,
+        "subject": subject,
+    }
+
+
 def week_number() -> int:
     return datetime.date.today().isocalendar()[0]
 
 
-def fetch_events() -> list[EventDict]:
+def _fetch_events() -> list[EventDict]:
     # Extract and format up to 5 upcoming events from the iCal calendar
     response = requests.get(settings.INFO_CALENDAR_ICAL_URL)
+
     calendar = Calendar.from_ical(response.content)
     events = [c for c in calendar.walk() if c.name == "VEVENT"]
 
@@ -81,45 +145,3 @@ def fetch_events() -> list[EventDict]:
         result.append({"title": title, "date": date_str})
 
     return result
-
-
-events_cache = SingleValueTimedCache[list[EventDict]]()
-
-
-def get_events(force_fetch: bool = False) -> list[EventDict]:
-    event_list = events_cache.get()
-    if events_cache.get() is None or force_fetch:
-        event_list = fetch_events()
-        events_cache.set(event_list)
-    assert event_list is not None
-    return event_list
-
-
-def sanitize_html(content: str) -> str:
-    allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {
-        "h1",
-        "h2",
-        "h3",
-        "p",
-        "br",
-        "strong",
-        "em",
-        "u",
-        "ul",
-        "ol",
-        "li",
-        "a",
-    }
-
-    allowed_attributes = {
-        **bleach.sanitizer.ALLOWED_ATTRIBUTES,
-        "a": ["href", "target", "rel"],
-    }
-
-    sanitized_content = bleach.clean(
-        content,
-        tags=allowed_tags,
-        attributes=allowed_attributes,
-        strip=True,
-    )
-    return sanitized_content
