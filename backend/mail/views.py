@@ -18,7 +18,7 @@ class PreviewView(views.APIView):
         content = request.data.get("content", "")
         context = generate_mail_context(content)
 
-        return Response(context, template_name="mail/base.html")
+        return Response(context, template_name="email/newsletter.html")
 
 
 class SendView(views.APIView):
