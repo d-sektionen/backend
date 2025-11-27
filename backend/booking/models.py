@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import URLValidator
 from django.contrib.auth.models import User
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
@@ -12,6 +13,25 @@ class Blacklisted(models.Model):
 
     def __str__(self):
         return self.user
+
+
+WEBHOOK_SERVICES_CHOICES = [("discord", "Discord"), ("slack", "Slack")]
+
+
+class Webhook(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    service = models.CharField(
+        max_length=7, choices=WEBHOOK_SERVICES_CHOICES, default="slack"
+    )
+    url = models.CharField(
+        max_length=2048,
+        default=None,
+        unique=True,
+        validators=[URLValidator()],
+    )
+
+    def __str__(self):
+        return self.name
 
 
 class ItemCategory(models.Model):
@@ -39,6 +59,9 @@ class Item(models.Model):
     enabled = models.BooleanField(default=True)
     max_booking_hours = models.IntegerField(default=3 * 24)
     max_booking_hours_restricted_timeslot = models.IntegerField(default=30 * 24)
+    webhook = models.ForeignKey(
+        Webhook, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         return self.name
