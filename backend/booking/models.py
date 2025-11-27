@@ -41,11 +41,15 @@ class ItemCategory(models.Model):
         return self.name
 
 
-class Item(models.Model):
+class ItemPool(models.Model):
     name = models.CharField(max_length=32, unique=True)
     description = models.TextField(max_length=512)
     category = models.ForeignKey(
-        ItemCategory, null=True, blank=True, on_delete=models.SET_NULL
+        ItemCategory,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="items",
     )
     terms = models.FileField(null=True, blank=True, upload_to="booking_terms")
     image = models.ImageField(null=True, blank=True, upload_to="booking_images")
@@ -60,6 +64,35 @@ class Item(models.Model):
     webhook = models.ForeignKey(
         Webhook, null=True, blank=True, on_delete=models.SET_NULL
     )
+    requires_accessory = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
+class ItemPoolItem(models.Model):
+    name = models.CharField(max_length=32)
+    pool = models.ForeignKey(ItemPool, null=False, on_delete=models.CASCADE)
+
+    enabled = models.BooleanField(default=True)
+    priority = models.IntegerField(default=0)
+    status = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.name
+
+
+class ItemPoolAccessory(models.Model):
+    name = models.CharField(max_length=32)
+
+    pool = models.ForeignKey(
+        ItemPool,
+        on_delete=models.CASCADE,
+        related_name="accessories",
+    )
+    compatible_items = models.ManyToManyField(
+        ItemPoolItem, related_name="compatible_accessories"
+    )
 
     def __str__(self):
         return self.name
@@ -69,10 +102,17 @@ class Booking(models.Model):
     start = models.DateTimeField(validators=[validate_datetime_future])
     end = models.DateTimeField(validators=[validate_datetime_within_year])
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, null=False, on_delete=models.CASCADE)
     description = models.TextField()
     confirmed = models.BooleanField(default=False)
     restricted_timeslot = models.BooleanField(default=False, blank=True)
+
+    pool = models.ForeignKey(
+        ItemPool, null=False, on_delete=models.CASCADE, related_name="bookings"
+    )
+    items = models.ManyToManyField(ItemPoolItem, blank=False, related_name="bookings")
+    accessories = models.ManyToManyField(
+        ItemPoolAccessory, blank=True, related_name="bookings"
+    )
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]

@@ -1,12 +1,20 @@
 from django.contrib import admin
-from .models import Item, Booking, Blacklisted, ItemCategory, Webhook
+from .models import (
+    ItemPool,
+    Booking,
+    Blacklisted,
+    ItemPoolAccessory,
+    ItemCategory,
+    ItemPoolItem,
+    Webhook,
+)
 
 
 class BookingAdmin(admin.ModelAdmin):
     model = Booking
     list_display = (
         "user",
-        "item",
+        "pool",
         "start",
         "end",
         "description",
@@ -14,12 +22,12 @@ class BookingAdmin(admin.ModelAdmin):
         "confirmed",
     )
     list_filter = (
-        "item",
         "start",
         "end",
+        ("user", admin.RelatedOnlyFieldListFilter),
         "restricted_timeslot",
         "confirmed",
-        ("user", admin.RelatedOnlyFieldListFilter),
+        "pool",
     )
     search_fields = (
         "user__username",
@@ -52,8 +60,18 @@ class BlacklistedAdmin(admin.ModelAdmin):
     list_display = ("user", "time", "expires")
 
 
+class ItemPoolItemAdmin(admin.ModelAdmin):
+    list_display = ("name", "pool", "enabled", "priority", "status")
+
+
+class ItemAccessoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "pool")
+
+
 admin.site.register(Webhook, WebhookAdmin)
 admin.site.register(ItemCategory, ItemCategoryAdmin)
-admin.site.register(Item, ItemAdmin)
+admin.site.register(ItemPool, ItemAdmin)
 admin.site.register(Booking, BookingAdmin)
 admin.site.register(Blacklisted, BlacklistedAdmin)
+admin.site.register(ItemPoolItem, ItemPoolItemAdmin)
+admin.site.register(ItemPoolAccessory, ItemAccessoryAdmin)

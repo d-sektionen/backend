@@ -6,7 +6,7 @@ from post_office import mail
 
 from ..app.permissions import FixedDjangoModelPermissions
 from ..app.utils import render_email
-from .models import Booking, Item
+from .models import Booking, ItemPool
 from .serializers import BookingSerializer, ItemSerializer
 from .serializers import BookingSerializer, DenyBookingSerializer, ItemSerializer
 from .permissions import BookingPermissions
@@ -18,13 +18,13 @@ class BookingViewSet(viewsets.ModelViewSet):
     API endpoint that allows bookings to be viewed, created, edited or deleted.
     """
 
-    queryset = Booking.objects.filter(item__enabled=True)  # type: ignore[attr-defined]
+    queryset = Booking.objects.filter(pool__enabled=True)  # type: ignore[attr-defined]
     serializer_class = BookingSerializer
     permission_classes = (BookingPermissions,)
 
     def get_queryset(self):
-        queryset = Booking.objects.filter(item__enabled=True)  # type: ignore[attr-defined]
-        item = self.request.query_params.get("item", None)
+        queryset = Booking.objects.filter(pool__enabled=True)  # type: ignore[attr-defined]
+        pool = self.request.query_params.get("pool", None)
         future = self.request.query_params.get("future", None)
         user = self.request.query_params.get("user", None)
         confirmed = self.request.query_params.get("confirmed", None)
@@ -35,8 +35,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         if user == "me":
             user = self.request.user.id
 
-        if item:
-            queryset = queryset.filter(item=item)
+        if pool:
+            queryset = queryset.filter(pool=pool)
         if future is not None:
             queryset = queryset.filter(end__gt=timezone.now())
         if after is not None:
@@ -63,8 +63,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def should_auto_confirm(self, data, exists=False):
-        # If item requires confirmation, do not auto confirm.
-        if data["item"].requires_confirmation:
+        # If item pool requires confirmation, do not auto confirm.
+        if data["pool"].requires_confirmation:
             return False
 
         # If booking is a normal booking.
@@ -77,7 +77,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
             # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
             queryset = Booking.objects.filter(  # type: ignore[attr-defined]
-                item=data["item"],
+                pool=data["pool"],
                 restricted_timeslot=True,
                 confirmed=True,
                 start__lte=data["end"],
@@ -146,5 +146,5 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
     API endpoint that allows bookable items to be viewed.
     """
 
-    queryset = Item.objects.filter(enabled=True)  # type: ignore[attr-defined]
+    queryset = ItemPool.objects.filter(enabled=True)  # type: ignore[attr-defined]
     serializer_class = ItemSerializer
