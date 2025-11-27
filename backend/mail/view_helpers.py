@@ -85,7 +85,7 @@ def _fetch_events() -> list[EventDict]:
     # Extract and format up to 5 upcoming events from the iCal calendar
     response = requests.get(settings.INFO_CALENDAR_ICAL_URL)
 
-    calendar = Calendar.from_ical(response.content)
+    calendar = Calendar.from_ical(str(response.content))
     events = [c for c in calendar.walk() if c.name == "VEVENT"]
 
     def to_datetime(dt):
