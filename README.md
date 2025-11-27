@@ -67,7 +67,7 @@ site. This can be found at <http://127.0.0.1:8000/admin>.
 If you are denied access to anything, try running the following in your terminal:
 
 ```sh
-./manage.py add_super_user <username>
+./manage.py createsuperuser <username>
 ```
 
 ## Email
