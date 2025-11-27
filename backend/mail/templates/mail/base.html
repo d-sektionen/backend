@@ -189,7 +189,12 @@
               >
                 Kommande event
               </h3>
-              {{ events|safe }}
+              {% for event in events %}
+                <p>
+                    <strong>{{event.title}}</strong><br />
+                    {{event.date}}
+                </p>
+              {% endfor %}
               <a
                 href="{{calendar_url}}"
                 style="
