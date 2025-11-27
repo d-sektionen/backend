@@ -5,15 +5,16 @@ services:
     image: postgres:16.3-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: django
-      POSTGRES_PASSWORD: django
-      POSTGRES_NAME: django
+      POSTGRES_NAME: ${POSTGRES_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:
       - internal
+      - default
 
   backend:
     build:
@@ -25,17 +26,20 @@ services:
     ports:
       - 8000:8000
     environment:
-      POSTGRES_NAME: django
-      POSTGRES_USER: django
-      POSTGRES_PASSWORD: django
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_NAME: ${POSTGRES_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     env_file:
       # Environment variables set in portainer gui.
       - .env
     networks:
       - internal
       - default
+    post_start:
+      - command: python manage.py migrate && python manage.py add_super_user ${SUPERUSER_USERNAME}
+        user: root
     depends_on:
       - postgres
 
