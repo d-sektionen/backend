@@ -91,6 +91,7 @@ def get_events(force_fetch: bool = False) -> list[EventDict]:
     if events_cache.get() is None or force_fetch:
         event_list = fetch_events()
         events_cache.set(event_list)
+    assert event_list is not None
     return event_list
 
 
