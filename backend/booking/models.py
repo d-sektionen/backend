@@ -57,6 +57,8 @@ class Item(models.Model):
     )
     requires_confirmation = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
+    max_booking_hours = models.IntegerField(default=3 * 24)
+    max_booking_hours_restricted_timeslot = models.IntegerField(default=30 * 24)
     webhook = models.ForeignKey(
         Webhook, null=True, blank=True, on_delete=models.SET_NULL
     )
