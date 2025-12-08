@@ -91,6 +91,7 @@ class MeSerializer(serializers.ModelSerializer):
                     "voting.view_meeting",
                 )
             ),
+            "infomail_sender": profile.infomail_sender,
             "voting_counter": obj.has_perms(("voting.view_meeting",)),
             "not_member": not check_membership(obj.username),
             "member": check_membership(obj.username),
