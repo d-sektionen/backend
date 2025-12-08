@@ -8,15 +8,11 @@ from .view_helpers import generate_mail_context
 from ..app.utils import render_email
 from post_office import mail
 
-# from django.contrib.auth.models import User
 from ..account.models import Profile
-
-# NOTE: booking views.py har logik för att skicka mail
 
 
 class PreviewView(views.APIView):
     renderer_classes = [TemplateHTMLRenderer]
-    permission_classes = []  # FIXME: temporary for no network
 
     def post(self, request):
         content = request.data.get("content", "")
