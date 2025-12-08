@@ -141,7 +141,6 @@ class BookingSerializer(serializers.ModelSerializer):
             item_overlap_query = overlap_query.filter(items__in=[item])
 
             if item_overlap_query.exists():
-                print(f"Item {item} is not available due to overlap.")
                 continue
 
             if attrs["pool"].requires_accessory:
