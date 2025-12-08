@@ -1,6 +1,9 @@
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
+
+from backend.mail.permissions import SenderPermission
+
 from .view_helpers import generate_mail_context
 from ..app.utils import render_email
 from post_office import mail
@@ -13,20 +16,27 @@ from ..account.models import Profile
 
 class PreviewView(views.APIView):
     renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = []  # FIXME: temporary for no network
 
     def post(self, request):
         content = request.data.get("content", "")
-        context = generate_mail_context(content)
+        info_cheif_content = request.data.get("infoCheifContent", "")
+        context = generate_mail_context(content, info_cheif_content)
 
         return Response(context, template_name="email/newsletter.html")
 
 
 class SendView(views.APIView):
+    permission_classes = [SenderPermission]
+
     def post(self, request):
+        subject = request.data.get("subject", "Infomail")
+        content = request.data.get("content", "")
+        info_cheif_content = request.data.get("infoCheifContent", "")
         context = generate_mail_context(
-            request.data.get("content", ""), request.data.get("subject", "Infomail")
+            content, info_cheif_content, subject=subject, force_fetch=True
         )
-        # Notify the user that the booking has been denied.
+
         subject, content = render_email("email/newsletter", context)
 
         mail_recipients: list[str] = list(
@@ -34,13 +44,39 @@ class SendView(views.APIView):
                 "user__email", flat=True
             )
         )
-        print(
-            mail.send(
-                recipients=mail_recipients,
-                subject=subject,
-                html_message=content,
-                priority="now",  # High priority
-            )
+
+        mail.send(
+            recipients=[],  # hide recipients email adresses
+            bcc=mail_recipients,  # blind carbon copy all recipients
+            subject=subject,
+            html_message=content,
+            priority="now",  # High priority
+        )
+
+        return Response({"status": "sent"})
+
+
+class SendSelfView(views.APIView):
+    permission_classes = [SenderPermission]
+
+    def post(self, request):
+        subject = request.data.get("subject", "Infomail")
+        content = request.data.get("content", "")
+        info_cheif_content = request.data.get("infoCheifContent", "")
+        context = generate_mail_context(
+            content, info_cheif_content, subject=subject, force_fetch=True
+        )
+
+        subject, content = render_email("email/newsletter", context)
+
+        mail_recipients = [request.user.email]
+
+        mail.send(
+            recipients=[],  # hide recipients email adresses
+            bcc=mail_recipients,  # blind carbon copy all recipients
+            subject=subject,
+            html_message=content,
+            priority="now",  # High priority
         )
 
         return Response({"status": "sent"})

@@ -16,6 +16,12 @@ class EventDict(TypedDict):
 
 
 def _sanitize_html(content: str) -> str:
+    """Sanitize HTML content to allow only a safe subset of tags and attributes.
+    Args:
+        content (str): The HTML content to sanitize.
+    Returns:
+        str: The sanitized HTML content.
+    """
     allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {
         "h1",
         "h2",
@@ -49,9 +55,20 @@ events_cache = SingleValueTimedCache[list[EventDict]]()
 
 
 def generate_mail_context(
-    content: str, subject: str = "Infomail", force_fetch: bool = False
+    content: str,
+    info_cheif_content: str,
+    subject: str = "Infomail",
+    force_fetch: bool = False,
 ) -> dict:
+    """Generate context for the newsletter email template.
+    Args:
+        content (str): The main content of the newsletter.
+        info_cheif_content (str): The content from the info chief.
+        subject (str): The subject feild of the email.
+        force_fetch (bool): Whether to force fetching events from the calendar.
+    """
     safe_content = mark_safe(_sanitize_html(content))
+    safe_info_cheif_content = mark_safe(_sanitize_html(info_cheif_content))
 
     event_list = events_cache.get()
     if events_cache.get() is None or force_fetch:
@@ -63,6 +80,7 @@ def generate_mail_context(
         "week_number": week_number(),
         "events": event_list,
         "content": safe_content,
+        "info_cheif_content": safe_info_cheif_content,
         "website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
         "info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
         "gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
@@ -78,10 +96,14 @@ def generate_mail_context(
 
 
 def week_number() -> int:
+    """Get the current ISO week number."""
     return datetime.date.today().isocalendar()[0]
 
 
 def _fetch_events() -> list[EventDict]:
+    """Fetch and process upcoming events from the iCal calendar.
+    Returns:
+        list[EventDict]: A list of upcoming events with title and formatted date."""
     # Extract and format up to 5 upcoming events from the iCal calendar
     response = requests.get(settings.INFO_CALENDAR_ICAL_URL)
 
