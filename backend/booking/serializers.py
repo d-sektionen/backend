@@ -103,46 +103,70 @@ class BookingSerializer(serializers.ModelSerializer):
                 f"Booking should have a duration of at most {str(upper_timedelta)}."
             )
 
-        # assign items and accessories, if needed
-        count = attrs["count"]
-        all_items = (
-            ItemPoolItem.objects.filter(pool=attrs["pool"]).order_by("priority").all()
-        )
+        if attrs["count"] <= 0:
+            raise serializers.ValidationError("Booking count must be at least 1.")
 
-        items = []
-        accessories = []
-
-        for item in all_items:
-            accessory = (
-                ItemPoolAccessory.objects.filter(pool=attrs["pool"])
-                .filter(compatible_items=item)
-                .first()
-            )
-
-            if accessory and accessory not in accessories:
-                accessories.append(accessory)
-                items.append(item)
-
-            if len(items) >= count:
-                break
-
-        if len(items) < count:
-            raise serializers.ValidationError(
-                "Not enough items or accessories available to satisfy the booking."
-            )
+        # assign items and, if needed, accessories
+        items, accessories = self.assign_items_accessories(attrs)
 
         attrs["items"] = items
         attrs["accessories"] = accessories
-
-        print(attrs)
-
-        # TODO: check overlap
 
         # the model itself does not have a count field:
         # it's only used to assign items and accessories
         del attrs["count"]
 
         return attrs
+
+    def assign_items_accessories(self, attrs):
+        # collect items with available accessories, choosing those with
+        # highest priority first
+        all_items = (
+            ItemPoolItem.objects.filter(pool=attrs["pool"]).order_by("priority").all()
+        )
+
+        overlap_query = Booking.objects.filter(
+            pool=attrs["pool"], restricted_timeslot=attrs["restricted_timeslot"]
+        )
+        if self.instance:
+            overlap_query = overlap_query.exclude(pk=self.instance.id)
+        overlap_query = overlap_query.filter(
+            start__lte=attrs["end"], end__gte=attrs["start"]
+        )
+
+        items = []
+        accessories = []
+
+        for item in all_items:
+            item_overlap_query = overlap_query.filter(items__in=[item])
+
+            if item_overlap_query.exists():
+                print(f"Item {item} is not available due to overlap.")
+                continue
+
+            if attrs["pool"].requires_accessory:
+                accessory = (
+                    ItemPoolAccessory.objects.filter(pool=attrs["pool"])
+                    .filter(compatible_items=item)
+                    .first()
+                )
+
+                if accessory and accessory not in accessories:
+                    accessories.append(accessory)
+                    items.append(item)
+            else:
+                items.append(item)
+
+            if len(items) >= attrs["count"]:
+                # we're done!
+                break
+
+        if len(items) < attrs["count"]:
+            raise serializers.ValidationError(
+                "Not enough items or accessories available to satisfy the booking."
+            )
+
+        return items, accessories
 
 
 class DenyBookingSerializer(serializers.ModelSerializer):
