@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django.utils import timezone
 from post_office import mail
 
+from backend.booking.validators import should_auto_confirm
+
 from ..app.permissions import FixedDjangoModelPermissions
 from ..app.utils import render_email
 from .models import Booking, ItemPool
@@ -62,36 +64,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def should_auto_confirm(self, data, exists=False):
-        # If item pool requires confirmation, do not auto confirm.
-        if data["pool"].requires_confirmation:
-            return False
-
-        # If booking is a normal booking.
-        if not data["restricted_timeslot"]:
-            queryset = Booking.objects.all()  # type: ignore[attr-defined]
-
-            # on update don't compare with self.
-            if exists:
-                queryset = queryset.exclude(pk=self.get_object().id)
-
-            # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
-            queryset = Booking.objects.filter(  # type: ignore[attr-defined]
-                pool=data["pool"],
-                restricted_timeslot=True,
-                confirmed=True,
-                start__lte=data["end"],
-                end__gte=data["start"],
-            )
-            return not queryset.exists()
-
-        # if priority reservation and non admin user.
-        return False
-
     def perform_create(self, serializer):
         auto_confirm = False
         data = serializer.validated_data
-        auto_confirm = self.should_auto_confirm(data)
+        auto_confirm = should_auto_confirm(data, instance=None)
         serializer.save(confirmed=auto_confirm)
 
         if auto_confirm is False:
@@ -105,7 +81,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         if old_obj.start != new_data["start"] or old_obj.end != new_data["end"]:
             if old_obj.confirmed:
                 # Recalculate confirmation
-                auto_confirm = self.should_auto_confirm(new_data, exists=True)
+                auto_confirm = should_auto_confirm(new_data, self.get_object())
 
         serializer.save(confirmed=auto_confirm)
 

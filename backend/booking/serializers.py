@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+
+from backend.booking.validators import should_auto_confirm
 from ..account.serializers import SimpleUserSerializer
 from datetime import timedelta
 from .models import ItemPool, Booking, ItemPoolAccessory, ItemPoolItem
@@ -123,11 +125,15 @@ class BookingSerializer(serializers.ModelSerializer):
         if attrs["count"] <= 0:
             raise serializers.ValidationError("Booking count must be at least 1.")
 
-        # assign items and, if needed, accessories
-        items, accessories = self.assign_items_accessories(attrs)
+        if should_auto_confirm(attrs, self.instance):
+            # assign items and, if needed, accessories
+            items, accessories = self.assign_items_accessories(attrs)
 
-        attrs["items"] = items
-        attrs["accessories"] = accessories
+            attrs["items"] = items
+            attrs["accessories"] = accessories
+        else:
+            # werk will assign the items and accessories manually upon confirmation
+            pass
 
         # the model itself does not have a count field:
         # it's only used to assign items and accessories
