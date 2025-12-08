@@ -97,7 +97,7 @@ def generate_mail_context(
 
 def week_number() -> int:
     """Get the current ISO week number."""
-    return datetime.date.today().isocalendar()[0]
+    return datetime.date.today().isocalendar()[1]
 
 
 def _fetch_events() -> list[EventDict]:
