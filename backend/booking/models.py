@@ -91,7 +91,7 @@ class ItemPoolAccessory(models.Model):
         related_name="accessories",
     )
     compatible_items = models.ManyToManyField(
-        ItemPoolItem, related_name="compatible_accessories"
+        ItemPoolItem, related_name="compatible_accessories", blank=True
     )
 
     def __str__(self):
