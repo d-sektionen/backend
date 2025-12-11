@@ -16,7 +16,7 @@ COPY requirements.txt requirements.production.txt ./
 RUN apt update && apt upgrade -y && \
     apt install gcc musl-dev -y && \
     pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements-prod.txt && \
+    pip install --no-cache-dir -r requirements.production.txt && \
     apt clean autoclean && \
     apt autoremove --purge apt pip gcc musl-dev -y --allow-remove-essential && \
     rm -rf /var/lib/{apt,dpkg,cache,log,lists} ./requirements*.txt
