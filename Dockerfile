@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=app.settings_production
 
 # Copy the requirements file into container
-COPY requirements.txt requirements-prod.txt ./
+COPY requirements.txt requirements.production.txt ./
 
 # Install build tools and project dependencies, remove tools and cache after.
 RUN apt update && apt upgrade -y && \
