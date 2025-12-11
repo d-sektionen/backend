@@ -22,6 +22,6 @@ RUN apt update && apt upgrade -y && \
     rm -rf /var/lib/{apt,dpkg,cache,log,lists} ./requirements*.txt
 
 # Copy over rest of the project after installing deps to optimize rebuilds
-COPY ./src ./docker-entrypoint.sh ./
+COPY ./backend ./docker-entrypoint.sh ./
 
 ENTRYPOINT [ "sh", "/code/docker-entrypoint.sh"]
