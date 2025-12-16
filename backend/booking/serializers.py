@@ -11,7 +11,16 @@ class ItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = ("id", "name", "description", "category", "terms", "image_processed")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "category",
+            "terms",
+            "image_processed",
+            "max_booking_hours",
+            "max_booking_hours_restricted_timeslot",
+        )
         read_only_fields = (
             "id",
             "name",
@@ -19,6 +28,8 @@ class ItemSerializer(serializers.ModelSerializer):
             "category",
             "terms",
             "image_processed",
+            "max_booking_hours",
+            "max_booking_hours_restricted_timeslot",
         )
 
 
@@ -63,8 +74,14 @@ class BookingSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         restricted_timeslot = attrs["restricted_timeslot"]
 
-        lower_duration = 2 * 24 if restricted_timeslot else 0.5
-        upper_duration = 30 * 24 if restricted_timeslot else 3 * 24
+        # there is no reason to book with restricted timeslot if you are booking
+        # shorter than the maximum time allowed for normal bookings
+        lower_duration = attrs["item"].max_booking_hours if restricted_timeslot else 0.5
+        upper_duration = (
+            attrs["item"].max_booking_hours_restricted_timeslot
+            if restricted_timeslot
+            else attrs["item"].max_booking_hours
+        )
 
         lower_timedelta = timedelta(hours=lower_duration)
         upper_timedelta = timedelta(hours=upper_duration)

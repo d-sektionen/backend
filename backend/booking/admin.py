@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Item, Booking, Blacklisted, ItemCategory
+from .models import Item, Booking, Blacklisted, ItemCategory, Webhook
 
 
 class BookingAdmin(admin.ModelAdmin):
@@ -29,6 +29,10 @@ class BookingAdmin(admin.ModelAdmin):
     )
 
 
+class WebhookAdmin(admin.ModelAdmin):
+    list_display = ("name", "service", "url")
+
+
 class ItemAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -48,6 +52,7 @@ class BlacklistedAdmin(admin.ModelAdmin):
     list_display = ("user", "time", "expires")
 
 
+admin.site.register(Webhook, WebhookAdmin)
 admin.site.register(ItemCategory, ItemCategoryAdmin)
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Booking, BookingAdmin)
