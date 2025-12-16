@@ -197,7 +197,7 @@
                             </h3>
                             {% for event in events %}
                             <p>
-                                <strong>{{event.title}}</strong><br />
+                                <strong>{{event.title|safe}}</strong><br />
                                 {{event.date|safe}}
                             </p>
                             {% endfor %}
