@@ -8,6 +8,13 @@ class SenderPermission(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj) -> bool:
-        profile = Profile.objects.get(user=request.user)
+        return self.has_permission(request, view)
 
-        return profile.infomail_sender
+    def has_permission(self, request, view) -> bool:
+        if not request.user or not request.user.is_authenticated:
+            return False
+        try:
+            profile = Profile.objects.get(user=request.user)
+            return profile.infomail_sender
+        except Profile.DoesNotExist:
+            return False
