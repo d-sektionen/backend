@@ -9,7 +9,7 @@ def render_email(template_name: str, context: Any = {}) -> Tuple[str, str]:
 
     Args:
         template_name (str): the base of the template names
-        contenxt (Any): the context provided to templates
+        context (Any): the context provided to templates
     Returns:
         Tuple[str, str]: subject and html content of the email
     """
