@@ -106,6 +106,7 @@ def _fetch_events() -> list[EventDict]:
         list[EventDict]: A list of upcoming events with title and formatted date."""
     # Extract and format up to 5 upcoming events from the iCal calendar
     response = requests.get(settings.INFO_CALENDAR_ICAL_URL)
+    assert response.ok, "Failed to fetch calendar data"
 
     calendar = Calendar.from_ical(response.text)
     events = [c for c in calendar.walk() if c.name == "VEVENT"]
