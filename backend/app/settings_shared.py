@@ -233,33 +233,36 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@d-sektionen.se")
 
 INFO_DSEKTIONEN_WEBSITE_URL = os.getenv(
-    "DSEKTIONEN_WEBSITE_URL", "https://d-sektionen.se"
+    "INFO_DSEKTIONEN_WEBSITE_URL", "https://d-sektionen.se"
 )
-INFO_DSEKTIONEN_INFO_EMAIL = os.getenv("DSEKTIONEN_INFO_EMAIL", "info@d-sektionen.se")
+INFO_DSEKTIONEN_INFO_EMAIL = os.getenv(
+    "INFO_DSEKTIONEN_INFO_EMAIL", "info@d-sektionen.se"
+)
 INFO_DSEKTIONEN_GDPR_URL = os.getenv(
-    "DSEKTIONEN_GDPR_URL",
+    "INFO_DSEKTIONEN_GDPR_URL",
     "https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf",
 )
 INFO_DSEKTIONEN_LOGO_URL = os.getenv(
-    "DSEKTIONEN_LOGO_URL",
+    "INFO_DSEKTIONEN_LOGO_URL",
     "https://d-sektionen.se/file_archive/sektionsdokument/logotyper/Color_white.png",
 )
 INFO_DSEKTIONEN_UNSUBSCRIBE_URL = os.getenv(
-    "UNSUBSCRIBE_URL", "https://medlem.d-sektionen.se/preferences/"
+    "INFO_DSEKTIONEN_UNSUBSCRIBE_URL", "https://medlem.d-sektionen.se/preferences/"
 )
 INFO_DSEKTIONEN_INSTAGRAM_URL = os.getenv(
-    "INSTAGRAM_URL", "https://www.instagram.com/dsektionen/"
+    "INFO_DSEKTIONEN_INSTAGRAM_URL", "https://www.instagram.com/dsektionen/"
 )
 INFO_DSEKTIONEN_FACEBOOK_URL = os.getenv(
-    "FACEBOOK_URL", "https://www.facebook.com/datateknologsektionen"
+    "INFO_DSEKTIONEN_FACEBOOK_URL", "https://www.facebook.com/datateknologsektionen"
 )
 INFO_DSEKTIONEN_FACEBOOK_GROUP_URL = os.getenv(
-    "FACEBOOK_GROUP_URL", "https://www.facebook.com/groups/112745532123135"
+    "INFO_DSEKTIONEN_FACEBOOK_GROUP_URL",
+    "https://www.facebook.com/groups/112745532123135",
 )
 INFO_DSEKTIONEN_MORE_SOCIAL_MEDIA_URL = os.getenv(
-    "MORE_SOCIAL_MEDIA_URL", "https://d-sektionen.se/socialamedier/"
+    "INFO_DSEKTIONEN_MORE_SOCIAL_MEDIA_URL", "https://d-sektionen.se/socialamedier/"
 )
 INFO_CALENDAR_ICAL_URL = os.getenv(
-    "CALENDAR_ICAL_URL",
+    "INFO_CALENDAR_ICAL_URL",
     "https://calendar.google.com/calendar/ical/c_93a709266d679561caf5bcc20fb621fb0af75dd7d6e78c568b65fec39fc34e3b%40group.calendar.google.com/public/basic.ics",
 )
