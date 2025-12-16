@@ -16,8 +16,8 @@ class PreviewView(views.APIView):
 
     def post(self, request):
         content = request.data.get("content", "")
-        info_cheif_content = request.data.get("infoCheifContent", "")
-        context = generate_mail_context(content, info_cheif_content)
+        info_chief_content = request.data.get("infoChiefContent", "")
+        context = generate_mail_context(content, info_chief_content)
 
         return Response(context, template_name="email/newsletter.html")
 
@@ -28,9 +28,9 @@ class SendView(views.APIView):
     def post(self, request):
         subject = request.data.get("subject", "Infomail")
         content = request.data.get("content", "")
-        info_cheif_content = request.data.get("infoCheifContent", "")
+        info_chief_content = request.data.get("infoChiefContent", "")
         context = generate_mail_context(
-            content, info_cheif_content, subject=subject, force_fetch=True
+            content, info_chief_content, subject=subject, force_fetch=True
         )
 
         subject, content = render_email("email/newsletter", context)
@@ -58,9 +58,9 @@ class SendSelfView(views.APIView):
     def post(self, request):
         subject = request.data.get("subject", "Infomail")
         content = request.data.get("content", "")
-        info_cheif_content = request.data.get("infoCheifContent", "")
+        info_chief_content = request.data.get("infoChiefContent", "")
         context = generate_mail_context(
-            content, info_cheif_content, subject=subject, force_fetch=True
+            content, info_chief_content, subject=subject, force_fetch=True
         )
 
         subject, content = render_email("email/newsletter", context)

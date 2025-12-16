@@ -56,19 +56,19 @@ events_cache = SingleValueTimedCache[list[EventDict]]()
 
 def generate_mail_context(
     content: str,
-    info_cheif_content: str,
+    info_chief_content: str,
     subject: str = "Infomail",
     force_fetch: bool = False,
 ) -> dict:
     """Generate context for the newsletter email template.
     Args:
         content (str): The main content of the newsletter.
-        info_cheif_content (str): The content from the info chief.
+        info_chief_content (str): The content from the info chief.
         subject (str): The subject feild of the email.
         force_fetch (bool): Whether to force fetching events from the calendar.
     """
     safe_content = mark_safe(_sanitize_html(content))
-    safe_info_cheif_content = mark_safe(_sanitize_html(info_cheif_content))
+    safe_info_chief_content = mark_safe(_sanitize_html(info_chief_content))
 
     event_list = events_cache.get()
     if events_cache.get() is None or force_fetch:
@@ -80,7 +80,7 @@ def generate_mail_context(
         "week_number": week_number(),
         "events": event_list,
         "content": safe_content,
-        "info_cheif_content": safe_info_cheif_content,
+        "info_chief_content": safe_info_chief_content,
         "website_url": settings.INFO_D_SEKTIONEN_WEBSITE_URL,
         "info_email": settings.INFO_D_SEKTIONEN_INFO_EMAIL,
         "gdpr_url": settings.INFO_D_SEKTIONEN_GDPR_URL,
