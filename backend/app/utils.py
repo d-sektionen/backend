@@ -5,7 +5,7 @@ from typing import Any, Tuple
 def render_email(template_name: str, context: Any = {}) -> Tuple[str, str]:
     """Render an email from two templates template.
     This function assumes that for template name both <template_name>.html and <template_name>.subject.txt
-    exsists to generate both the body of the email and the subject.
+    exists to generate both the body of the email and the subject.
 
     Args:
         template_name (str): the base of the template names
