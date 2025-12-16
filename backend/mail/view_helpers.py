@@ -71,7 +71,7 @@ def generate_mail_context(
     safe_info_chief_content = mark_safe(_sanitize_html(info_chief_content))
 
     event_list = events_cache.get()
-    if events_cache.get() is None or force_fetch:
+    if event_list is None or force_fetch:
         event_list = _fetch_events()
         events_cache.set(event_list)
     assert event_list is not None
