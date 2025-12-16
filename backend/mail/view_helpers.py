@@ -163,7 +163,7 @@ def _fetch_events() -> list[EventDict]:
         else:
             date_str = start_dt.strftime("%d %B %H:%M") if start_dt else ""
 
-        title = event.get("summary", "")
+        title = _sanitize_html(event.get("summary", ""))
         result.append({"title": title, "date": date_str})
 
     return result
