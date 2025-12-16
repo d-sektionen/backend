@@ -64,7 +64,7 @@ def generate_mail_context(
     Args:
         content (str): The main content of the newsletter.
         info_chief_content (str): The content from the info chief.
-        subject (str): The subject feild of the email.
+        subject (str): The subject field of the email.
         force_fetch (bool): Whether to force fetching events from the calendar.
     """
     safe_content = mark_safe(_sanitize_html(content))
