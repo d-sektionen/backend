@@ -92,6 +92,7 @@ def device_login(request):
                     key=public_key,
                     algorithms=["RS256"],
                     audience=[settings.CLIENT_ID],
+                    leeway=5, 
                 )
                 user = get_or_create_user(decoded["winaccountname"])[0]
                 login(
