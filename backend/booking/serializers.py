@@ -98,11 +98,11 @@ class BookingSerializer(serializers.ModelSerializer):
 
         # there is no reason to book with restricted timeslot if you are booking
         # shorter than the maximum time allowed for normal bookings
-        lower_duration = attrs["item"].max_booking_hours if restricted_timeslot else 0.5
+        lower_duration = attrs["pool"].max_booking_hours if restricted_timeslot else 0.5
         upper_duration = (
-            attrs["item"].max_booking_hours_restricted_timeslot
+            attrs["pool"].max_booking_hours_restricted_timeslot
             if restricted_timeslot
-            else attrs["item"].max_booking_hours
+            else attrs["pool"].max_booking_hours
         )
 
         lower_timedelta = timedelta(hours=lower_duration)
@@ -145,7 +145,7 @@ class BookingSerializer(serializers.ModelSerializer):
         # collect items with available accessories, choosing those with
         # highest priority first
         all_items = (
-            ItemPoolItem.objects.filter(pool=attrs["pool"]).order_by("priority").all()
+            ItemPoolItem.objects.filter(pool=attrs["pool"]).order_by("-priority").all()
         )
 
         overlap_query = Booking.objects.filter(
