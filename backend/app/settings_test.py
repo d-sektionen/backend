@@ -1,5 +1,6 @@
+import os
 from dotenv import load_dotenv
-from .settings_shared import *
+from .settings_shared import BASE_DIR
 
 dotenv_path = os.path.join(BASE_DIR, ".env")
 
