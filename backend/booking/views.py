@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from post_office import mail
 
-from backend.booking.validators import should_auto_confirm
+from .utils import should_auto_confirm
 
 from ..app.permissions import FixedDjangoModelPermissions
 from ..app.utils import render_email

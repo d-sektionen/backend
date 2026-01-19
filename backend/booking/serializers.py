@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from backend.booking.validators import should_auto_confirm
+from .utils import should_auto_confirm
 from ..account.serializers import SimpleUserSerializer
 from datetime import timedelta
 from .models import ItemPool, Booking, ItemPoolAccessory, ItemPoolItem
