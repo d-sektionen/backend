@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('booking', '0015_webhook_item_webhook'),
+        ('booking', '0016_merge_20251127_1729')
     ]
 
     operations = [

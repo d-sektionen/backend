@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('account', '0013_alter_calendarsubscription_include_bookable_items_and_more'),
         ('booking', '0018_remove_itemaccessory_bookings_and_more'),
     ]
 
