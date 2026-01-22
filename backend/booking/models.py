@@ -78,7 +78,7 @@ class ItemPoolItem(models.Model):
 
     enabled = models.BooleanField(default=True)
     priority = models.IntegerField(default=0)
-    status = models.CharField(max_length=32)
+    status = models.CharField(max_length=32, null=True, blank=True)
 
     def __str__(self):
         return self.name
