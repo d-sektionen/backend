@@ -120,9 +120,7 @@ def _fetch_events() -> list[EventDict]:
 
         # Convert date-only objects to datetime at midnight UTC
         if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
-            d = datetime.datetime.combine(
-                d, datetime.time.min, tzinfo=datetime.timezone.utc
-            )
+            d = datetime.datetime.combine(d, datetime.time.min)
 
         # Ensure timezone awareness (assume UTC if not specified)
         if d.tzinfo is None:
