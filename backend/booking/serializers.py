@@ -10,6 +10,10 @@ from .models import ItemPool, Booking, ItemPoolAccessory, ItemPoolItem
 class ItemPoolSerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
     category = serializers.StringRelatedField()
+    count = serializers.SerializerMethodField()
+
+    def get_count(self, obj):
+        return ItemPoolItem.objects.filter(pool=obj).count()
 
     class Meta:
         model = ItemPool
@@ -22,6 +26,7 @@ class ItemPoolSerializer(serializers.ModelSerializer):
             "image_processed",
             "max_booking_hours",
             "max_booking_hours_restricted_timeslot",
+            "count",
         )
         read_only_fields = (
             "id",
@@ -32,6 +37,7 @@ class ItemPoolSerializer(serializers.ModelSerializer):
             "image_processed",
             "max_booking_hours",
             "max_booking_hours_restricted_timeslot",
+            "count",
         )
 
 
@@ -126,7 +132,7 @@ class BookingSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Booking count must be at least 1.")
 
         if should_auto_confirm(attrs, self.instance):
-            # assign items and, if needed, accessories
+            # automatically assign items and, if needed, accessories
             items, accessories = self.assign_items_accessories(attrs)
 
             attrs["items"] = items
@@ -136,7 +142,7 @@ class BookingSerializer(serializers.ModelSerializer):
             pass
 
         # the model itself does not have a count field:
-        # it's only used to assign items and accessories
+        # it's only used to automatically assign items and accessories
         del attrs["count"]
 
         return attrs
@@ -167,15 +173,21 @@ class BookingSerializer(serializers.ModelSerializer):
                 continue
 
             if attrs["pool"].requires_accessory:
-                accessory = (
+                compat_accessories = (
                     ItemPoolAccessory.objects.filter(pool=attrs["pool"])
                     .filter(compatible_items=item)
-                    .first()
+                    .all()
                 )
 
-                if accessory and accessory not in accessories:
+                # find the first accessory (if any) that is not already assigned
+                for accessory in compat_accessories:
+                    if accessory in accessories:
+                        continue  # already assigned for this booking
+
+                    # TODO: check overlap for accessory as well
                     accessories.append(accessory)
                     items.append(item)
+                    break
             else:
                 items.append(item)
 
