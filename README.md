@@ -1,16 +1,5 @@
 # D-sektionens API (Django)
 
-Work in progress to create a common API in Django.
-
-## Note about wagtail-integration branch
-
-Work is being done to migrate all backends (Wordpress, advent calendar, etc.) into a single app.
-All of these will be migrated to this repository and when finished this repository should probably be renamed to `backend`.
-
-The goal of this is to have a well structured, well connected backend at `backend.d-sektionen.se` where different front end applications can fetch data.
-The backend should therefore contain mostly api based (for example, REST or GraphQL) products.
-A guideline is that **a normal visitor should not see `backend.d-sektionen.se` in their url bar.** Although it would be accepted for a content editor to see it.
-
 ## Setting up a local development environment
 
 Create a virtualenv with a Python 3 interpreter and activate it:
@@ -56,25 +45,17 @@ pip install -r development.txt
 pre-commit install
 ```
 
-Every time you make a modification to the database structure, run this:
-
+### Starting the server using Docker
+As of Oct 13, 2025 this project uses Docker's compose feature to run its development server. After populating the `.env` file, simply run:
 ```sh
-./manage.py migrate
+> docker compose up
 ```
 
-Note: You will need to run the migration command if you encounter the
-following error message:
-
+When starting the server for the first time, or after changes have been made in the database, the database must be migrated. You can do this easily by using docker's `exec` command while the server is running.
 ```sh
-You have 13 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
-Run 'python manage.py migrate' to apply them.
+> docker compose exec backend python manage.py migrate
 ```
 
-Start the Django development server and begin developing:
-
-```sh
-./manage.py runserver
-```
 
 If you're using MAC OS, check out: <https://stackoverflow.com/a/53310545/9966843>
 
@@ -86,7 +67,7 @@ site. This can be found at <http://127.0.0.1:8000/admin>.
 If you are denied access to anything, try running the following in your terminal:
 
 ```sh
-./manage.py add_super_user <username>
+./manage.py createsuperuser <username>
 ```
 
 ## Email
