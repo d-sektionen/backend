@@ -7,7 +7,7 @@ from .timed_cache import SingleValueTimedCache
 from django.conf import settings
 from django.utils.safestring import mark_safe
 
-import bleach
+import nh3
 
 
 class EventDict(TypedDict):
@@ -22,7 +22,7 @@ def _sanitize_html(content: str) -> str:
     Returns:
         str: The sanitized HTML content.
     """
-    allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {
+    allowed_tags = set(nh3.ALLOWED_TAGS) | {
         "h1",
         "h2",
         "h3",
@@ -38,15 +38,14 @@ def _sanitize_html(content: str) -> str:
     }
 
     allowed_attributes = {
-        **bleach.sanitizer.ALLOWED_ATTRIBUTES,
-        "a": ["href", "target", "rel"],
+        **nh3.ALLOWED_ATTRIBUTES,
+        "a": {"href", "target"},
     }
 
-    sanitized_content = bleach.clean(
+    sanitized_content = nh3.clean(
         content,
         tags=allowed_tags,
         attributes=allowed_attributes,
-        strip=True,
     )
     return sanitized_content
 
