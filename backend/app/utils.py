@@ -1,5 +1,6 @@
 from django.template.loader import get_template
 from typing import Any, Tuple
+from minify_html import minify
 
 
 def render_email(template_name: str, context: Any = {}) -> Tuple[str, str]:
@@ -18,5 +19,6 @@ def render_email(template_name: str, context: Any = {}) -> Tuple[str, str]:
 
     subject_rendered = subject_template.render(context).strip()
     html_rendered = html_template.render(context).strip()
+    html_minified = minify(html_rendered)
 
-    return subject_rendered, html_rendered
+    return subject_rendered, html_minified

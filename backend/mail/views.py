@@ -12,14 +12,13 @@ from ..account.models import Profile
 
 
 class PreviewView(views.APIView):
-    renderer_classes = [TemplateHTMLRenderer]
-
     def post(self, request):
         content = request.data.get("content", "")
         info_chief_content = request.data.get("infoChiefContent", "")
         context = generate_mail_context(content, info_chief_content)
 
-        return Response(context, template_name="email/newsletter.html")
+        _subject, content = render_email("email/newsletter", context)
+        return Response(content, content_type="text/html")
 
 
 class SendView(views.APIView):
