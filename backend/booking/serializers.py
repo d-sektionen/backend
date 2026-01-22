@@ -7,7 +7,7 @@ from datetime import timedelta
 from .models import ItemPool, Booking, ItemPoolAccessory, ItemPoolItem
 
 
-class ItemSerializer(serializers.ModelSerializer):
+class ItemPoolSerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
     category = serializers.StringRelatedField()
 
@@ -60,7 +60,7 @@ class BookingSerializer(serializers.ModelSerializer):
     pool_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=ItemPool.objects.all(), source="pool"
     )
-    pool = ItemSerializer(read_only=True)
+    pool = ItemPoolSerializer(read_only=True)
     items = ItemPoolItemSerializer(many=True, read_only=True)
     accessories = AccessorySerializer(many=True, read_only=True)
     count = serializers.IntegerField(write_only=True)

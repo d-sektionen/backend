@@ -9,8 +9,8 @@ from .utils import should_auto_confirm
 from ..app.permissions import FixedDjangoModelPermissions
 from ..app.utils import render_email
 from .models import Booking, ItemPool
-from .serializers import BookingSerializer, ItemSerializer
-from .serializers import BookingSerializer, DenyBookingSerializer, ItemSerializer
+from .serializers import BookingSerializer, ItemPoolSerializer
+from .serializers import BookingSerializer, DenyBookingSerializer, ItemPoolSerializer
 from .permissions import BookingPermissions
 from .view_helpers import notify_webhook_unconfirmed_booking
 
@@ -117,10 +117,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ItemViewSet(viewsets.ReadOnlyModelViewSet):
+class ItemPoolViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows bookable items to be viewed.
+    API endpoint that allows bookable item pools to be viewed.
     """
 
     queryset = ItemPool.objects.filter(enabled=True)  # type: ignore[attr-defined]
-    serializer_class = ItemSerializer
+    serializer_class = ItemPoolSerializer
