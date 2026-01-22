@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-# NOTE: this migration is a disaster!!!
+# NOTE: this migration is a bit dangerous since it modifies data
 def fix_liu_id(apps, schema_editor):
     Profile = apps.get_model('account', 'Profile')
     for profile in Profile.objects.all():
