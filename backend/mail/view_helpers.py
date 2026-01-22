@@ -104,66 +104,105 @@ def _fetch_events() -> list[EventDict]:
     """Fetch and process upcoming events from the iCal calendar.
     Returns:
         list[EventDict]: A list of upcoming events with title and formatted date."""
-    # Extract and format up to 5 upcoming events from the iCal calendar
+
+    # Fetch the iCal calendar data from the configured URL
     response = requests.get(settings.INFO_CALENDAR_ICAL_URL)
     assert response.ok, "Failed to fetch calendar data"
 
+    # Parse the iCal data and extract all VEVENT components
     calendar = Calendar.from_ical(response.text)
     events = [c for c in calendar.walk() if c.name == "VEVENT"]
 
     def to_datetime(dt):
+        """Convert iCal datetime/date object to timezone-aware datetime."""
+        # Extract the actual date/datetime value
         d = dt.dt if hasattr(dt, "dt") else dt
+
+        # Convert date-only objects to datetime at midnight UTC
         if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
             d = datetime.datetime.combine(
                 d, datetime.time.min, tzinfo=datetime.timezone.utc
             )
+
+        # Ensure timezone awareness (assume UTC if not specified)
         if d.tzinfo is None:
             d = d.replace(tzinfo=datetime.timezone.utc)
+
         return d
 
-    # Sort events by start datetime, earliest first
+    def format_date_only(dt):
+        """Format datetime as date without time: '25 December'"""
+        return dt.strftime("%d %B")
+
+    def format_datetime(dt):
+        """Format datetime with time: '25 December 14:00'"""
+        return dt.strftime("%d %B %H:%M")
+
+    def format_time_only(dt):
+        """Format just the time: '14:00'"""
+        return dt.strftime("%H:%M")
+
+    def format_date_range(start_dt, end_dt):
+        """Format date string based on event type and duration."""
+        # Check if this is a whole-day event (starts and ends at midnight)
+        is_whole_day_event = (
+            end_dt
+            and start_dt.time() == datetime.time(0, 0)
+            and end_dt.time() == datetime.time(0, 0)
+            and end_dt > start_dt
+        )
+
+        if is_whole_day_event:
+            # Calculate duration in days
+            days = (end_dt - start_dt).days
+
+            if days == 1:
+                # Single whole-day event: "25 December"
+                return format_date_only(start_dt)
+            elif days > 1:
+                # Multi-day whole-day event: "25 December - 27 December"
+                # Subtract 1 day from end because iCal whole-day events are exclusive
+                last_day = end_dt - datetime.timedelta(days=1)
+                return f"{format_date_only(start_dt)} - {format_date_only(last_day)}"
+            else:
+                # Fallback case (shouldn't normally happen)
+                return f"{format_datetime(start_dt)}<br>{format_datetime(end_dt)}"
+
+        elif end_dt and start_dt.date() == end_dt.date():
+            # Same-day event with time: "25 December 14:00 - 16:00"
+            return f"{format_datetime(start_dt)} - {format_time_only(end_dt)}"
+
+        elif end_dt:
+            # Multi-day event with specific times: "25 December 14:00<br>27 December 16:00"
+            return f"{format_datetime(start_dt)}<br>{format_datetime(end_dt)}"
+
+        else:
+            # Event without end time: "25 December 14:00"
+            return format_datetime(start_dt) if start_dt else ""
+
+    # Sort all events by start time (earliest first)
+    # Events without start time are sorted to the end
     events.sort(
         key=lambda e: to_datetime(e.get("dtstart"))
         if e.get("dtstart")
         else datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
     )
 
+    # Filter to only include events that haven't started yet
     now = datetime.datetime.now(datetime.timezone.utc)
     upcoming_events = [
         e for e in events if "dtstart" in e and to_datetime(e["dtstart"]) >= now
     ]
+    upcoming_events = events
 
+    # Process the first 5 upcoming events
     result: list[EventDict] = []
     for event in upcoming_events[:5]:
         start_dt = to_datetime(event.get("dtstart"))
         end_dt = to_datetime(event.get("dtend")) if event.get("dtend") else None
 
-        # Check for whole-day event (start and end at 00:00, duration is multiple of 24h)
-        if (
-            end_dt
-            and start_dt.time() == datetime.time(0, 0)
-            and end_dt.time() == datetime.time(0, 0)
-            and end_dt > start_dt
-        ):
-            days = (end_dt - start_dt).days
-            if days == 1:
-                # Single whole day event
-                date_str = start_dt.strftime("%d %B")
-            elif days > 1:
-                # Multi-day whole day event
-                date_str = f"{start_dt.strftime('%d %B')} - {(end_dt - datetime.timedelta(days=1)).strftime('%d %B')}"
-            else:
-                # Fallback to default formatting
-                date_str = f"{start_dt.strftime('%d %B %H:%M')}<br>{end_dt.strftime('%d %B %H:%M')}"
-        elif end_dt and start_dt.date() == end_dt.date():
-            date_str = (
-                f"{start_dt.strftime('%d %B %H:%M')} - {end_dt.strftime('%H:%M')}"
-            )
-        elif end_dt:
-            date_str = f"{start_dt.strftime('%d %B %H:%M')}<br>{end_dt.strftime('%d %B %H:%M')}"
-        else:
-            date_str = start_dt.strftime("%d %B %H:%M") if start_dt else ""
-
+        # Format the date string and add to results
+        date_str = format_date_range(start_dt, end_dt)
         title = _sanitize_html(event.get("summary", ""))
         result.append({"title": title, "date": date_str})
 
