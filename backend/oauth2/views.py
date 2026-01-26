@@ -18,10 +18,6 @@ from .auth import (
 logger = logging.getLogger(__name__)
 
 
-class RefreshView(TokenRefreshView):
-    permission_classes = (IsAuthenticated,)
-
-
 def blacklist_refresh_token(request):
     try:
         refresh_token = request.data.get("refresh")
@@ -66,10 +62,15 @@ class LogoutView(APIView):
 
     def get(self, request):
         response = blacklist_refresh_token(request)
+        auth_logout(request)
         if response:
             return response
 
-        return auth_logout(request=request)
+        redirect_url = request.GET.get("next")
+        if redirect_url:
+            return HttpResponseRedirect(redirect_to=redirect_url)
+
+        return HttpResponse(status=200)
 
 
 class ExternalAuthCallbackView(APIView):
