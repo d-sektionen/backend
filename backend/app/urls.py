@@ -14,19 +14,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-import account.urls
-import attendance.urls
-import booking.urls
-import budgetportal.urls
-import carlogging.urls
-import checkin.urls
-import committee.urls
-import keylog.urls
-import locks.urls
-import membership.urls
-import oauth2.urls
-import tools.urls
-import voting.urls
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
@@ -35,6 +22,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.urls import re_path, reverse
 
 from ..account import urls as account_urls
+from ..oauth2 import urls as oauth2_urls
 from ..voting import urls as voting_urls
 from ..booking import urls as booking_urls
 from ..tools import urls as tools_urls

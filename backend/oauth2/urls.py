@@ -1,21 +1,21 @@
 from django.conf import settings
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .views import (
     BlacklistView,
     ExternalAuthCallbackView,
     LoginView,
     LogoutView,
-    RefreshView,
 )
 
 urlpatterns = [
-    path(r"refresh", RefreshView.as_view(), name="token_refresh"),
+    path(r"login/refresh", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
 # Production/staging settings
-if settings.DEBUG or settings.STAGING:
+# TODO: remove True
+if False and settings.DEBUG:
     urlpatterns += [
         path(r"login", TokenObtainPairView.as_view(), name="login"),
         path(r"logout", BlacklistView.as_view(), name="logout"),

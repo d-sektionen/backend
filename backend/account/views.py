@@ -1,4 +1,3 @@
-from app.permissions import FixedDjangoModelPermissions
 from django.contrib.auth.models import User
 from django_ical.views import ObjectDoesNotExist
 from rest_framework import exceptions, mixins, status, viewsets
