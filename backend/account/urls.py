@@ -3,7 +3,6 @@ from django.urls import path
 from rest_framework import routers
 
 from ..account import views
-from .views import AdminLoginView
 from .feeds import CalendarFeed
 
 router = routers.DefaultRouter()
@@ -20,7 +19,6 @@ urlpatterns = [
     path(r"profile/", views.ProfileView.as_view()),
     path(r"profile/<int:pk>/", views.ProfileView.as_view()),
     path(r"profile/me/", views.MeProfileView.as_view()),
-    path(r"identification-token/", views.IdentificationTokenView.as_view()),
     path(r"infomail-subscribers/", views.InfomailSubscriberView.as_view()),
     path(r"infomail-everyone/", views.InfomailEveryoneView.as_view()),
     path(r"calendar/<uuid:pk>", CalendarFeed(), name="calendar_feed"),

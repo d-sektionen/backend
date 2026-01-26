@@ -68,15 +68,6 @@ urlpatterns = [
     # Locks
     re_path(r"^locks/", include(locks_urls)),
     # Login to backend
-    re_path("oauth2/", include("django_auth_adfs.urls")),
-] + static(
-    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-)  # TODO: Change for production
-
-# Production/staging settings
-if not (settings.DEBUG or settings.STAGING):
-    urlpatterns += [
-        # Login to backend
-        re_path(r"^oauth2/", include(oauth2.urls)),
-        settings.MICROSOFT_IDENTITY.urlpattern,
-    ]
+    re_path(r"^oauth2/", include(oauth2_urls)),
+    settings.MICROSOFT_IDENTITY.urlpattern,
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
