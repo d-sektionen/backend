@@ -3,10 +3,9 @@ Shared settings are settings that all configurations use. They have to be as com
 Overwriting settings sometimes happens in sub setting files.
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import datetime
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...) import datetime import os
 import os
-
+import datetime
 from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
 from identity.django import Auth
@@ -67,30 +66,12 @@ MIDDLEWARE = [
 
 MICROSOFT_LOGIN_HOST = "login.microsoftonline.com"
 APP_HOSTNAME = os.getenv("APP_HOSTNAME")
-AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
-# Configure django to redirect users to the right URL for login
-# SCOPE = "User.Read"
-LOGIN_EXEMPT_URLS = []
-MICROSOFT_IDENTITY = Auth(
-    client_id=os.getenv("CLIENT_ID"),
-    client_credential=os.getenv("CLIENT_SECRET"),
-    # Source: https://identity-library.readthedocs.io/en/latest/django.html
-    # This will be used to mount your project's auth views accordingly.
-    # For example, if your input here is https://example.com/x/y/z/redirect,
-    # then your project's redirect page will be mounted at '/x/y/z/redirect',
-    # login page will be at '/x/y/z/login', and logout page will be at '/x/y/z/logout'.
-    redirect_uri=f"http://{APP_HOSTNAME}/oauth2/callback",
-    authority=f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv("LIU_TENANT_ID")}",
-)
 
 ALLOWED_HOSTS = [
     APP_HOSTNAME,
     MICROSOFT_LOGIN_HOST,
-    "medlem.d-sektionen.se",
-    # NOTE: localhost is added twice due to some parts caring about port and some not.
-    "localhost",
-    "localhost:4000",
 ]
+LOGIN_EXEMPT_URLS = []
 
 ROOT_URLCONF = "backend.app.urls"
 
