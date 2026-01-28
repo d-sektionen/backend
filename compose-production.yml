@@ -6,7 +6,6 @@ services:
     command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
     volumes:
       # Set the paths when deploying to production.
-      - ${BACKEND_BASEDIR}/backend.uwsgi.ini:/etc/uwsgi/backend.uwsgi.ini
       - ${BACKEND_BASEDIR}/static:/code/static
       - ${BACKEND_BASEDIR}/media:/code/media
       - ${BACKEND_BASEDIR}/log:/var/log/
