@@ -6,8 +6,8 @@ services:
     command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
     volumes:
       # Set the paths when deploying to production.
-      - ${BACKEND_BASEDIR}/static:/code/static
-      - ${BACKEND_BASEDIR}/media:/code/media
+      - ${BACKEND_BASEDIR}/static:/code/backend/static
+      - ${BACKEND_BASEDIR}/media:/code/backend/media
       - ${BACKEND_BASEDIR}/log:/var/log/
       - ${BACKEND_BASEDIR}/.YALE_ACCESS_TOKEN_CACHE:/code/.YALE_ACCESS_TOKEN_CACHE
     ports:
