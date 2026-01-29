@@ -4,7 +4,6 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedire
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenRefreshView
 
 from .auth import (
     AUTH,

@@ -8,7 +8,6 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
 from django.contrib.auth.models import User, update_last_login
 from django.http import HttpRequest, HttpResponseRedirect
 from django.utils.encoding import iri_to_uri
-from django.utils.http import url_has_allowed_host_and_scheme
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 import requests
 
@@ -22,7 +21,7 @@ DEFAULT_REDIRECT = "/"
 
 
 def get_me(token):
-    me = requests.get(  # Use access token to call a web api
+    me = requests.get(
         "https://graph.microsoft.com/v1.0/me",
         headers={"Authorization": "Bearer " + token},
         timeout=30,
@@ -39,7 +38,7 @@ def get_me(token):
 
 def external_auth_callback_login(request):
     if request.user.is_authenticated:
-        logging.debug(f"Reauthenticating user: {request.user}\n")
+        logger.debug(f"Reauthenticating user: {request.user}\n")
 
     response = AUTH.auth_response(request)
 
@@ -48,9 +47,10 @@ def external_auth_callback_login(request):
         logger.warning(response.content)
         return response, None
 
+    # FIXME: Use of internal function, should look for alternative
     auth = AUTH._build_auth(request.session)
     identity_user = auth.get_user()
-    logger.warning(identity_user)
+
     # This should always be a liu email, but for reliability reasons no assumptions
     # are made thus try to search for liu-id with regex.
     preferred_username = identity_user.get("preferred_username", "")
@@ -100,9 +100,7 @@ def get_safe_redirect(request: HttpRequest):
     path = request.get_full_path()
 
     redirect_url = request.GET.get(REDIRECT_FIELD_NAME, path)
-    logger.warn(f"redirect_url: {redirect_url}")
 
-    logger.debug(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
     """
     FIXME: this function is for internal django use. We should look at alternatives
     url_is_safe = url_has_allowed_host_and_scheme(

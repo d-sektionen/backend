@@ -3,12 +3,11 @@ Shared settings are settings that all configurations use. They have to be as com
 Overwriting settings sometimes happens in sub setting files.
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...) import datetime import os
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import datetime
 from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
-from identity.django import Auth
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -128,6 +127,8 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
+
 # Django REST Framework
 REST_FRAMEWORK = {
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
@@ -144,11 +145,11 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(seconds=10),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(hours=12),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(hours=24),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-    # To allow some wiggleroom for clients to retireve new tokens. This accounts for unsynced clocks and network delay.
+    # To allow some wiggleroom for clients to retrieve new tokens. This accounts for unsynced clocks and network delay.
     "LEEWAY": 60,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",

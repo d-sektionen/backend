@@ -1,29 +1,16 @@
 from django.contrib.auth.models import User
-from django_ical.views import ObjectDoesNotExist
-from rest_framework import exceptions, mixins, status, viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from ..app.permissions import FixedDjangoModelPermissions
-from django.contrib.auth import login, logout
-
-import requests
-import time
-import jwt
-import json
-
-from .user import get_or_create_user
 
 from .serializers import (
     MeSerializer,
-    SimpleUserSerializer,
     InfomailUserSerializer,
     CalendarSubscriptionSerializer,
     PublicProfileSerializer,
     PrivateProfileSerializer,
 )
-from .idtoken import generate_id_token, read_id_token
 from .models import CalendarSubscription, Profile
 
 
