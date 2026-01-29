@@ -78,6 +78,9 @@ class ExternalAuthCallbackView(APIView):
     def get(self, request):
         response, django_user = external_auth_callback_login(request)
 
+        if django_user is None:
+            return response
+
         # Admin page does not need access tokens, session based auth used for admin page.
         redirect_url = add_access_token_to_url(url=response.url, user=django_user)
 
