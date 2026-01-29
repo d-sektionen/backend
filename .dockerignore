@@ -15,5 +15,4 @@ log/
 *.md
 *.yml
 *.yaml
-*.ini
 *.toml
