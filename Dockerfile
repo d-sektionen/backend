@@ -7,7 +7,7 @@ WORKDIR /code
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=app.settings_production
+ENV DJANGO_SETTINGS_MODULE=backend.app.settings_production
 
 # Copy the requirements file into container
 COPY requirements.txt requirements.production.txt ./
@@ -22,6 +22,9 @@ RUN apt update && apt upgrade -y && \
     rm -rf /var/lib/{apt,dpkg,cache,log,lists} ./requirements*.txt
 
 # Copy over rest of the project after installing deps to optimize rebuilds
-COPY ./backend ./docker-entrypoint.sh ./
+COPY backend.uwsgi.ini /etc/uwsgi/backend.uwsgi.ini
+COPY manage.py .
+COPY backend ./backend
+COPY docker-entrypoint.sh .
 
 ENTRYPOINT [ "sh", "/code/docker-entrypoint.sh"]
