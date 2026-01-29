@@ -20,6 +20,19 @@ LIU_ID_REGEX = re.compile(r"[a-z]{4,5}[0-9]{2,3}")
 DEFAULT_REDIRECT = "/"
 
 
+def is_safe_redirect_url(url, allowed_domains, require_https=False):
+    """Custom implementation of djangos url_has_allowed_host_and_scheme."""
+    url_parts = urlparse.urlparse(url)
+
+    if not url_parts.netloc in allowed_domains:
+        return False
+
+    if require_https and url_parts.scheme != "https":
+        return False
+
+    return True
+
+
 def get_me(token):
     me = requests.get(
         "https://graph.microsoft.com/v1.0/me",
@@ -101,14 +114,10 @@ def get_safe_redirect(request: HttpRequest):
 
     redirect_url = request.GET.get(REDIRECT_FIELD_NAME, path)
 
-    """
-    FIXME: this function is for internal django use. We should look at alternatives
-    url_is_safe = url_has_allowed_host_and_scheme(
-        url=redirect_url,
-        allowed_hosts=ALLOWED_HOSTS,
-        require_https=False,
-    )
-    """
+    url_is_safe = is_safe_redirect_url(redirect_url, ALLOWED_HOSTS, require_https=False)
+
+    if url_is_safe is False:
+        redirect_url = DEFAULT_REDIRECT
 
     return iri_to_uri(redirect_url)
 
