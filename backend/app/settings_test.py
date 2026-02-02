@@ -1,5 +1,6 @@
+import os
 from dotenv import load_dotenv
-from .settings_shared import *
+from .settings_shared import BASE_DIR
 
 dotenv_path = os.path.join(BASE_DIR, ".env")
 
@@ -15,11 +16,7 @@ ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_NAME"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST"),
-        "PORT": os.getenv("POSTGRES_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
     }
 }
