@@ -24,4 +24,5 @@ def should_auto_confirm(data, instance):
         )
         return not queryset.exists()
 
-    return True
+    # Restricted timeslot bookings should not be auto-confirmed by default.
+    return False
