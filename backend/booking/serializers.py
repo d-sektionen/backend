@@ -151,7 +151,9 @@ class BookingSerializer(serializers.ModelSerializer):
         # collect items with available accessories, choosing those with
         # highest priority first
         all_items = (
-            ItemPoolItem.objects.filter(pool=attrs["pool"]).order_by("-priority").all()
+            ItemPoolItem.objects.filter(pool=attrs["pool"], enabled=True)
+            .order_by("-priority")
+            .all()
         )
 
         overlap_query = Booking.objects.filter(
@@ -202,7 +204,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
         if len(items) < attrs["count"]:
             raise serializers.ValidationError(
-                "Not enough items or accessories available to satisfy the booking."
+                "Not enough available items or accessories available to satisfy the booking."
             )
 
         return items, accessories

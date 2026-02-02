@@ -111,10 +111,8 @@ class Booking(models.Model):
     pool = models.ForeignKey(
         ItemPool, null=False, on_delete=models.CASCADE, related_name="bookings"
     )
-    items = models.ManyToManyField(ItemPoolItem, blank=True, related_name="bookings")
-    accessories = models.ManyToManyField(
-        ItemPoolAccessory, blank=True, related_name="bookings"
-    )
+    items = models.ManyToManyField(ItemPoolItem, related_name="bookings")
+    accessories = models.ManyToManyField(ItemPoolAccessory, related_name="bookings")
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
