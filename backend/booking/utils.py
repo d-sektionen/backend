@@ -15,7 +15,7 @@ def should_auto_confirm(data, instance):
             queryset = queryset.exclude(pk=instance.id)
 
         # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
-        queryset = Booking.objects.filter(  # type: ignore[attr-defined]
+        queryset = queryset.filter(  # type: ignore[attr-defined]
             pool=data["pool"],
             restricted_timeslot=True,
             confirmed=True,
