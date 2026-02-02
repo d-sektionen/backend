@@ -20,10 +20,6 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
-      - name: Extract branch name
-        id: extract_branch
-        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -37,8 +33,9 @@ jobs:
         with:
           images: registry.d-sektionen.se/backend
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch,branch=${{ env.BRANCH_NAME }}
+            type=raw,value=latest,enable={{is_default_branch}}    # 'latest' for default branch only
+            type=ref,event=branch                                  # branch name tag (master, development)
+            type=sha,format=short                                  # commit SHA tag
 
       - name: Build and push Docker image
         id: push
