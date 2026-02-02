@@ -41,7 +41,7 @@ fixable = ["ALL"]
 unfixable = []
 
 [lint.per-file-ignores]
-"settings_{shared,development,production}.py" = ["F405", "F403"]
+"settings_{shared,development,production,test}.py" = ["F405", "F403"]
 "manage.py" = ["F401"]
 # Ignore unused redefinitions. Causes DRF class properties to fail linting.
 "views.py" = ["F811"]
