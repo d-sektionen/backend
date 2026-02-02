@@ -1,5 +1,6 @@
 from rest_framework import views
 from rest_framework.response import Response
+from django.http import HttpResponse
 
 from backend.mail.permissions import SenderPermission
 
@@ -17,7 +18,7 @@ class PreviewView(views.APIView):
         context = generate_mail_context(content, info_chief_content)
 
         _subject, content = render_email("email/newsletter", context)
-        return Response(content, content_type="text/html")
+        return HttpResponse(content, content_type="text/html")
 
 
 class SendView(views.APIView):
