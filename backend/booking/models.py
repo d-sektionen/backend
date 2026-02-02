@@ -111,7 +111,7 @@ class Booking(models.Model):
     pool = models.ForeignKey(
         ItemPool, null=False, on_delete=models.CASCADE, related_name="bookings"
     )
-    items = models.ManyToManyField(ItemPoolItem, blank=False, related_name="bookings")
+    items = models.ManyToManyField(ItemPoolItem, blank=True, related_name="bookings")
     accessories = models.ManyToManyField(
         ItemPoolAccessory, blank=True, related_name="bookings"
     )
