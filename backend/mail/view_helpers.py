@@ -190,7 +190,6 @@ def _fetch_events() -> list[EventDict]:
     upcoming_events = [
         e for e in events if "dtstart" in e and to_datetime(e["dtstart"]) >= now
     ]
-    upcoming_events = events
 
     # Process the first 5 upcoming events
     result: list[EventDict] = []
