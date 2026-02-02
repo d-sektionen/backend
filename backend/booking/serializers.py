@@ -184,7 +184,12 @@ class BookingSerializer(serializers.ModelSerializer):
                     if accessory in accessories:
                         continue  # already assigned for this booking
 
-                    # TODO: check overlap for accessory as well
+                    # check overlap for accessory as well
+                    accessory_overlap_query = overlap_query.filter(
+                        accessories__in=[accessory]
+                    )
+                    if accessory_overlap_query.exists():
+                        continue  # accessory is already booked in overlapping period
                     accessories.append(accessory)
                     items.append(item)
                     break
