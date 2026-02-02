@@ -23,3 +23,5 @@ def should_auto_confirm(data, instance):
             end__gte=data["start"],
         )
         return not queryset.exists()
+
+    return True

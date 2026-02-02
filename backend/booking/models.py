@@ -118,22 +118,3 @@ class Booking(models.Model):
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
-
-    # def clean(self):
-    #   # Start should be before end
-    #   if self.start > self.end:
-    #     raise ValidationError('Booking should start before it ends.')
-    #   # Check lowest duration
-    #   if self.start + timedelta(minutes=30) > self.end:
-    #     raise ValidationError('Booking should be at least 30 minutes.')
-    #   # Check longest duration
-    #   if self.start + timedelta(days=7) < self.end:
-    #     raise ValidationError('Booking should be at most 7 days.')
-
-    #   # Check overlap
-    #   if Booking.objects\
-    #     .filter(item=self.item)\
-    #     .exclude(id=self.id)\
-    #     .filter(start__lte=self.end, end__gte=self.start)\
-    #     .exists():
-    #     raise ValidationError('Booking overlaps with another booking.')
