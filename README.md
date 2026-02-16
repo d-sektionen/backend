@@ -46,16 +46,18 @@ pre-commit install
 ```
 
 ### Starting the server using Docker
+
 As of Oct 13, 2025 this project uses Docker's compose feature to run its development server. After populating the `.env` file, simply run:
+
 ```sh
 > docker compose up
 ```
 
-When starting the server for the first time, or after changes have been made in the database, the database must be migrated. You can do this easily by using docker's `exec` command while the server is running.
+After changes have been made in the database schema, the database must be migrated. This is done automatically every time the docker compose is started, but you can also do this manually by using docker's `exec` command while the server is running.
+
 ```sh
 > docker compose exec backend python manage.py migrate
 ```
-
 
 If you're using MAC OS, check out: <https://stackoverflow.com/a/53310545/9966843>
 
@@ -64,10 +66,10 @@ If you're using MAC OS, check out: <https://stackoverflow.com/a/53310545/9966843
 For now, the only way to access content is to visit the Django admin
 site. This can be found at <http://127.0.0.1:8000/admin>.
 
-If you are denied access to anything, try running the following in your terminal:
+To create an account for yourself, run the following in your terminal:
 
 ```sh
-./manage.py createsuperuser <username>
+docker compose exec backend python manage.py createsuperuser <username>
 ```
 
 ## Email
