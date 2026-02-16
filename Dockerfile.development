@@ -10,9 +10,6 @@ COPY ./manage.py .
 RUN mkdir ./static ./media
 RUN python3 manage.py makemigrations; \
     python3 manage.py migrate; \
-    python3 manage.py createsuperuser --noinput \
-    --username=$SUPERUSER_USERNAME \
-    --email=$SUPERUSER_EMAIL; \
     python3 manage.py collectstatic --noinput
 
 FROM base AS runner
