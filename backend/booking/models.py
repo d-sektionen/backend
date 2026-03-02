@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import URLValidator
+from django.core.validators import MinValueValidator, URLValidator
 from django.contrib.auth.models import User
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
@@ -107,6 +107,7 @@ class Booking(models.Model):
     description = models.TextField()
     confirmed = models.BooleanField(default=False)
     restricted_timeslot = models.BooleanField(default=False, blank=True)
+    count = models.IntegerField(default=1, validators=[MinValueValidator(1)])
 
     pool = models.ForeignKey(
         ItemPool, null=False, on_delete=models.CASCADE, related_name="bookings"

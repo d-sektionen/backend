@@ -69,7 +69,7 @@ class BookingSerializer(serializers.ModelSerializer):
     pool = ItemPoolSerializer(read_only=True)
     items = ItemPoolItemSerializer(many=True, read_only=True)
     accessories = AccessorySerializer(many=True, read_only=True)
-    count = serializers.IntegerField(write_only=True)
+    count = serializers.IntegerField()
 
     class Meta:
         model = Booking
@@ -140,10 +140,6 @@ class BookingSerializer(serializers.ModelSerializer):
         else:
             # werk will assign the items and accessories manually upon confirmation
             pass
-
-        # the model itself does not have a count field:
-        # it's only used to automatically assign items and accessories
-        del attrs["count"]
 
         return attrs
 
