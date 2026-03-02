@@ -169,6 +169,7 @@ AUTH_ADFS = {
         "last_name": "family_name",
         "email": "email",
     },
+    "JWT_LEEWAY": 5
 }
 
 # Configure django to redirect users to the right URL for login
