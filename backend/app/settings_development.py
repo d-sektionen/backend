@@ -7,7 +7,7 @@ load_dotenv(dotenv_path)
 
 SECRET_KEY = "*3#2cxri$uc!5%#v+-9!h=yig-$@i-e!idod(d&9v6qf)bjv%!"
 DEBUG = True
-EMAIL_ENABLED = False
+EMAIL_ENABLED = True
 ALLOWED_HOSTS = ["*"]
 
 # Database
