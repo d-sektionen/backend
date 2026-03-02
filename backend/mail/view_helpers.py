@@ -36,11 +36,14 @@ def _sanitize_html(content: str) -> str:
         "ol",
         "li",
         "a",
+        "img",
+        "pre"
     }
 
     allowed_attributes = {
         **nh3.ALLOWED_ATTRIBUTES,
         "a": {"href", "target"},
+        "img": {"src", "alt", "title"},
     }
 
     sanitized_content = nh3.clean(
