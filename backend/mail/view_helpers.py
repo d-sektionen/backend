@@ -28,6 +28,7 @@ def _sanitize_html(content: str) -> str:
         "h3",
         "p",
         "br",
+        "hr",
         "strong",
         "em",
         "u",
