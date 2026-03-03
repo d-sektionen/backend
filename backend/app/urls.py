@@ -14,14 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import include
 from django.conf import settings
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.views import redirect_to_login
 from django.urls import re_path, reverse
 
 from ..account import urls as account_urls
+from ..oauth2 import urls as oauth2_urls
 from ..voting import urls as voting_urls
 from ..booking import urls as booking_urls
 from ..tools import urls as tools_urls
@@ -70,11 +71,6 @@ urlpatterns = [
     # Mail
     re_path(r"^mail/", include(mail_urls)),
     # Login to backend
-    re_path("oauth2/", include("django_auth_adfs.urls")),
-] + static(
-    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-)  # TODO: Change for production
-
-# TODO: define custom error handlers https://www.django-rest-framework.org/api-guide/exceptions/#generic-error-views
-# handler500 = 'rest_framework.exceptions.server_error'
-# handler400 = 'rest_framework.exceptions.bad_request'
+    re_path(r"^oauth2/", include(oauth2_urls)),
+    settings.MICROSOFT_IDENTITY.urlpattern,
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
