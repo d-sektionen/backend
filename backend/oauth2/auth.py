@@ -24,7 +24,7 @@ def is_safe_redirect_url(url, allowed_domains, require_https=False):
     """Custom implementation of djangos url_has_allowed_host_and_scheme."""
     url_parts = urlparse.urlparse(url)
 
-    if not url_parts.netloc in allowed_domains:
+    if url_parts.netloc not in allowed_domains:
         return False
 
     if require_https and url_parts.scheme != "https":
