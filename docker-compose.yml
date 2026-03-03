@@ -35,7 +35,9 @@ services:
       - internal
       - default
     post_start:
-      - command: sh -c "python manage.py migrate && python manage.py createsuperuser --username ${SUPERUSER_USERNAME} --email ${SUPERUSER_EMAIL} --noinput --skip-checks"
+      - command: sh -c "python manage.py makemigrations
+                        && python manage.py migrate
+                        && python manage.py createsuperuser --username ${SUPERUSER_USERNAME} --email ${SUPERUSER_EMAIL} --noinput --skip-checks"
         user: root
     depends_on:
       - postgres
