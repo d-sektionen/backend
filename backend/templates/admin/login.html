@@ -1,0 +1,15 @@
+{% extends "admin/login.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    <img src="{% static 'images/round-logo.svg' %}" alt="LiU Logo" style="display: block; margin: 20px auto; max-width: 200px;" />
+    {{ block.super }}  {# This keeps the original username/password form #}
+
+    <div class="submit-row">
+        <hr>
+        <a href="/oauth2/login?next={{ BASE_URL }}{% url 'admin:index' %}" class="button" style="display: block; text-align: center; background: #444; color: #fff; padding: 10px; margin-top: 10px; border-radius: 4px; text-decoration: none;">
+          Login with LiU
+        </a>
+    </div>
+{% endblock %}
