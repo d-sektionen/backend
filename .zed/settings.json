@@ -1,0 +1,13 @@
+{
+  "file_types": {
+    "Dockerfile": ["Dockerfile*"]
+  },
+  "languages": {
+    "YAML": {
+      "tab_size": 2
+    },
+    "Dockerfile": {
+      "tab_size": 4
+    }
+  }
+}

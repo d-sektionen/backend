@@ -3,16 +3,13 @@ WORKDIR /app
 RUN apk add gcc musl-dev
 
 FROM base AS installer
+ENV DJANGO_SETTINGS_MODULE=backend.app.settings_development
 COPY requirements.*txt ./
 RUN pip install --no-cache-dir -r requirements.development.txt
 COPY ./backend ./backend
 COPY ./manage.py .
-RUN mkdir /app/static; \
-    mkdir /app/media; \
-    python3 manage.py createsuperuser --noinput \
-    --username=$SUPERUSER_USERNAME \
-    --email=$SUPERUSER_EMAIL; \
-    python3 manage.py collectstatic --noinput
+RUN mkdir ./static ./media
+RUN python3 manage.py collectstatic --noinput
 
 FROM base AS runner
 COPY --from=installer /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
