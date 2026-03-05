@@ -8,7 +8,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .auth import (
     AUTH,
     SCOPES,
-    add_access_token_to_url,
     auth_logout,
     external_auth_callback_login,
     get_safe_redirect,
@@ -82,8 +81,23 @@ class ExternalAuthCallbackView(APIView):
             return response
 
         # Admin page does not need access tokens, session based auth used for admin page.
-        redirect_url = add_access_token_to_url(url=response.url, user=django_user)
 
-        response = HttpResponseRedirect(redirect_to=redirect_url)
+        response = HttpResponseRedirect(redirect_to=response.url)
+
+        response.set_cookie(
+            "access_token",
+            str(RefreshToken.for_user(django_user).access_token),
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="Lax",
+        )
+
+        response.set_cookie(
+            "refresh_token",
+            str(RefreshToken.for_user(django_user)),
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="Lax",
+        )
 
         return response

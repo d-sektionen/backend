@@ -9,6 +9,10 @@ from django.contrib.auth.models import User, update_last_login
 from django.http import HttpRequest, HttpResponseRedirect
 from django.utils.encoding import iri_to_uri
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.exceptions import AuthenticationFailed
+
 import requests
 
 logger = logging.getLogger(__name__)
@@ -122,19 +126,20 @@ def get_safe_redirect(request: HttpRequest):
     return iri_to_uri(redirect_url)
 
 
-def add_access_token_to_url(url: str, user: User):
-    url_parts = urlparse.urlparse(url)
-    parsed_query = dict(urlparse.parse_qsl(url_parts.query))
+class CookieJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = request.COOKIES.get("access_token")
+        for cookie in request.COOKIES:
+            logger.debug(f"Cookie: {cookie}={request.COOKIES[cookie]}")
+        else:
+            logger.debug("No cookies found in request.")
 
-    access = AccessToken.for_user(user=user)
-    refresh = RefreshToken.for_user(user=user)
-    params = {
-        "access": str(access),
-        "refresh": str(refresh),
-    }
-    params.update(parsed_query)
+        if access_token is None:
+            return None
 
-    url_parts_with_tokens = url_parts._replace(query=urlparse.urlencode(params))
-    final_url = urlparse.urlunparse(url_parts_with_tokens)
+        try:
+            validated_token = self.get_validated_token(access_token)
+        except TokenError as e:  # catches InvalidToken, ExpiredToken, etc.
+            raise AuthenticationFailed(str(e))
 
-    return final_url
+        return self.get_user(validated_token), validated_token

@@ -139,7 +139,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # JWT for api access
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "backend.oauth2.auth.CookieJWTAuthentication",
         # Session auth for admin access
         "rest_framework.authentication.SessionAuthentication",
     ),
@@ -152,8 +152,6 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     # To allow some wiggleroom for clients to retrieve new tokens. This accounts for unsynced clocks and network delay.
     "LEEWAY": 60,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
 }
 
 # Update this is more web apps need to access backend. Allows wildcards.
