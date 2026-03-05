@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 AUTH = settings.MICROSOFT_IDENTITY
 ALLOWED_HOSTS = settings.ALLOWED_HOSTS
-SCOPES = ["User.Read"]
+SCOPES = ["User.Read", "GroupMember.Read.All"]
 LIU_ID_REGEX = re.compile(r"[a-z]{4,5}[0-9]{2,3}")
 DEFAULT_REDIRECT = "/"
 
@@ -45,8 +45,26 @@ def get_me(token):
             f"Failed to fetch user profile from Microsoft Graph API: {me.text}"
         )
         return {}
+    me_data = me.json()
+    url = f"/v1.0/users/{me_data["id"]}/transitiveMemberOf/microsoft.graph.group?$orderby=displayName asc&$top=25&$count=true"
 
-    return me.json()
+    groups = requests.get(
+        "https://graph.microsoft.com" + url,
+        headers={
+            "Authorization": "Bearer " + token,
+        },
+        timeout=30,
+    )
+    if groups.status_code != 200:
+        logger.warning(
+            f"Failed to fetch user groups from Microsoft Graph API: {groups.text}"
+        )
+        return me_data
+    groups_data = groups.json()
+
+    print(groups_data)
+
+    return me_data
 
 
 def external_auth_callback_login(request):
