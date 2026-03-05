@@ -156,7 +156,8 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -175,15 +176,6 @@ HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
 HOME_ASSISTANT_BASEURL = os.getenv("HOME_ASSISTANT_BASEURL")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
-
-# TODO: maybe a bit more limited CORS.
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=5),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),
-}
 
 # LOGIN_URL = "/account/login/"
 

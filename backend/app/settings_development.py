@@ -42,3 +42,6 @@ DATABASES = {
         "PORT": os.getenv("POSTGRES_PORT"),
     }
 }
+
+
+CORS_ALLOWED_ORIGINS = ["http://localhost:4000"]

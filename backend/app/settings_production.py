@@ -92,3 +92,5 @@ LOGGING = {
         },
     },
 }
+
+CORS_ALLOWED_ORIGINS = ["https://medlem.d-sektionen.se"]
