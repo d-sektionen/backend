@@ -154,6 +154,9 @@ SIMPLE_JWT = {
     "LEEWAY": 60,
 }
 
+CORS_ALLOW_CREDENTIALS = True
+
+
 # Update this is more web apps need to access backend. Allows wildcards.
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
