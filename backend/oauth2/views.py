@@ -62,13 +62,19 @@ class LogoutView(APIView):
         response = blacklist_refresh_token(request)
         auth_logout(request)
         if response:
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
             return response
 
         redirect_url = request.GET.get("next")
         if redirect_url:
-            return HttpResponseRedirect(redirect_to=redirect_url)
-
-        return HttpResponse(status=200)
+            new_resp = HttpResponseRedirect(redirect_to=redirect_url)
+        else:
+            new_resp = HttpResponse(status=200)
+        
+        new_resp.delete_cookie("access_token")
+        new_resp.delete_cookie("refresh_token")
+        return new_resp 
 
 
 class ExternalAuthCallbackView(APIView):
