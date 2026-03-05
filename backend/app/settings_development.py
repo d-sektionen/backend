@@ -45,3 +45,4 @@ DATABASES = {
 
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:4000"]
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]

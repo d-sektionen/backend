@@ -39,11 +39,6 @@ ALLOWED_HOSTS = ALLOWED_HOSTS + [
 ]
 
 X_FRAME_OPTIONS = "DENY"
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
-
-# Update this is more web apps need to access backend. Allows wildcards.
-CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 # Configure django to redirect users to the right URL for login
 # SCOPE = "User.Read"
@@ -94,3 +89,4 @@ LOGGING = {
 }
 
 CORS_ALLOWED_ORIGINS = ["https://medlem.d-sektionen.se"]
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]

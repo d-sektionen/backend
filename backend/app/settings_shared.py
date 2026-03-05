@@ -156,6 +156,10 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
 }
 
+# Update this is more web apps need to access backend. Allows wildcards.
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+
 CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
 
 CORS_ALLOW_METHODS = [
