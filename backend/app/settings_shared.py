@@ -137,12 +137,7 @@ REST_FRAMEWORK = {
         "backend.app.permissions.AllowOptionsAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        # JWT for api access
-        "backend.oauth2.auth.CookieJWTAuthentication",
-        # Session auth for admin access
-        "rest_framework.authentication.SessionAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("backend.oauth2.auth.CookieJWTAuthentication",),
 }
 
 SIMPLE_JWT = {

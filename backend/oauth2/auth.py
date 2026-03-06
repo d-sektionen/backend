@@ -10,7 +10,7 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.utils.encoding import iri_to_uri
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.exceptions import TokenError, AuthenticationFailed
 from rest_framework.exceptions import AuthenticationFailed
 
 import requests
@@ -139,7 +139,10 @@ class CookieJWTAuthentication(JWTAuthentication):
 
         try:
             validated_token = self.get_validated_token(access_token)
-        except TokenError as e:  # catches InvalidToken, ExpiredToken, etc.
-            raise AuthenticationFailed(str(e))
+        except (
+            TokenError,
+            AuthenticationFailed,
+        ) as e:  # catches InvalidToken, ExpiredToken, etc.
+            return None
 
         return self.get_user(validated_token), validated_token

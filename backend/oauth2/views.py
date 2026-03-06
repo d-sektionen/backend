@@ -1,9 +1,31 @@
 import logging
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.urls import reverse
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+
+
+def set_auth_cookies(response, access_token, refresh_token):
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="Lax",
+        path=reverse("token_refresh"),  # "/oauth2/login/refresh",
+    )
+
+    response.set_cookie(
+        "access_token",
+        access_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="Lax",
+    )
+
 
 from .auth import (
     AUTH,
@@ -28,6 +50,23 @@ def blacklist_refresh_token(request):
         return HttpResponseBadRequest()
 
     return None
+
+
+class TokenRefreshView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+        response = HttpResponse(status=200)
+        token = RefreshToken(refresh_token, verify=True)
+
+        user = User.objects.get(id=token["user_id"])
+
+        set_auth_cookies(
+            response, str(token.access_token), str(RefreshToken.for_user(user))
+        )
+
+        return response
 
 
 class BlacklistView(APIView):
@@ -89,21 +128,8 @@ class ExternalAuthCallbackView(APIView):
         # Admin page does not need access tokens, session based auth used for admin page.
 
         response = HttpResponseRedirect(redirect_to=response.url)
+        refresh_token = RefreshToken.for_user(django_user)
 
-        response.set_cookie(
-            "access_token",
-            str(RefreshToken.for_user(django_user).access_token),
-            httponly=True,
-            secure=False,  # Set to True in production with HTTPS
-            samesite="Lax",
-        )
-
-        response.set_cookie(
-            "refresh_token",
-            str(RefreshToken.for_user(django_user)),
-            httponly=True,
-            secure=False,  # Set to True in production with HTTPS
-            samesite="Lax",
-        )
+        set_auth_cookies(response, str(refresh_token.access_token), str(refresh_token))
 
         return response
