@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def blacklist_refresh_token(request):
     try:
-        refresh_token = request.data.get("refresh")
+        refresh_token = request.COOKIES.get("refresh_token")
         token = RefreshToken(refresh_token)
         token.blacklist()
     except Exception as e:
