@@ -129,10 +129,6 @@ def get_safe_redirect(request: HttpRequest):
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         access_token = request.COOKIES.get("access_token")
-        for cookie in request.COOKIES:
-            logger.debug(f"Cookie: {cookie}={request.COOKIES[cookie]}")
-        else:
-            logger.debug("No cookies found in request.")
 
         if access_token is None:
             return None
