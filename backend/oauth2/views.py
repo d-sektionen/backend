@@ -8,25 +8,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
 
-def set_auth_cookies(response, access_token, refresh_token):
-    response.set_cookie(
-        "refresh_token",
-        refresh_token,
-        httponly=True,
-        secure=False,  # Set to True in production with HTTPS
-        samesite="Lax",
-        path=reverse("token_refresh"),  # "/oauth2/login/refresh",
-    )
-
-    response.set_cookie(
-        "access_token",
-        access_token,
-        httponly=True,
-        secure=False,  # Set to True in production with HTTPS
-        samesite="Lax",
-    )
-
-
 from .auth import (
     AUTH,
     SCOPES,
@@ -102,7 +83,7 @@ class LogoutView(APIView):
         auth_logout(request)
         if response:
             response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
+            response.delete_cookie("refresh_token", path=reverse("token_refresh"))
             return response
 
         redirect_url = request.GET.get("next")
@@ -110,10 +91,10 @@ class LogoutView(APIView):
             new_resp = HttpResponseRedirect(redirect_to=redirect_url)
         else:
             new_resp = HttpResponse(status=200)
-        
+
         new_resp.delete_cookie("access_token")
-        new_resp.delete_cookie("refresh_token")
-        return new_resp 
+        new_resp.delete_cookie("refresh_token", path=reverse("token_refresh"))
+        return new_resp
 
 
 class ExternalAuthCallbackView(APIView):
@@ -133,3 +114,22 @@ class ExternalAuthCallbackView(APIView):
         set_auth_cookies(response, str(refresh_token.access_token), str(refresh_token))
 
         return response
+
+
+def set_auth_cookies(response, access_token, refresh_token):
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="Lax",
+        path=reverse("token_refresh"),  # "/oauth2/login/refresh",
+    )
+
+    response.set_cookie(
+        "access_token",
+        access_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="Lax",
+    )
