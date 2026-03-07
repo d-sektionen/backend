@@ -4,8 +4,10 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedire
 from django.urls import reverse
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import User
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
+from rest_framework_simplejwt.exceptions import TokenError
 
 from datetime import datetime, timezone
 
@@ -34,19 +36,37 @@ def blacklist_refresh_token(request):
     return None
 
 
-class TokenRefreshView(APIView):
+class TokenRefreshView(BaseTokenRefreshView):
     permission_classes = (AllowAny,)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
-        response = HttpResponse(status=200)
-        token = RefreshToken(refresh_token, verify=True)
 
-        user = User.objects.get(id=token["user_id"])
+        if not refresh_token:
+            resp = Response({"error": "No refresh token"}, status=401)
+            resp.delete_cookie("access_token")
+            resp.delete_cookie("refresh_token", path=reverse("token_refresh"))
+            return resp
 
-        set_auth_cookies(
-            response, str(token.access_token), str(RefreshToken.for_user(user))
-        )
+        # Inject into request data so simplejwt can validate it and issue new tokens
+        request.data["refresh"] = refresh_token
+
+        try:
+            response = super().post(request, *args, **kwargs)
+        except TokenError as e:
+            resp = Response({"error": str(e)}, status=401)
+            resp.delete_cookie("access_token")
+            resp.delete_cookie("refresh_token", path=reverse("token_refresh"))
+            return resp
+
+        if response.status_code == 200:
+            new_access_token = AccessToken(response.data.get("access"))
+            new_refresh_token = RefreshToken(response.data.get("refresh"))
+
+            set_auth_cookies(response, new_access_token, new_refresh_token)
+
+            del response.data["access"]
+            del response.data["refresh"]
 
         return response
 
