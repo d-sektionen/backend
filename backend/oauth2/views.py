@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
+from datetime import datetime, timezone
 
 from .auth import (
     AUTH,
@@ -111,25 +112,34 @@ class ExternalAuthCallbackView(APIView):
         response = HttpResponseRedirect(redirect_to=response.url)
         refresh_token = RefreshToken.for_user(django_user)
 
-        set_auth_cookies(response, str(refresh_token.access_token), str(refresh_token))
+        set_auth_cookies(response, refresh_token.access_token, refresh_token)
 
         return response
 
 
 def set_auth_cookies(response, access_token, refresh_token):
+    refresh_token_exp = datetime.fromtimestamp(
+        refresh_token.payload.get("exp"), tz=timezone.utc
+    )
+    access_token_exp = datetime.fromtimestamp(
+        access_token.payload.get("exp"), tz=timezone.utc
+    )
+
     response.set_cookie(
         "refresh_token",
-        refresh_token,
+        str(refresh_token),
         httponly=True,
         secure=False,  # Set to True in production with HTTPS
         samesite="Lax",
         path=reverse("token_refresh"),  # "/oauth2/login/refresh",
+        expires=refresh_token_exp,
     )
 
     response.set_cookie(
         "access_token",
-        access_token,
+        str(access_token),
         httponly=True,
         secure=False,  # Set to True in production with HTTPS
         samesite="Lax",
+        expires=access_token_exp,
     )
