@@ -137,7 +137,7 @@ def set_auth_cookies(response, access_token, refresh_token):
         httponly=True,
         secure=settings.AUTH_COOKIE_SECURE,
         samesite="Lax",
-        path=reverse("token_refresh"),
+        path="/oauth2",
         expires=refresh_token_exp,
     )
 
