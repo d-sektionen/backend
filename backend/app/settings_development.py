@@ -42,3 +42,9 @@ DATABASES = {
         "PORT": os.getenv("POSTGRES_PORT"),
     }
 }
+
+AUTH_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+CORS_ALLOWED_ORIGINS = [f"http://{host}" for host in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = [f"http://{host}" for host in ALLOWED_HOSTS]
