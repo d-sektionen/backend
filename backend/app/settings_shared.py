@@ -17,6 +17,7 @@ load_dotenv(dotenv_path)
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     # ---
     # Project apps
     # ---
@@ -51,7 +52,12 @@ INSTALLED_APPS = [
     "imagekit",
     "post_office",
     "identity",
+    "channels",
 ]
+
+ASGI_APPLICATION = "backend.app.asgi.application"
+
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
