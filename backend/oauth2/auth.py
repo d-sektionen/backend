@@ -10,7 +10,7 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.utils.encoding import iri_to_uri
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import TokenError, AuthenticationFailed
-
+from django.middleware.csrf import CsrfViewMiddleware
 import requests
 
 logger = logging.getLogger(__name__)
@@ -139,4 +139,14 @@ class CookieJWTAuthentication(JWTAuthentication):
         ) as _:  # catches InvalidToken, ExpiredToken, etc.
             return None
 
+        self.enforce_csrf(request)
+
         return self.get_user(validated_token), validated_token
+
+    def enforce_csrf(self, request):
+        # "Inspiration" taken from rest_framework.authentication.SessionAuthentication.enforce_csrf
+        check = CsrfViewMiddleware(lambda req: None)
+
+        reason = check.process_request(request)
+        if reason:
+            raise exceptions.PermissionDenied(f"CSRF Failed: {reason}")
