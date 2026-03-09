@@ -56,8 +56,8 @@ class ItemPoolSerializer(serializers.ModelSerializer):
 class ItemPoolItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemPoolItem
-        fields = ("id", "name")
-        read_only_fields = ("id", "name")
+        fields = ("id", "name", "status")
+        read_only_fields = ("id", "name", "status")
 
 
 class AccessorySerializer(serializers.ModelSerializer):
