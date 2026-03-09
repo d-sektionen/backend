@@ -9,7 +9,7 @@ from .utils import should_auto_confirm
 from ..app.permissions import FixedDjangoModelPermissions
 from ..app.utils import render_email
 from .models import Booking, ItemPool
-from .serializers import BookingSerializer, ItemPoolSerializer
+from .serializers import BookingSerializer, ConfirmBookingSerializer, ItemPoolSerializer
 from .serializers import BookingSerializer, DenyBookingSerializer, ItemPoolSerializer
 from .permissions import BookingPermissions
 from .view_helpers import notify_webhook_unconfirmed_booking
@@ -59,7 +59,15 @@ class BookingViewSet(viewsets.ModelViewSet):
         permission_classes=[FixedDjangoModelPermissions],
     )
     def confirm(self, request, pk=None):
+        serializer = ConfirmBookingSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+
         booking = self.get_object()
+        booking.items.set(data["items"])
+        booking.accessories.set(data["accessories"])
         booking.confirmed = True
         booking.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -78,7 +86,11 @@ class BookingViewSet(viewsets.ModelViewSet):
         new_data = serializer.validated_data
         auto_confirm = old_obj.confirmed
         # if time was changed we need to recalculate auto approval
-        if old_obj.start != new_data["start"] or old_obj.end != new_data["end"]:
+        if (
+            old_obj.start != new_data["start"]
+            or old_obj.end != new_data["end"]
+            or old_obj.count != new_data["count"]
+        ):
             if old_obj.confirmed:
                 # Recalculate confirmation
                 auto_confirm = should_auto_confirm(new_data, self.get_object())
@@ -105,7 +117,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         subject, content = render_email(
             "email/denied_booking",
             context={
-                "item": booking.item.name,
+                "item": booking.pool.name,
                 "startdate": booking.start,
                 "reason": serializer.validated_data["reason"],
             },

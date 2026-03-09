@@ -10,10 +10,18 @@ from .models import ItemPool, Booking, ItemPoolAccessory, ItemPoolItem
 class ItemPoolSerializer(serializers.ModelSerializer):
     image_processed = serializers.ImageField(read_only=True)
     category = serializers.StringRelatedField()
-    count = serializers.SerializerMethodField()
+    items = serializers.SerializerMethodField()
+    accessories = serializers.SerializerMethodField()
 
-    def get_count(self, obj):
-        return ItemPoolItem.objects.filter(pool=obj).count()
+    def get_items(self, obj):
+        return ItemPoolItemSerializer(
+            ItemPoolItem.objects.filter(pool=obj), many=True
+        ).data
+
+    def get_accessories(self, obj):
+        return AccessorySerializer(
+            ItemPoolAccessory.objects.filter(pool=obj), many=True
+        ).data
 
     class Meta:
         model = ItemPool
@@ -26,7 +34,9 @@ class ItemPoolSerializer(serializers.ModelSerializer):
             "image_processed",
             "max_booking_hours",
             "max_booking_hours_restricted_timeslot",
-            "count",
+            "requires_accessory",
+            "items",
+            "accessories",
         )
         read_only_fields = (
             "id",
@@ -37,7 +47,9 @@ class ItemPoolSerializer(serializers.ModelSerializer):
             "image_processed",
             "max_booking_hours",
             "max_booking_hours_restricted_timeslot",
-            "count",
+            "requires_accessory",
+            "items",
+            "accessories",
         )
 
 
@@ -204,6 +216,15 @@ class BookingSerializer(serializers.ModelSerializer):
             )
 
         return items, accessories
+
+
+class ConfirmBookingSerializer(serializers.ModelSerializer):
+    items = serializers.ListField(child=serializers.IntegerField())
+    accessories = serializers.ListField(child=serializers.IntegerField())
+
+    class Meta:
+        model = Booking
+        fields = ("id", "items", "accessories")
 
 
 class DenyBookingSerializer(serializers.ModelSerializer):
