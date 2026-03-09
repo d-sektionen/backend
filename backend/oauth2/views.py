@@ -67,16 +67,6 @@ class TokenRefreshView(BaseTokenRefreshView):
         return response
 
 
-class BlacklistView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        response = blacklist_refresh_token(request)
-        if response:
-            return response
-        return HttpResponse(status=200)
-
-
 class LoginView(APIView):
     permission_classes = (AllowAny,)
 
