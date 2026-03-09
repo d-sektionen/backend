@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError
-
 from datetime import datetime, timezone
+
 
 from .auth import (
     AUTH,
@@ -74,7 +74,7 @@ class TokenRefreshView(BaseTokenRefreshView):
 class BlacklistView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def post(self, request):
         response = blacklist_refresh_token(request)
         if response:
             return response
@@ -99,7 +99,7 @@ class LoginView(APIView):
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def post(self, request):
         response = blacklist_refresh_token(request)
         auth_logout(request)
         if response:
@@ -151,7 +151,7 @@ def set_auth_cookies(response, access_token, refresh_token):
         httponly=True,
         secure=False,  # Set to True in production with HTTPS
         samesite="Lax",
-        path=reverse("token_refresh"),  # "/oauth2/login/refresh",
+        path=reverse("token_refresh"),
         expires=refresh_token_exp,
     )
 
