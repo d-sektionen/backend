@@ -5,13 +5,11 @@ import urllib.parse as urlparse
 from ..account.user import get_or_create_user
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
-from django.contrib.auth.models import User, update_last_login
+from django.contrib.auth.models import update_last_login
 from django.http import HttpRequest, HttpResponseRedirect
 from django.utils.encoding import iri_to_uri
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import TokenError, AuthenticationFailed
-from rest_framework.exceptions import AuthenticationFailed
 
 import requests
 
@@ -138,7 +136,7 @@ class CookieJWTAuthentication(JWTAuthentication):
         except (
             TokenError,
             AuthenticationFailed,
-        ) as e:  # catches InvalidToken, ExpiredToken, etc.
+        ) as _:  # catches InvalidToken, ExpiredToken, etc.
             return None
 
         return self.get_user(validated_token), validated_token

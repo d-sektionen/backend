@@ -88,5 +88,7 @@ LOGGING = {
     },
 }
 
+AUTH_COOKIE_SECURE = True 
+
 CORS_ALLOWED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
