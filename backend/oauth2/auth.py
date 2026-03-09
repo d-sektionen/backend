@@ -11,6 +11,7 @@ from django.utils.encoding import iri_to_uri
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import TokenError, AuthenticationFailed
 from django.middleware.csrf import CsrfViewMiddleware
+from django.core.exceptions import PermissionDenied
 import requests
 
 logger = logging.getLogger(__name__)
@@ -149,4 +150,4 @@ class CookieJWTAuthentication(JWTAuthentication):
 
         reason = check.process_request(request)
         if reason:
-            raise exceptions.PermissionDenied(f"CSRF Failed: {reason}")
+            raise PermissionDenied(f"CSRF Failed: {reason}")
