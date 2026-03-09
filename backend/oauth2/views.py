@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError
+from django.conf import settings
 
 from datetime import datetime, timezone
 
@@ -43,10 +44,7 @@ class TokenRefreshView(BaseTokenRefreshView):
         refresh_token = request.COOKIES.get("refresh_token")
 
         if not refresh_token:
-            resp = Response({"error": "No refresh token"}, status=401)
-            resp.delete_cookie("access_token")
-            resp.delete_cookie("refresh_token", path=reverse("token_refresh"))
-            return resp
+            return Response({"error": "No refresh token"}, status=401)
 
         # Inject into request data so simplejwt can validate it and issue new tokens
         request.data["refresh"] = refresh_token
@@ -54,10 +52,7 @@ class TokenRefreshView(BaseTokenRefreshView):
         try:
             response = super().post(request, *args, **kwargs)
         except TokenError as e:
-            resp = Response({"error": str(e)}, status=401)
-            resp.delete_cookie("access_token")
-            resp.delete_cookie("refresh_token", path=reverse("token_refresh"))
-            return resp
+            return Response({"error": str(e)}, status=401)
 
         if response.status_code == 200:
             new_access_token = AccessToken(response.data.get("access"))
@@ -149,7 +144,7 @@ def set_auth_cookies(response, access_token, refresh_token):
         "refresh_token",
         str(refresh_token),
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
+        secure=settings.AUTH_COOKIE_SECURE,
         samesite="Lax",
         path=reverse("token_refresh"),  # "/oauth2/login/refresh",
         expires=refresh_token_exp,
@@ -159,7 +154,7 @@ def set_auth_cookies(response, access_token, refresh_token):
         "access_token",
         str(access_token),
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
+        secure=settings.AUTH_COOKIE_SECURE,
         samesite="Lax",
         expires=access_token_exp,
     )
