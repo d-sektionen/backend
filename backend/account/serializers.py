@@ -1,15 +1,17 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import serializers
+from phonenumber_field.serializerfields import PhoneNumberField
+
 from ..membership.utils import check_membership
 from ..checkin.models import Doorkeeper
-
 from .models import Profile, CalendarSubscription
 
 
 class PublicProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source="user.first_name", read_only=True)
     last_name = serializers.CharField(source="user.last_name", read_only=True)
+    phone_number = PhoneNumberField(allow_blank=True)
 
     class Meta:
         model = Profile
