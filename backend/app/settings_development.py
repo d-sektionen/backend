@@ -24,6 +24,7 @@ ALLOWED_HOSTS = ALLOWED_HOSTS + [
     # NOTE: localhost is added twice due to some parts caring about port and some not.
     "localhost",
     "localhost:4000",
+    "localhost:8000",
 ]
 SECRET_KEY = "*3#2cxri$uc!5%#v+-9!h=yig-$@i-e!idod(d&9v6qf)bjv%!"
 DEBUG = True
