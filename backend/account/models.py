@@ -17,7 +17,7 @@ class Profile(models.Model):
     )
     infomail_subscriber = models.BooleanField(default=True)
     infomail_sender = models.BooleanField(default=False)
-    phone_number = PhoneNumberField(null=True, blank=True, default="")
+    phone_number = PhoneNumberField(null=False, blank=True, default="")
 
     def __str__(self):
         return self.user.username
