@@ -212,7 +212,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
         if len(items) < attrs["count"]:
             raise serializers.ValidationError(
-                "Not enough available items or accessories available to satisfy the booking."
+                f"Not enough available items or accessories available to satisfy the booking: {len(items)} available sets found."
             )
 
         return items, accessories
