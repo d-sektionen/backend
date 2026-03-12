@@ -12,6 +12,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     liu_card_id = models.CharField(max_length=17, null=True, blank=True, default=None, db_index=True)
     infomail_subscriber = models.BooleanField(default=True)
+    infomail_sender = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username

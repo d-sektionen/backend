@@ -4,7 +4,13 @@
 
 Create a virtualenv with a Python 3 interpreter and activate it:
 
-Should be at least python version 3.7.
+Should be at least Python version 3.12 since [PEP 695 – Type Parameter Syntax](https://peps.python.org/pep-0695/) is used
+
+To check your installed Python version
+
+```sh
+python3 --version
+```
 
 Setup and activate virtualenv
 
@@ -46,16 +52,18 @@ pre-commit install
 ```
 
 ### Starting the server using Docker
+
 As of Oct 13, 2025 this project uses Docker's compose feature to run its development server. After populating the `.env` file, simply run:
+
 ```sh
 > docker compose up
 ```
 
 When starting the server for the first time, or after changes have been made in the database, the database must be migrated. You can do this easily by using docker's `exec` command while the server is running.
+
 ```sh
 > docker compose exec backend python manage.py migrate
 ```
-
 
 If you're using MAC OS, check out: <https://stackoverflow.com/a/53310545/9966843>
 
