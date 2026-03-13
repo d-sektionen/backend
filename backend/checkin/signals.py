@@ -25,8 +25,6 @@ def new_doorkeeper(sender, instance, created, **kwargs):
                 "status_message": instance.event.get_status_message(),
             },
         }
-        print(f"Emitting new_doorkeeper with data: {data}")
-        print(f"Emitting to room: event_doorkeepers_{instance.event.id}")
         asyncio.run(
             sio.emit(
                 "new_doorkeeper",
@@ -42,8 +40,6 @@ def doorkeeper_deleted(sender, instance, **kwargs):
         "doorkeeper_id": instance.id,
         "event_id": instance.event.id,
     }
-    print(f"Emitting delete_doorkeeper with data: {data}")
-    print(f"Emitting to room: event_doorkeepers_{instance.event.id}")
     asyncio.run(
         sio.emit(
             "delete_doorkeeper",
