@@ -2,4 +2,7 @@ from django.apps import AppConfig
 
 
 class CheckinConfig(AppConfig):
-    name = 'backend.checkin'
+    name = "backend.checkin"
+
+    def ready(self):
+        import backend.checkin.signals
