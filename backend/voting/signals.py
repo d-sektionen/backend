@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import SpeakerRequest, Attendant
+from .models import SpeakerRequest, Attendant, Vote, Alternative
 import asyncio
 from backend.app.sockets import sio
 
@@ -82,3 +82,147 @@ def attendant_deleted(sender, instance, **kwargs):
             room=f"meeting_attendants_{instance.meeting.id}",
         )
     )
+
+
+@receiver(post_save, sender=Vote)
+def new_vote(sender, instance, created, **kwargs):
+    if created:
+        if not instance.open:
+            return
+
+        data = {
+            "id": instance.id,
+            "meeting": instance.meeting.id,
+            "open": instance.open,
+            "question": instance.question,
+        }
+        alternativesRaw = Alternative.objects.filter(vote=instance)
+        alternatives = []
+        for alt in alternativesRaw:
+            alternatives.append(
+                {
+                    "id": alt.id,
+                    "text": alt.text,
+                }
+            )
+        data["alternatives"] = alternatives
+
+        asyncio.run(
+            sio.emit(
+                "new_vote",
+                data,
+                room=f"meeting_votes_{instance.meeting.id}",
+            )
+        )
+
+    elif instance.open:
+        data = {
+            "id": instance.id,
+            "open": instance.open,
+            "meeting": instance.meeting.id,
+            "question": instance.question,
+        }
+
+        alternativesRaw = Alternative.objects.filter(vote=instance)
+        alternatives = []
+        for alt in alternativesRaw:
+            alternatives.append(
+                {
+                    "id": alt.id,
+                    "text": alt.text,
+                }
+            )
+        data["alternatives"] = alternatives
+
+        asyncio.run(
+            sio.emit(
+                "new_vote",
+                data,
+                room=f"meeting_votes_{instance.meeting.id}",
+            )
+        )
+
+    else:
+        data = {
+            "id": instance.id,
+            "meeting": instance.meeting.id,
+        }
+        print("Emitting delete_vote for vote id:", instance.id)
+        asyncio.run(
+            sio.emit(
+                "delete_vote",
+                data,
+                room=f"meeting_votes_{instance.meeting.id}",
+            )
+        )
+
+
+@receiver(post_delete, sender=Vote)
+def vote_deleted(sender, instance, **kwargs):
+    data = {
+        "id": instance.id,
+        "meeting": instance.meeting.id,
+    }
+
+    asyncio.run(
+        sio.emit(
+            "delete_vote",
+            data,
+            room=f"meeting_votes_{instance.meeting.id}",
+        )
+    )
+
+
+@receiver(post_delete, sender=Alternative)
+def alternative_deleted(sender, instance, **kwargs):
+    data = {
+        "id": instance.id,
+        "vote": instance.vote.id,
+        "meeting": instance.vote.meeting.id,
+    }
+
+    asyncio.run(
+        sio.emit(
+            "delete_alternative",
+            data,
+            room=f"meeting_votes_{instance.vote.meeting.id}",
+        )
+    )
+
+
+@receiver(post_save, sender=Alternative)
+def alternative_updated(sender, instance, created, **kwargs):
+    if not instance.vote.open:
+        return
+
+    if not created:
+        data = {
+            "id": instance.id,
+            "text": instance.text,
+            "vote": instance.vote.id,
+            "meeting": instance.vote.meeting.id,
+        }
+
+        asyncio.run(
+            sio.emit(
+                "update_alternative",
+                data,
+                room=f"meeting_votes_{instance.vote.meeting.id}",
+            )
+        )
+
+    else:
+        data = {
+            "id": instance.id,
+            "text": instance.text,
+            "vote": instance.vote.id,
+            "meeting": instance.vote.meeting.id,
+        }
+
+        asyncio.run(
+            sio.emit(
+                "new_alternative",
+                data,
+                room=f"meeting_votes_{instance.vote.meeting.id}",
+            )
+        )
