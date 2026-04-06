@@ -114,7 +114,7 @@ def new_vote(sender, instance, created, **kwargs):
                 room=f"meeting_votes_{instance.meeting.id}",
             )
         )
-
+    
     elif instance.open:
         data = {
             "id": instance.id,
