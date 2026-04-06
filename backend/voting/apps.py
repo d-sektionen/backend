@@ -5,7 +5,4 @@ class VotingConfig(AppConfig):
     name = "backend.voting"
 
     def ready(self):
-        import backend.voting.signals
-
-    # def ready(self):
-    #     import voting.sockets
+        import backend.voting.signals  # noqa: F401
