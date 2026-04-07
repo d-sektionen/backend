@@ -26,7 +26,7 @@ def user_created(sender, instance, created, **kwargs):
                     "speaker": speaker,
                     "meeting_id": instance.meeting.id,
                 },
-                room=f"meeting_speker_{instance.meeting.id}",
+                room=f"meeting_speaker_{instance.meeting.id}",
             )
         )
 
@@ -40,7 +40,7 @@ def speaker_request_deleted(sender, instance, **kwargs):
                 "speaker_request_id": instance.id,
                 "meeting_id": instance.meeting.id,
             },
-            room=f"meeting_speker_{instance.meeting.id}",
+            room=f"meeting_speaker_{instance.meeting.id}",
         )
     )
 
@@ -114,7 +114,7 @@ def new_vote(sender, instance, created, **kwargs):
                 room=f"meeting_votes_{instance.meeting.id}",
             )
         )
-    
+
     elif instance.open:
         data = {
             "id": instance.id,
