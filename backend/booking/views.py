@@ -9,8 +9,12 @@ from .utils import should_auto_confirm
 from ..app.permissions import FixedDjangoModelPermissions
 from ..app.utils import render_email
 from .models import Booking, ItemPool
-from .serializers import BookingSerializer, ConfirmBookingSerializer, ItemPoolSerializer
-from .serializers import BookingSerializer, DenyBookingSerializer, ItemPoolSerializer
+from .serializers import (
+    BookingSerializer,
+    ConfirmBookingSerializer,
+    DenyBookingSerializer,
+    ItemPoolSerializer,
+)
 from .permissions import BookingPermissions
 from .view_helpers import notify_webhook_unconfirmed_booking
 from .utils import assign_items_and_accessories, check_overlap
