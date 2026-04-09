@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .utils import should_auto_confirm
+from .utils import assign_items_and_accessories, should_auto_confirm
 from ..account.serializers import SimpleUserSerializer
 from datetime import timedelta
 from .models import ItemPool, Booking, ItemPoolAccessory, ItemPoolItem
@@ -145,7 +145,14 @@ class BookingSerializer(serializers.ModelSerializer):
 
         if should_auto_confirm(attrs, self.instance):
             # automatically assign items and, if needed, accessories
-            items, accessories = self.assign_items_accessories(attrs)
+            items, accessories = assign_items_and_accessories(
+                self.instance,
+                attrs["start"],
+                attrs["end"],
+                attrs["pool"],
+                attrs["count"],
+                attrs["restricted_timeslot"],
+            )
 
             attrs["items"] = items
             attrs["accessories"] = accessories
@@ -155,76 +162,17 @@ class BookingSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def assign_items_accessories(self, attrs):
-        # collect items with available accessories, choosing those with
-        # highest priority first
-        all_items = (
-            ItemPoolItem.objects.filter(pool=attrs["pool"], enabled=True)
-            .order_by("-priority")
-            .all()
-        )
-
-        overlap_query = Booking.objects.filter(
-            pool=attrs["pool"], restricted_timeslot=attrs["restricted_timeslot"]
-        )
-        if self.instance:
-            overlap_query = overlap_query.exclude(pk=self.instance.id)
-        overlap_query = overlap_query.filter(
-            start__lte=attrs["end"], end__gte=attrs["start"]
-        )
-
-        items = []
-        accessories = []
-
-        for item in all_items:
-            item_overlap_query = overlap_query.filter(items__in=[item])
-
-            if item_overlap_query.exists():
-                continue
-
-            if attrs["pool"].requires_accessory:
-                compat_accessories = (
-                    ItemPoolAccessory.objects.filter(pool=attrs["pool"])
-                    .filter(compatible_items=item)
-                    .all()
-                )
-
-                # find the first accessory (if any) that is not already assigned
-                for accessory in compat_accessories:
-                    if accessory in accessories:
-                        continue  # already assigned for this booking
-
-                    # check overlap for accessory as well
-                    accessory_overlap_query = overlap_query.filter(
-                        accessories__in=[accessory]
-                    )
-                    if accessory_overlap_query.exists():
-                        continue  # accessory is already booked in overlapping period
-                    accessories.append(accessory)
-                    items.append(item)
-                    break
-            else:
-                items.append(item)
-
-            if len(items) >= attrs["count"]:
-                # we're done!
-                break
-
-        if len(items) < attrs["count"]:
-            raise serializers.ValidationError(
-                f"Not enough available items or accessories available to satisfy the booking: {len(items)} available sets found."
-            )
-
-        return items, accessories
-
 
 class ConfirmBookingSerializer(serializers.ModelSerializer):
-    items = serializers.ListField(child=serializers.IntegerField())
-    accessories = serializers.ListField(child=serializers.IntegerField())
+    items = serializers.ListField(child=serializers.IntegerField(), required=False)
+    accessories = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    auto_assign = serializers.BooleanField(default=False)
 
     class Meta:
         model = Booking
-        fields = ("id", "items", "accessories")
+        fields = ("id", "items", "accessories", "auto_assign")
 
 
 class DenyBookingSerializer(serializers.ModelSerializer):

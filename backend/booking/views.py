@@ -13,6 +13,7 @@ from .serializers import BookingSerializer, ConfirmBookingSerializer, ItemPoolSe
 from .serializers import BookingSerializer, DenyBookingSerializer, ItemPoolSerializer
 from .permissions import BookingPermissions
 from .view_helpers import notify_webhook_unconfirmed_booking
+from .utils import assign_items_and_accessories, check_overlap
 
 
 class BookingViewSet(viewsets.ModelViewSet):
@@ -64,12 +65,41 @@ class BookingViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-
         booking = self.get_object()
-        booking.items.set(data["items"])
-        booking.accessories.set(data["accessories"])
+
+        if data["auto_assign"]:
+            items, accessories = assign_items_and_accessories(
+                booking,
+                booking.start,
+                booking.end,
+                booking.pool,
+                booking.count,
+                booking.restricted_timeslot,
+            )
+            print(
+                f"Auto-assigning items {items} and accessories {accessories} to booking {booking.id}"
+            )
+        else:
+            items, accessories = data["items"], data["accessories"]
+
+            if check_overlap(
+                booking,
+                items,
+                accessories,
+            ):
+                return Response(
+                    {
+                        "detail": "One or more items/accessories are not available in the time slot."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        booking.items.set(items)
+        booking.accessories.set(accessories)
+
         booking.confirmed = True
         booking.save()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_create(self, serializer):
