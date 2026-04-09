@@ -80,9 +80,6 @@ class BookingViewSet(viewsets.ModelViewSet):
                 booking.count,
                 booking.restricted_timeslot,
             )
-            print(
-                f"Auto-assigning items {items} and accessories {accessories} to booking {booking.id}"
-            )
         else:
             items, accessories = data["items"], data["accessories"]
 
