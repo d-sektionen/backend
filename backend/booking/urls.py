@@ -5,7 +5,7 @@ from .views import BookingViewSet, ItemPoolViewSet
 
 router = routers.DefaultRouter()
 router.register(r"bookings", BookingViewSet)
-router.register(r"itemPools", ItemPoolViewSet)
+router.register(r"item-pools", ItemPoolViewSet)
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
