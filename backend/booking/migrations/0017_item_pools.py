@@ -28,31 +28,26 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Rename Booking.item to Booking.pool
         migrations.RenameField(
             model_name='booking',
             old_name='item',
             new_name='pool',
         ),
-        # Alter Booking.pool field
         migrations.AlterField(
             model_name='booking',
             name='pool',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='bookings', to='booking.item'),
         ),
-        # Alter Item.category field
         migrations.AlterField(
             model_name='item',
             name='category',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='items', to='booking.itemcategory'),
         ),
-        # Alter Webhook.url field
         migrations.AlterField(
             model_name='webhook',
             name='url',
             field=models.CharField(default=None, max_length=2048, unique=True, validators=[django.core.validators.URLValidator()]),
         ),
-        # Create ItemPoolItem model
         migrations.CreateModel(
             name='ItemPoolItem',
             fields=[
@@ -64,7 +59,6 @@ class Migration(migrations.Migration):
                 ('pool', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='booking.item')),
             ],
         ),
-        # Create ItemAccessory model
         migrations.CreateModel(
             name='ItemAccessory',
             fields=[
@@ -74,35 +68,29 @@ class Migration(migrations.Migration):
                 ('pool', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='accessories', to='booking.item')),
             ],
         ),
-        # Add Booking.accessories field
         migrations.AddField(
             model_name='booking',
             name='accessories',
             field=models.ManyToManyField(blank=True, related_name='bookings', to='booking.itemaccessory'),
         ),
-        # Add Booking.items field
         migrations.AddField(
             model_name='booking',
             name='items',
             field=models.ManyToManyField(related_name='bookings', to='booking.itempoolitem'),
         ),
-        # Rename Item to ItemPool
         migrations.RenameModel(
             old_name='Item',
             new_name='ItemPool',
         ),
-        # Rename ItemAccessory to ItemPoolAccessory
         migrations.RenameModel(
             old_name='ItemAccessory',
             new_name='ItemPoolAccessory',
         ),
-        # Add ItemPool.requires_accessory field
         migrations.AddField(
             model_name='itempool',
             name='requires_accessory',
             field=models.BooleanField(default=False),
         ),
-        # Create ItemPoolItem for each existing ItemPool
         migrations.RunPython(
             create_items_for_pools,
             # items get automatically deleted on reverse due to their table being dropped
