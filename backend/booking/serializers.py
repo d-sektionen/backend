@@ -15,7 +15,7 @@ class ItemPoolSerializer(serializers.ModelSerializer):
 
     def get_items(self, obj):
         return ItemPoolItemSerializer(
-            ItemPoolItem.objects.filter(pool=obj), many=True
+            ItemPoolItem.objects.filter(pool=obj, enabled=True), many=True
         ).data
 
     def get_accessories(self, obj):
