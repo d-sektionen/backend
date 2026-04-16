@@ -2,6 +2,7 @@
 import asyncio
 import socketio
 import logging
+from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,10 @@ def _create_server():
     from django.conf import settings
 
     cors_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
-    return socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=cors_origins)
+    manager = socketio.AsyncRedisManager(settings.REDIS_URL)
+    return socketio.AsyncServer(
+        async_mode="asgi", cors_allowed_origins=cors_origins, client_manager=manager
+    )
 
 
 sio = _create_server()
@@ -61,3 +65,17 @@ async def leave(sid, data):
 async def ping(sid, data):
     logger.debug(f"Received ping from {sid}: {data}")
     await sio.emit("pong", {"message": "pong"}, to=sid)
+
+
+def emit_event(
+    event: str, data: dict, room: str | None = None, namespace: str | None = None
+):
+    """
+    Sync-safe Socket.IO emit wrapper for Django signals / ORM hooks.
+    """
+    async_to_sync(sio.emit)(
+        event,
+        data,
+        room=room,
+        namespace=namespace,
+    )

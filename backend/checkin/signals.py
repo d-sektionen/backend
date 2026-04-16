@@ -1,8 +1,7 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .models import Doorkeeper
-import asyncio
-from backend.app.sockets import sio
+from backend.app.sockets import emit_event
 
 
 @receiver(post_save, sender=Doorkeeper)
@@ -25,12 +24,10 @@ def new_doorkeeper(sender, instance, created, **kwargs):
                 "status_message": instance.event.get_status_message(),
             },
         }
-        asyncio.run(
-            sio.emit(
-                "new_doorkeeper",
-                data,
-                room=f"event_doorkeepers_{instance.event.id}",
-            )
+        emit_event(
+            "new_doorkeeper",
+            data,
+            room=f"event_doorkeepers_{instance.event.id}",
         )
 
 
@@ -40,10 +37,9 @@ def doorkeeper_deleted(sender, instance, **kwargs):
         "doorkeeper_id": instance.id,
         "event_id": instance.event.id,
     }
-    asyncio.run(
-        sio.emit(
-            "delete_doorkeeper",
-            data,
-            room=f"event_doorkeepers_{instance.event.id}",
-        )
+
+    emit_event(
+        "delete_doorkeeper",
+        data,
+        room=f"event_doorkeepers_{instance.event.id}",
     )
