@@ -3,7 +3,7 @@ services:
     container_name: D-Sektionen-Backend
     image: registry.d-sektionen.se/backend:latest
     restart: unless-stopped
-    command: uwsgi --ini /etc/uwsgi/backend.uwsgi.ini
+    command: gunicorn backend.app.asgi:application -c /code/gunicorn.conf.py
     volumes:
       # Set the paths when deploying to production.
       - ${BACKEND_BASEDIR}/static:/code/backend/static

@@ -17,7 +17,6 @@ load_dotenv(dotenv_path)
 # Application definition
 
 INSTALLED_APPS = [
-    "daphne",
     # ---
     # Project apps
     # ---
@@ -112,9 +111,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "backend.app.wsgi.application"
-
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
