@@ -36,6 +36,8 @@ ALLOWED_HOSTS = ALLOWED_HOSTS + [
     "medlem.d-sektionen.se",
     "backend.d-sektionen.se",
     "backend.dev.d-sektionen.se",
+    "localhost:13337",
+    "localhost:8000",
 ]
 
 X_FRAME_OPTIONS = "DENY"
@@ -93,3 +95,6 @@ CSRF_COOKIE_SECURE = True
 
 CORS_ALLOWED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
+
+CORS_ALLOWED_ORIGINS += ["http://localhost:13337", "http://localhost:8000"]
+CSRF_TRUSTED_ORIGINS += ["http://localhost:13337", "http://localhost:8000"]
