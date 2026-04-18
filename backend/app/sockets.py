@@ -13,7 +13,10 @@ def _create_server():
     cors_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
     manager = socketio.AsyncRedisManager(settings.REDIS_URL)
     return socketio.AsyncServer(
-        async_mode="asgi", cors_allowed_origins=cors_origins, client_manager=manager
+        async_mode="asgi",
+        cors_allowed_origins=cors_origins,
+        client_manager=manager,
+        transports=["websocket"],
     )
 
 
