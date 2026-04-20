@@ -1,5 +1,7 @@
 import asyncio
 from django.core.asgi import get_asgi_application
+from django.conf import settings
+from django.contrib.staticfiles.handlers import ASGIStaticFilesHandler
 
 import socketio
 from .sockets import sio
@@ -50,6 +52,9 @@ class LifespanMiddleware:
         else:
             await self.app(scope, receive, send)
 
+
+if settings.SETTINGS_MODULE == "backend.app.settings_development":
+    django_asgi_app = ASGIStaticFilesHandler(django_asgi_app)
 
 application = LifespanMiddleware(
     socketio.ASGIApp(sio, django_asgi_app, socketio_path="/ws")
