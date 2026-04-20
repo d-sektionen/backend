@@ -34,6 +34,7 @@ DATABASES = {
 # Update this if more web apps need to access backend. Only accepts exact strings.
 ALLOWED_HOSTS = ALLOWED_HOSTS + [
     "medlem.d-sektionen.se",
+    "medlem.dev.d-sektionen.se",
     "backend.d-sektionen.se",
     "backend.dev.d-sektionen.se",
 ]
