@@ -12,13 +12,18 @@ def create_items_for_pools(apps, schema_editor):
     
     for pool in ItemPool.objects.all():
         # Create one item per pool with the same name
-        ItemPoolItem.objects.create(
+        item = ItemPoolItem.objects.create(
             name=pool.name,
             pool=pool,
             enabled=True,
             priority=0,
             status=None
         )
+
+        # Update all existing bookings to book the new ItemPoolItem
+        for booking in pool.bookings.all():
+            booking.items.add(item)
+            booking.save()
 
 
 class Migration(migrations.Migration):
