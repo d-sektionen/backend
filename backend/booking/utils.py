@@ -3,30 +3,33 @@ from rest_framework import serializers
 
 
 def should_auto_confirm(data, instance):
-    # If item pool requires confirmation, do not auto confirm.
-    if data["pool"].requires_confirmation:
+    if data["pool"].always_requires_confirmation:
         return False
 
-    # If booking is a normal booking.
-    if not data["restricted_timeslot"]:
-        queryset = Booking.objects.all()  # type: ignore[attr-defined]
+    if data["restricted_timeslot"]:
+        return False
 
-        # on update don't compare with self.
-        if instance:
-            queryset = queryset.exclude(pk=instance.id)
+    # Check the item pool's max booking hours for auto confirmation
+    booking_duration = (data["end"] - data["start"]).total_seconds() / 3600
+    if booking_duration > data["pool"].auto_confirm_max_booking_hours:
+        return False
 
-        # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
-        queryset = queryset.filter(  # type: ignore[attr-defined]
-            pool=data["pool"],
-            restricted_timeslot=True,
-            confirmed=True,
-            start__lte=data["end"],
-            end__gte=data["start"],
-        )
-        return not queryset.exists()
+    queryset = Booking.objects.all()  # type: ignore[attr-defined]
 
-    # Restricted timeslot bookings should not be auto-confirmed by default.
-    return False
+    # on update don't compare with self.
+    if instance:
+        queryset = queryset.exclude(pk=instance.id)
+
+    # If no confirmed restricted timeslot is overlapping with booking, auto confirm.
+    queryset = queryset.filter(  # type: ignore[attr-defined]
+        pool=data["pool"],
+        restricted_timeslot=True,
+        confirmed=True,
+        start__lte=data["end"],
+        end__gte=data["start"],
+    )
+
+    return not queryset.exists()
 
 
 def assign_items_and_accessories(
