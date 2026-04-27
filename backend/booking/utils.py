@@ -9,7 +9,7 @@ def should_auto_confirm(data, instance):
     if data["restricted_timeslot"]:
         return False
 
-    # Check the item pool's max booking hours for auto confirmation
+    # Check whether the booking duration exceeds the pool's auto-confirm threshold.
     booking_duration = (data["end"] - data["start"]).total_seconds() / 3600
     if booking_duration > data["pool"].auto_confirm_max_booking_hours:
         return False
