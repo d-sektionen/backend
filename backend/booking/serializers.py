@@ -143,21 +143,22 @@ class BookingSerializer(serializers.ModelSerializer):
         if attrs["count"] <= 0:
             raise serializers.ValidationError("Booking count must be at least 1.")
 
+        items, accessories = assign_items_and_accessories(
+            self.instance,
+            attrs["start"],
+            attrs["end"],
+            attrs["pool"],
+            attrs["count"],
+            attrs["restricted_timeslot"],
+        )
+
         if should_auto_confirm(attrs, self.instance):
             # automatically assign items and, if needed, accessories
-            items, accessories = assign_items_and_accessories(
-                self.instance,
-                attrs["start"],
-                attrs["end"],
-                attrs["pool"],
-                attrs["count"],
-                attrs["restricted_timeslot"],
-            )
-
             attrs["items"] = items
             attrs["accessories"] = accessories
         else:
             # werk will assign the items and accessories manually upon confirmation
+            # we still run assign_items_and_accessories to error out if there are not enough items or accessories available
             pass
 
         return attrs
