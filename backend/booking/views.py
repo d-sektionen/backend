@@ -10,7 +10,7 @@ from .models import Booking, Item
 from .serializers import BookingSerializer, ItemSerializer
 from .serializers import BookingSerializer, DenyBookingSerializer, ItemSerializer
 from .permissions import BookingPermissions
-from .view_helpers import notify_werk_unconfirmed_booking
+from .view_helpers import notify_webhook_unconfirmed_booking
 
 
 class BookingViewSet(viewsets.ModelViewSet):
@@ -95,7 +95,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer.save(confirmed=auto_confirm)
 
         if auto_confirm is False:
-            notify_werk_unconfirmed_booking(data, False)
+            notify_webhook_unconfirmed_booking(data, False)
 
     def perform_update(self, serializer):
         old_obj = self.get_object()
@@ -110,7 +110,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer.save(confirmed=auto_confirm)
 
         if auto_confirm is False:
-            notify_werk_unconfirmed_booking(new_data, True)
+            notify_webhook_unconfirmed_booking(new_data, True)
 
     @action(
         detail=True,
