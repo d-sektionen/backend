@@ -34,3 +34,7 @@ DATABASES = {
         "NAME": ":memory:",
     }
 }
+
+REDIS_URL = "redis://redis:6379"
+
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}

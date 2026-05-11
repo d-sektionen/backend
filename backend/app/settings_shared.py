@@ -51,7 +51,19 @@ INSTALLED_APPS = [
     "imagekit",
     "post_office",
     "identity",
+    "channels",
 ]
+
+ASGI_APPLICATION = "backend.app.asgi.application"
+
+REDIS_URL = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [REDIS_URL]},
+    }
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -106,9 +118,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "backend.app.wsgi.application"
-
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
