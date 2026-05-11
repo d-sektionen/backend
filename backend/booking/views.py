@@ -89,9 +89,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 accessories,
             ):
                 return Response(
-                    {
-                        "detail": "One or more items/accessories are not available in the time slot."
-                    },
+                    "One or more items/accessories are not available in the time slot.",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
