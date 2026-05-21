@@ -1,11 +1,17 @@
+from datetime import timedelta
+
 from .models import Booking, ItemPoolAccessory, ItemPoolItem
 from rest_framework import serializers
+
+AUTO_CONFIRM_MAX_SECONDS = timedelta(hours=24 * 3)
 
 
 def should_auto_confirm(data, instance):
     # If item pool requires confirmation, do not auto confirm.
     if data["pool"].requires_confirmation:
-        return False
+        duration = data["end"] - data["start"]
+
+        return duration < AUTO_CONFIRM_MAX_SECONDS
 
     # If booking is a normal booking.
     if not data["restricted_timeslot"]:
