@@ -14,9 +14,10 @@ RUN python3 manage.py collectstatic --noinput
 FROM base AS runner
 COPY --from=installer /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=installer /usr/local/bin /usr/local/bin
-COPY --from=installer /app/media /app/static ./
 COPY --from=installer /app/backend /app/backend
 COPY --from=installer /app/manage.py .
+COPY --from=installer /app/static /app/static
+COPY --from=installer /app/media /app/media
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

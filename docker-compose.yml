@@ -52,17 +52,17 @@ services:
     depends_on:
       - postgres
 
-  # home_assistant:
-  #   container_name: D-sektionen-HA
-  #   image: "ghcr.io/home-assistant/home-assistant:stable"
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - ${BACKEND_DEV_BASEDIR}/HA-config:/config
-  #   ports:
-  #     - 8123:8123
-  #   networks:
-  #     - default
-  #     - backend-homeassistant
+  home_assistant:
+    container_name: D-sektionen-HA
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${BACKEND_DEV_BASEDIR}/HA-config:/config
+    ports:
+      - 8123:8123
+    networks:
+      - default
+      - backend-homeassistant
 
 volumes:
   postgresql_data:

@@ -20,3 +20,4 @@ env
 .zed
 backend/HA-config/*
 mise.toml
+.zed
