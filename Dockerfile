@@ -22,7 +22,7 @@ RUN apt update && apt upgrade -y && \
     rm -rf /var/lib/{apt,dpkg,cache,log,lists} ./requirements*.txt
 
 # Copy over rest of the project after installing deps to optimize rebuilds
-COPY backend.uwsgi.ini /etc/uwsgi/backend.uwsgi.ini
+COPY gunicorn.conf.py .
 COPY manage.py .
 COPY backend ./backend
 COPY docker-entrypoint.sh .

@@ -52,7 +52,19 @@ INSTALLED_APPS = [
     "imagekit",
     "post_office",
     "identity",
+    "channels",
 ]
+
+ASGI_APPLICATION = "backend.app.asgi.application"
+
+REDIS_URL = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [REDIS_URL]},
+    }
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -110,9 +122,6 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "backend.app.wsgi.application"
-
-
 # Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Europe/Stockholm"
@@ -140,12 +149,7 @@ REST_FRAMEWORK = {
         "backend.app.permissions.AllowOptionsAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        # JWT for api access
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        # Session auth for admin access
-        "rest_framework.authentication.SessionAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("backend.oauth2.auth.CookieJWTAuthentication",),
 }
 
 SIMPLE_JWT = {
@@ -155,11 +159,16 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     # To allow some wiggleroom for clients to retrieve new tokens. This accounts for unsynced clocks and network delay.
     "LEEWAY": 60,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+
+# Update this is more web apps need to access backend. Allows wildcards.
+CSRF_COOKIE_HTTPONLY = True
+
+CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -178,15 +187,6 @@ HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
 HOME_ASSISTANT_BASEURL = os.getenv("HOME_ASSISTANT_BASEURL")
 
 GATSBY_MANAGER_URL = os.getenv("GATSBY_MANAGER_URL")
-
-# TODO: maybe a bit more limited CORS.
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_EXPOSE_HEADERS = [*default_headers, "retry-after"]
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=5),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),
-}
 
 # LOGIN_URL = "/account/login/"
 

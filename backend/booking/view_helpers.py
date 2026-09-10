@@ -11,7 +11,7 @@ def notify_webhook_unconfirmed_booking(booking_data, is_updated):
         is_updated: If an existing booking is being updated.
     """
 
-    hook = booking_data.get("item").webhook
+    hook = booking_data.get("pool").webhook
 
     if hook is None:
         return
@@ -41,9 +41,10 @@ def notify_webhook_unconfirmed_booking(booking_data, is_updated):
     content += (
         "Bekräftad: :x:\n"
         f"Begränsad tidsperiod: {restricted_emoji}\n"
-        f"Objekt *{booking_data.get('item').name}* "
+        f"Objekt *{booking_data.get('pool').name}* "
         f"bokades av *{user_fullname}* (*{booking_data.get('user')}*) "
         f"mellan {start} - {end} (Startar om {duration_until.days}d {dur_hours}t {dur_minutes}m)\n"
+        f"Antal: {booking_data.get('count')}\n"
         f"Ändamål: {booking_data.get('description')}\n"
     )
 
