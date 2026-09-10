@@ -5,6 +5,7 @@ Overwriting settings sometimes happens in sub setting files.
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from urllib.parse import urlparse
 import datetime
 from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
@@ -77,7 +78,8 @@ MIDDLEWARE = [
 ]
 
 MICROSOFT_LOGIN_HOST = "login.microsoftonline.com"
-APP_HOSTNAME = os.getenv("APP_HOSTNAME")
+BASE_URL = os.getenv("BASE_URL")
+APP_HOSTNAME = urlparse(BASE_URL).hostname
 
 ALLOWED_HOSTS = [
     APP_HOSTNAME,
@@ -98,6 +100,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "backend.app.context_processors.export_settings",
             ]
         },
     },

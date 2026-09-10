@@ -16,7 +16,7 @@ MICROSOFT_IDENTITY = Auth(
     # For example, if your input here is https://example.com/x/y/z/redirect,
     # then your project's redirect page will be mounted at '/x/y/z/redirect',
     # login page will be at '/x/y/z/login', and logout page will be at '/x/y/z/logout'.
-    redirect_uri=f"http://{APP_HOSTNAME}/oauth2/callback",
+    redirect_uri=f"{BASE_URL}/oauth2/callback",
     authority=f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv("LIU_TENANT_ID")}",
 )
 
@@ -24,6 +24,7 @@ ALLOWED_HOSTS = ALLOWED_HOSTS + [
     # NOTE: localhost is added twice due to some parts caring about port and some not.
     "localhost",
     "localhost:4000",
+    "localhost:8000",
 ]
 SECRET_KEY = "*3#2cxri$uc!5%#v+-9!h=yig-$@i-e!idod(d&9v6qf)bjv%!"
 DEBUG = True
