@@ -98,7 +98,7 @@ def get_overlap_query(start, end, pool, restricted_timeslot, instance=None):
     if instance:
         queryset = queryset.exclude(pk=instance.id)
 
-    return queryset.filter(start__lte=end, end__gte=start)
+    return queryset.filter(start__lt=end, end__gt=start)
 
 
 def check_overlap(booking, items, accessories):
