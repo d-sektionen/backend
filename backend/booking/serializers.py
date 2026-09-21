@@ -112,13 +112,6 @@ class BookingSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        # make sure the dates are timezone aware to prevent issues with comparing
-        # naive and aware datetimes
-        if attrs["start"].tzinfo is None:
-            raise serializers.ValidationError("Start date must be timezone aware.")
-        if attrs["end"].tzinfo is None:
-            raise serializers.ValidationError("End date must be timezone aware.")
-
         # remove any smaller time units than a minute to prevent overlap issues with
         # continous bookings that start and end at the same time
         attrs["start"] = attrs["start"].replace(second=0, microsecond=0)
