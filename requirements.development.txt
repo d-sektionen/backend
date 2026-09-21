@@ -1,5 +1,5 @@
 -r requirements.txt
 factory_boy==3.3.0
-ruff==0.5.2
+ruff==0.16.8
 pre-commit==3.7.1
 django-stubs==5.2.7
