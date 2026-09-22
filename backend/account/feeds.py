@@ -53,7 +53,7 @@ class CalendarFeed(ICalFeed):
                 title = self._booking_title(booking)
                 description = self._booking_description(booking)
                 bookings.append({
-                    "id": f"booking-{booking.id}",
+                    "id": f"booking-user-{booking.id}",
                     "start": booking.start,
                     "end": booking.end,
                     "description": description,
@@ -70,7 +70,7 @@ class CalendarFeed(ICalFeed):
                 description = self._booking_description(booking)
 
                 bookings.append({
-                    "id": f"booking-{booking.id}",
+                    "id": f"booking-all-{booking.id}",
                     "start": booking.start,
                     "end": booking.end,
                     "description": description,
