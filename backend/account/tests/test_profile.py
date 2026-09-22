@@ -1,7 +1,8 @@
 import json
+
+from ..models import Profile
 from .factories import UserFactory
 from .utils import AuthenticatedTestCase
-from ..models import Profile
 
 
 class ProfileTest(AuthenticatedTestCase):
@@ -39,13 +40,19 @@ class ProfileTest(AuthenticatedTestCase):
 
         response = self.member_client.put(
             "/account/profile/me/",
-            data={"liu_card_id": self.member.profile.liu_card_id},
+            data={
+                "liu_card_id": self.member.profile.liu_card_id,
+                "phone_number": self.member.profile.phone_number
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content.decode("utf-8"))
         self.assertEqual(
             int(response_data.get("liu_card_id")), self.member.profile.liu_card_id
+        )
+        self.assertEqual(
+            response_data.get("phone_number"), self.member.profile.phone_number
         )
 
     def test_delete_own_profile(self):
