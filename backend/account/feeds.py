@@ -17,10 +17,10 @@ class CalendarFeed(ICalFeed):
     def get_object(self, request, pk):
         return CalendarSubscription.objects.get(pk=pk)
 
-    def _booking_title(self, booking: Booking):
+    def _booking_title(self, booking: Booking) -> str:
         return f"Bokning av {booking.pool.name} - {booking.user.get_full_name()}"
 
-    def _booking_description(self, booking: Booking):
+    def _booking_description(self, booking: Booking) -> str:
         return f"Beskrivning: {booking.description}\n\nBokning av {booking.pool.name}.\n\nBokad av: {booking.user.get_full_name()}"
 
     def description(self, subscription):
