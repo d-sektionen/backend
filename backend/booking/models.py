@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import URLValidator
+from django.core.validators import MinValueValidator, URLValidator
 from django.contrib.auth.models import User
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
@@ -41,11 +41,15 @@ class ItemCategory(models.Model):
         return self.name
 
 
-class Item(models.Model):
+class ItemPool(models.Model):
     name = models.CharField(max_length=32, unique=True)
     description = models.TextField(max_length=512)
     category = models.ForeignKey(
-        ItemCategory, null=True, blank=True, on_delete=models.SET_NULL
+        ItemCategory,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="items",
     )
     terms = models.FileField(null=True, blank=True, upload_to="booking_terms")
     image = models.ImageField(null=True, blank=True, upload_to="booking_images")
@@ -62,6 +66,35 @@ class Item(models.Model):
     webhook = models.ForeignKey(
         Webhook, null=True, blank=True, on_delete=models.SET_NULL
     )
+    requires_accessory = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
+class ItemPoolItem(models.Model):
+    name = models.CharField(max_length=32)
+    pool = models.ForeignKey(ItemPool, null=False, on_delete=models.CASCADE)
+
+    enabled = models.BooleanField(default=True)
+    priority = models.IntegerField(default=0)
+    status = models.CharField(max_length=32, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ItemPoolAccessory(models.Model):
+    name = models.CharField(max_length=32)
+
+    pool = models.ForeignKey(
+        ItemPool,
+        on_delete=models.CASCADE,
+        related_name="accessories",
+    )
+    compatible_items = models.ManyToManyField(
+        ItemPoolItem, related_name="compatible_accessories", blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -71,29 +104,18 @@ class Booking(models.Model):
     start = models.DateTimeField(validators=[validate_datetime_future])
     end = models.DateTimeField(validators=[validate_datetime_within_year])
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, null=False, on_delete=models.CASCADE)
     description = models.TextField()
     confirmed = models.BooleanField(default=False)
     restricted_timeslot = models.BooleanField(default=False, blank=True)
+    count = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+
+    pool = models.ForeignKey(
+        ItemPool, null=False, on_delete=models.CASCADE, related_name="bookings"
+    )
+    items = models.ManyToManyField(ItemPoolItem, related_name="bookings", blank=True)
+    accessories = models.ManyToManyField(
+        ItemPoolAccessory, related_name="bookings", blank=True
+    )
 
     def __str__(self):
         return self.user.username + " - " + self.description[:32]
-
-    # def clean(self):
-    #   # Start should be before end
-    #   if self.start > self.end:
-    #     raise ValidationError('Booking should start before it ends.')
-    #   # Check lowest duration
-    #   if self.start + timedelta(minutes=30) > self.end:
-    #     raise ValidationError('Booking should be at least 30 minutes.')
-    #   # Check longest duration
-    #   if self.start + timedelta(days=7) < self.end:
-    #     raise ValidationError('Booking should be at most 7 days.')
-
-    #   # Check overlap
-    #   if Booking.objects\
-    #     .filter(item=self.item)\
-    #     .exclude(id=self.id)\
-    #     .filter(start__lte=self.end, end__gte=self.start)\
-    #     .exists():
-    #     raise ValidationError('Booking overlaps with another booking.')

@@ -34,6 +34,7 @@ DATABASES = {
 # Update this if more web apps need to access backend. Only accepts exact strings.
 ALLOWED_HOSTS = ALLOWED_HOSTS + [
     "medlem.d-sektionen.se",
+    "medlem.dev.d-sektionen.se",
     "backend.d-sektionen.se",
     "backend.dev.d-sektionen.se",
 ]
@@ -50,7 +51,7 @@ MICROSOFT_IDENTITY = Auth(
     # For example, if your input here is https://example.com/x/y/z/redirect,
     # then your project's redirect page will be mounted at '/x/y/z/redirect',
     # login page will be at '/x/y/z/login', and logout page will be at '/x/y/z/logout'.
-    redirect_uri=f"https://{APP_HOSTNAME}/oauth2/callback",
+    redirect_uri=f"{BASE_URL}/oauth2/callback",
     authority=f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv("LIU_TENANT_ID")}",
 )
 

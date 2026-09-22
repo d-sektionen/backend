@@ -1,12 +1,13 @@
 import uuid
 from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 
-from ..booking.models import Item
+from ..booking.models import ItemPool
 from ..committee.models import CommitteeMember
 
 
@@ -49,4 +50,4 @@ class CalendarSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     include_bookings_by_user = models.BooleanField(default=True)
-    include_bookable_items = models.ManyToManyField(Item, default=None, blank=True)
+    include_bookable_items = models.ManyToManyField(ItemPool, default=None, blank=True)
