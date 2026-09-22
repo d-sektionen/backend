@@ -18,9 +18,17 @@ class CalendarFeed(ICalFeed):
         return CalendarSubscription.objects.get(pk=pk)
 
     def _booking_title(self, booking: Booking) -> str:
+        name = booking.user.get_full_name()
+        if name == "" or name is None:
+            name = booking.user.get_username()
+
         return f"Bokning av {booking.pool.name} - {booking.user.get_full_name()}"
 
     def _booking_description(self, booking: Booking) -> str:
+        name = booking.user.get_full_name()
+        if name == "" or name is None:
+            name = booking.user.get_username()
+
         return f"Beskrivning: {booking.description}\n\nBokning av {booking.pool.name}.\n\nBokad av: {booking.user.get_full_name()}"
 
     def description(self, subscription):
