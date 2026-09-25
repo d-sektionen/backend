@@ -26,8 +26,8 @@ def should_auto_confirm(data, instance):
             pool=data["pool"],
             restricted_timeslot=True,
             confirmed=True,
-            start__lte=data["end"],
-            end__gte=data["start"],
+            start__lt=data["end"],
+            end__gt=data["start"],
         )
         return not queryset.exists()
 
@@ -98,7 +98,7 @@ def get_overlap_query(start, end, pool, restricted_timeslot, instance=None):
     if instance:
         queryset = queryset.exclude(pk=instance.id)
 
-    return queryset.filter(start__lte=end, end__gte=start)
+    return queryset.filter(start__lt=end, end__gt=start)
 
 
 def check_overlap(booking, items, accessories):
