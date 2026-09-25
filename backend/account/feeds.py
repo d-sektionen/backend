@@ -55,13 +55,15 @@ class CalendarFeed(ICalFeed):
             for booking in Booking.objects.filter(user=subscription.user):
                 title = self._booking_title(booking)
                 description = self._booking_description(booking)
-                bookings.append({
-                    "id": f"booking-user-{booking.id}",
-                    "start": booking.start,
-                    "end": booking.end,
-                    "description": description,
-                    "title": title
-                })
+                bookings.append(
+                    {
+                        "id": f"booking-user-{booking.id}",
+                        "start": booking.start,
+                        "end": booking.end,
+                        "description": description,
+                        "title": title,
+                    }
+                )
 
             items.extend(bookings)
 
@@ -72,13 +74,15 @@ class CalendarFeed(ICalFeed):
                 title = self._booking_title(booking)
                 description = self._booking_description(booking)
 
-                bookings.append({
-                    "id": f"booking-all-{booking.id}",
-                    "start": booking.start,
-                    "end": booking.end,
-                    "description": description,
-                    "title": title
-                })
+                bookings.append(
+                    {
+                        "id": f"booking-all-{booking.id}",
+                        "start": booking.start,
+                        "end": booking.end,
+                        "description": description,
+                        "title": title,
+                    }
+                )
 
             items.extend(bookings)
 
