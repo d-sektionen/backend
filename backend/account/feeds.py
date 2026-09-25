@@ -17,6 +17,23 @@ class CalendarFeed(ICalFeed):
     def get_object(self, request, pk):
         return CalendarSubscription.objects.get(pk=pk)
 
+    def _booking_username(self, booking: Booking) -> str:
+        name = booking.user.get_full_name()
+        if name == "" or name is None:
+            name = booking.user.get_username()
+
+        return name
+
+    def _booking_title(self, booking: Booking) -> str:
+        name = self._booking_username(booking)
+
+        return f"Bokning av {booking.pool.name} - {name}"
+
+    def _booking_description(self, booking: Booking) -> str:
+        name = self._booking_username(booking)
+
+        return f"Beskrivning: {booking.description}\n\nBokning av {booking.pool.name}.\n\nBokad av: {name}"
+
     def description(self, subscription):
         features = []
         bookable_items = subscription.include_bookable_items.all()
@@ -33,30 +50,40 @@ class CalendarFeed(ICalFeed):
     def items(self, subscription):
         items = []
         if subscription.include_bookings_by_user:
-            bookings = [
-                {
-                    "id": f"booking-{b.id}",
-                    "start": b.start,
-                    "end": b.end,
-                    # TODO extend with link etc
-                    "description": b.description,
-                    "title": f"Bokning av {b.item.name}",
-                }
-                for b in Booking.objects.filter(user=subscription.user)
-            ]
+            bookings = []
+
+            for booking in Booking.objects.filter(user=subscription.user):
+                title = self._booking_title(booking)
+                description = self._booking_description(booking)
+                bookings.append(
+                    {
+                        "id": f"booking-user-{booking.id}",
+                        "start": booking.start,
+                        "end": booking.end,
+                        "description": description,
+                        "title": title,
+                    }
+                )
+
             items.extend(bookings)
 
         for i in subscription.include_bookable_items.all():
-            bookings = [
-                {
-                    "id": f"booking-all-{b.id}",
-                    "start": b.start,
-                    "end": b.end,
-                    "description": b.description,
-                    "title": f"{b.item.name} - {b.user.get_full_name()}",
-                }
-                for b in Booking.objects.filter(item=i)
-            ]
+            bookings = []
+
+            for booking in Booking.objects.filter(pool=i):
+                title = self._booking_title(booking)
+                description = self._booking_description(booking)
+
+                bookings.append(
+                    {
+                        "id": f"booking-all-{booking.id}",
+                        "start": booking.start,
+                        "end": booking.end,
+                        "description": description,
+                        "title": title,
+                    }
+                )
+
             items.extend(bookings)
 
         return items
