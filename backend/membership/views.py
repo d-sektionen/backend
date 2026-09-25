@@ -12,8 +12,7 @@ class RequestView(
     mixins.DestroyModelMixin,
     GenericAPIView,
 ):
-    """
-    """
+    """ """
 
     queryset = Request.objects.all()
     serializer_class = serializers.RequestSerializer
