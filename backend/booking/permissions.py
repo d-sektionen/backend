@@ -6,8 +6,8 @@ from .models import Blacklisted
 
 class BookingPermissions(permissions.BasePermission):
     """
-  Custom permission for a booking.
-  """
+    Custom permission for a booking.
+    """
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:

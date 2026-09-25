@@ -23,5 +23,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     def validate_attendant_limit(self, value):
         if value < 0:
-            raise serializers.ValidationError("Attendant limit must be a positive value.")
+            raise serializers.ValidationError(
+                "Attendant limit must be a positive value."
+            )
         return value

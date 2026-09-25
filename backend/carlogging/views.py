@@ -18,4 +18,3 @@ class LogEntryViewSet(
 
     def get_queryset(self):
         return LogEntry.objects.filter(user=self.request.user)
-
