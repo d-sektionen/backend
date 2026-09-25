@@ -12,7 +12,9 @@ class LogEntrySerializer(serializers.ModelSerializer):
         write_only=True, queryset=Key.objects.all(), source="key"
     )
     taken_by_id = UserIdentifierField(source="taken_by")
-    returned_by_id = UserIdentifierField(source="returned_by",)
+    returned_by_id = UserIdentifierField(
+        source="returned_by",
+    )
 
     class Meta:
         model = LogEntry

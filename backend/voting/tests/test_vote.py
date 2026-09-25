@@ -14,6 +14,7 @@ NB_OF_ATTENDANTS = 10
 
 class VoteTest(AuthenticatedTestCase):
     """Tests for endpoints under /voting/votes and /voting/admin-votes/."""
+
     @classmethod
     def setUpTestData(cls):
         cls.meeting = MeetingFactory.create(open_attendance=True)
