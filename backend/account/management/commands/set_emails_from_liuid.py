@@ -14,4 +14,3 @@ class Command(BaseCommand):
             if regex.match(user.username):
                 user.email = user.username + "@student.liu.se"
                 user.save()
-

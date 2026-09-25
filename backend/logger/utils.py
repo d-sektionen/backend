@@ -10,4 +10,3 @@ def log(description, category=Entry.UNCATEGORIZED, severity=Entry.INFO, user=Non
     )
 
     return obj is not None
-
