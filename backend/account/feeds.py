@@ -67,10 +67,10 @@ class CalendarFeed(ICalFeed):
 
             items.extend(bookings)
 
-        for i in subscription.include_bookable_items.all():
+        for pool in subscription.include_bookable_items.all():
             bookings = []
 
-            for booking in Booking.objects.filter(pool=i):
+            for booking in Booking.objects.filter(pool=pool):
                 title = _booking_title(booking)
                 description = _booking_description(booking)
 
