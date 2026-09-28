@@ -3,12 +3,14 @@ from django.utils.timezone import get_current_timezone
 from ..booking.models import Booking
 from .models import CalendarSubscription
 
+
 def _booking_username(booking: Booking) -> str:
     name = booking.user.get_full_name()
     if name == "" or name is None:
         name = booking.user.get_username()
 
     return name
+
 
 def _items_string(booking: Booking) -> str | None:
     items = ", ".join(map(lambda x: x.name, booking.items.all()))
@@ -17,15 +19,20 @@ def _items_string(booking: Booking) -> str | None:
 
     return items
 
-def _booking_title(booking: Booking, include_username: bool = True) -> str:
-    name = _booking_username(booking)
-    items = _items_string(booking)
 
-    title = f"Bokning av {booking.pool.name} - {name}"
+def _booking_title(booking: Booking, include_username: bool = True) -> str:
+    title = f"Bokning av {booking.pool.name}"
+
+    if include_username:
+        name = _booking_username(booking)
+        title += f" - {name}"
+
+    items = _items_string(booking)
     if items:
         title += f" ({items})"
 
     return title
+
 
 def _booking_description(booking: Booking) -> str:
     name = _booking_username(booking)
@@ -39,6 +46,7 @@ def _booking_description(booking: Booking) -> str:
 
     return description
 
+
 class CalendarFeed(ICalFeed):
     """
     A calendar
@@ -51,7 +59,6 @@ class CalendarFeed(ICalFeed):
 
     def get_object(self, request, pk):
         return CalendarSubscription.objects.get(pk=pk)
-
 
     def description(self, subscription):
         features = []
@@ -72,7 +79,7 @@ class CalendarFeed(ICalFeed):
             bookings = []
 
             for booking in Booking.objects.filter(user=subscription.user):
-                title = _booking_title(booking)
+                title = _booking_title(booking, include_username=False)
                 description = _booking_description(booking)
                 bookings.append(
                     {
