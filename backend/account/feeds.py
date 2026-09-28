@@ -10,15 +10,34 @@ def _booking_username(booking: Booking) -> str:
 
     return name
 
-def _booking_title(booking: Booking) -> str:
-    name = _booking_username(booking)
+def _items_string(booking: Booking) -> str | None:
+    items = ", ".join(map(lambda x: x.name, booking.items.all()))
+    if items == "":
+        return None
 
-    return f"Bokning av {booking.pool.name} - {name}"
+    return items
+
+def _booking_title(booking: Booking, include_username: bool = True) -> str:
+    name = _booking_username(booking)
+    items = _items_string(booking)
+
+    title = f"Bokning av {booking.pool.name} - {name}"
+    if items:
+        title += f" ({items})"
+
+    return title
 
 def _booking_description(booking: Booking) -> str:
     name = _booking_username(booking)
+    items = _items_string(booking)
 
-    return f"Beskrivning: {booking.description}\n\nBokning i pool: {booking.pool.name}\n föremål: {booking.item.name}.\n\nBokad av: {name}"
+    description = f"Beskrivning: {booking.description}\n\n"
+    description += f"Bokning i pool: {booking.pool.name}\n"
+    if items:
+        description += f"föremål: {_items_string(booking)}.\n\n"
+    description += f"Bokad av: {name}"
+
+    return description
 
 class CalendarFeed(ICalFeed):
     """
