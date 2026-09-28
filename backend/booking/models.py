@@ -61,8 +61,8 @@ class ItemPool(models.Model):
     )
     always_requires_confirmation = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
-    min_booking_hours = models.FloatField(default=1)
-    min_booking_hours_restricted_timeslot = models.FloatField(default=1)
+    min_booking_hours = models.FloatField(default=0.5)
+    min_booking_hours_restricted_timeslot = models.FloatField(default=3 * 24)
     auto_confirm_max_booking_hours = models.FloatField(default=3 * 24)
     webhook = models.ForeignKey(
         Webhook, null=True, blank=True, on_delete=models.SET_NULL

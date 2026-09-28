@@ -12,10 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='itempool',
-            name='max_booking_hours',
-        ),
-        migrations.RemoveField(
-            model_name='itempool',
             name='max_booking_hours_restricted_timeslot',
         ),
         migrations.RenameField(
@@ -23,19 +19,24 @@ class Migration(migrations.Migration):
             old_name='requires_confirmation',
             new_name='always_requires_confirmation',
         ),
-        migrations.AddField(
+        migrations.RenameField(
             model_name='itempool',
-            name='auto_confirm_max_booking_hours',
-            field=models.FloatField(default=72),
+            old_name='max_booking_hours',
+            new_name='auto_confirm_max_booking_hours',
+        ),
+        migrations.AlterField(
+            model_name="itempool",
+            name="auto_confirm_max_booking_hours",
+            field=models.FloatField(default=3 * 24),
         ),
         migrations.AddField(
             model_name='itempool',
             name='min_booking_hours',
-            field=models.FloatField(default=1),
+            field=models.FloatField(default=0.5),
         ),
         migrations.AddField(
             model_name='itempool',
             name='min_booking_hours_restricted_timeslot',
-            field=models.FloatField(default=1),
+            field=models.FloatField(default=3 * 24),
         ),
     ]
