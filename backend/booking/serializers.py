@@ -32,8 +32,9 @@ class ItemPoolSerializer(serializers.ModelSerializer):
             "category",
             "terms",
             "image_processed",
-            "max_booking_hours",
-            "max_booking_hours_restricted_timeslot",
+            "min_booking_hours",
+            "min_booking_hours_restricted_timeslot",
+            "auto_confirm_max_booking_hours",
             "requires_accessory",
             "items",
             "accessories",
@@ -45,8 +46,9 @@ class ItemPoolSerializer(serializers.ModelSerializer):
             "category",
             "terms",
             "image_processed",
-            "max_booking_hours",
-            "max_booking_hours_restricted_timeslot",
+            "min_booking_hours",
+            "min_booking_hours_restricted_timeslot",
+            "auto_confirm_max_booking_hours",
             "requires_accessory",
             "items",
             "accessories",
@@ -114,30 +116,21 @@ class BookingSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         restricted_timeslot = attrs["restricted_timeslot"]
 
-        # there is no reason to book with restricted timeslot if you are booking
-        # shorter than the maximum time allowed for normal bookings
-        lower_duration = attrs["pool"].max_booking_hours if restricted_timeslot else 0.5
-        upper_duration = (
-            attrs["pool"].max_booking_hours_restricted_timeslot
+        lower_duration = (
+            attrs["pool"].min_booking_hours_restricted_timeslot
             if restricted_timeslot
-            else attrs["pool"].max_booking_hours
+            else attrs["pool"].min_booking_hours
         )
 
         lower_timedelta = timedelta(hours=lower_duration)
-        upper_timedelta = timedelta(hours=upper_duration)
 
         # Start should be before end
         if attrs["start"] > attrs["end"]:
             raise serializers.ValidationError("Booking should start before it ends.")
-        # Check lowest duration
+        # Check min duration
         if attrs["start"] + lower_timedelta > attrs["end"]:
             raise serializers.ValidationError(
                 f"Booking should have a duration of at least {str(lower_timedelta)}."
-            )
-        # Check longest duration
-        if attrs["start"] + upper_timedelta < attrs["end"]:
-            raise serializers.ValidationError(
-                f"Booking should have a duration of at most {str(upper_timedelta)}."
             )
 
         if attrs["count"] <= 0:
