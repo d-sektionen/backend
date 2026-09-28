@@ -18,7 +18,7 @@ def _booking_title(booking: Booking) -> str:
 def _booking_description(booking: Booking) -> str:
     name = _booking_username(booking)
 
-    return f"Beskrivning: {booking.description}\n\nBokning av {booking.pool.name}.\n\nBokad av: {name}"
+    return f"Beskrivning: {booking.description}\n\nBokning i pool: {booking.pool.name}\n föremål: {booking.item.name}.\n\nBokad av: {name}"
 
 class CalendarFeed(ICalFeed):
     """
