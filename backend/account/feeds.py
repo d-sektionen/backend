@@ -3,6 +3,22 @@ from django.utils.timezone import get_current_timezone
 from ..booking.models import Booking
 from .models import CalendarSubscription
 
+def _booking_username(booking: Booking) -> str:
+    name = booking.user.get_full_name()
+    if name == "" or name is None:
+        name = booking.user.get_username()
+
+    return name
+
+def _booking_title(booking: Booking) -> str:
+    name = _booking_username(booking)
+
+    return f"Bokning av {booking.pool.name} - {name}"
+
+def _booking_description(booking: Booking) -> str:
+    name = _booking_username(booking)
+
+    return f"Beskrivning: {booking.description}\n\nBokning av {booking.pool.name}.\n\nBokad av: {name}"
 
 class CalendarFeed(ICalFeed):
     """
@@ -17,22 +33,6 @@ class CalendarFeed(ICalFeed):
     def get_object(self, request, pk):
         return CalendarSubscription.objects.get(pk=pk)
 
-    def _booking_username(self, booking: Booking) -> str:
-        name = booking.user.get_full_name()
-        if name == "" or name is None:
-            name = booking.user.get_username()
-
-        return name
-
-    def _booking_title(self, booking: Booking) -> str:
-        name = self._booking_username(booking)
-
-        return f"Bokning av {booking.pool.name} - {name}"
-
-    def _booking_description(self, booking: Booking) -> str:
-        name = self._booking_username(booking)
-
-        return f"Beskrivning: {booking.description}\n\nBokning av {booking.pool.name}.\n\nBokad av: {name}"
 
     def description(self, subscription):
         features = []
@@ -53,8 +53,8 @@ class CalendarFeed(ICalFeed):
             bookings = []
 
             for booking in Booking.objects.filter(user=subscription.user):
-                title = self._booking_title(booking)
-                description = self._booking_description(booking)
+                title = _booking_title(booking)
+                description = _booking_description(booking)
                 bookings.append(
                     {
                         "id": f"booking-user-{booking.id}",
@@ -71,8 +71,8 @@ class CalendarFeed(ICalFeed):
             bookings = []
 
             for booking in Booking.objects.filter(pool=i):
-                title = self._booking_title(booking)
-                description = self._booking_description(booking)
+                title = _booking_title(booking)
+                description = _booking_description(booking)
 
                 bookings.append(
                     {
