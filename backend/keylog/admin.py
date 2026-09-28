@@ -10,6 +10,7 @@ class KeyAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     list_editable = ("order",)
     ordering = ("order",)
+
     # TODO: validate color!!
     def colored_color(self, obj):
         return mark_safe(

@@ -30,8 +30,10 @@ class Occurrence(EventBase):
 
         if already_registered:
             return Response(
-                {"detail": user.username + " is already registered.",
-                    "status_message": self.get_status_message()},
+                {
+                    "detail": user.username + " is already registered.",
+                    "status_message": self.get_status_message(),
+                },
                 status.HTTP_400_BAD_REQUEST,
             )
 
@@ -42,29 +44,35 @@ class Occurrence(EventBase):
                     "detail": "Limit of "
                     + str(self.attendant_limit)
                     + " users has been reached.",
-                    "status_message": self.get_status_message()
+                    "status_message": self.get_status_message(),
                 },
                 status.HTTP_400_BAD_REQUEST,
             )
 
         if self.members_only and not check_membership(user.username):
             return Response(
-                {"detail": "User is not a member of D-sektionen.",
-                    "status_message": self.get_status_message()},
+                {
+                    "detail": "User is not a member of D-sektionen.",
+                    "status_message": self.get_status_message(),
+                },
                 status.HTTP_400_BAD_REQUEST,
             )
 
         if in_string_list(self.blacklist, user.username):
             return Response(
-                {"detail": "User is on the blacklist of this event.",
-                    "status_message": self.get_status_message()},
+                {
+                    "detail": "User is on the blacklist of this event.",
+                    "status_message": self.get_status_message(),
+                },
                 status.HTTP_400_BAD_REQUEST,
             )
 
         if self.whitelist and not in_string_list(self.whitelist, user.username):
             return Response(
-                {"detail": "User is not on the whitelist of this event.",
-                    "status_message": self.get_status_message()},
+                {
+                    "detail": "User is not on the whitelist of this event.",
+                    "status_message": self.get_status_message(),
+                },
                 status.HTTP_400_BAD_REQUEST,
             )
 
@@ -85,5 +93,5 @@ class Occurrence(EventBase):
         if self.attendant_limit:
             count_str = str(attendee_count) + "out of" + str(self.attendant_limit)
 
-        status_str = "Event currently has" + str(count_str) +" registered attendees."
+        status_str = "Event currently has" + str(count_str) + " registered attendees."
         return status_str

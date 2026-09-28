@@ -26,7 +26,7 @@ class CalendarFeed(ICalFeed):
         if len(bookable_items) > 0:
             item_names = [i.name for i in bookable_items]
 
-            features.append(f'alla bokningar för: {", ".join(item_names)}')
+            features.append(f"alla bokningar för: {', '.join(item_names)}")
         features_string = "ingenting" if len(features) == 0 else ", ".join(features)
         return f"Kalender för tjänster på D-sektionens medlemsportal. Prenumerationen innehåller {features_string}."
 
