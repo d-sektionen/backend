@@ -3,8 +3,6 @@ from datetime import timedelta
 from .models import Booking, ItemPoolAccessory, ItemPoolItem
 from rest_framework import serializers
 
-AUTO_CONFIRM_MAX_SECONDS = timedelta(hours=24 * 3)
-
 
 def should_auto_confirm(data, instance):
     if data["pool"].always_requires_confirmation:
