@@ -7,6 +7,7 @@ from .factories import MeetingFactory
 
 class MeetingTest(AuthenticatedTestCase):
     """Tests for endpoints under /voting/meeting and /voting/admin-meetings."""
+
     @classmethod
     def setUpTestData(cls):
         cls.meeting = MeetingFactory.create(open_attendance=True)
@@ -39,13 +40,17 @@ class MeetingTest(AuthenticatedTestCase):
     def test_create_meeting_as_member(self):
         meet = MeetingFactory.build()
         data = {meet.name, meet.clear_data}
-        response = self.member_client.post("/voting/admin-meetings/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/admin-meetings/", data=data, format="json"
+        )
         self.assertEqual(response.status_code, 403)
 
     def test_create_meeting_as_admin(self):
         meet = MeetingFactory.build()
         data = {"name": meet.name, "clear_data": meet.clear_data}
-        response = self.admin_client.post("/voting/admin-meetings/", data=data, format="json")
+        response = self.admin_client.post(
+            "/voting/admin-meetings/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 201)
         response_data = json.loads(response.content.decode("utf-8"))
@@ -106,13 +111,21 @@ class MeetingTest(AuthenticatedTestCase):
         self.assertEqual(response_data["clear_data"], str(updated_meeting.clear_data))
 
     def test_delete_specific_meeting_as_member(self):
-        created_meeting = MeetingFactory.create()  # Create separate meeting to isolate test.
+        created_meeting = (
+            MeetingFactory.create()
+        )  # Create separate meeting to isolate test.
 
-        response = self.member_client.delete(f"/voting/admin-meetings/{created_meeting.id}/")
+        response = self.member_client.delete(
+            f"/voting/admin-meetings/{created_meeting.id}/"
+        )
         self.assertEqual(response.status_code, 403)
 
     def test_delete_specific_meeting_as_admin(self):
-        created_meeting = MeetingFactory.create()  # Create separate meeting to isolate test.
+        created_meeting = (
+            MeetingFactory.create()
+        )  # Create separate meeting to isolate test.
 
-        response = self.admin_client.delete(f"/voting/admin-meetings/{created_meeting.id}/")
+        response = self.admin_client.delete(
+            f"/voting/admin-meetings/{created_meeting.id}/"
+        )
         self.assertEqual(response.status_code, 405)

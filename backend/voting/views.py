@@ -90,11 +90,11 @@ class SpeakerRequestView(
 
     def perform_create(self, serializer: SpeakerRequestSerializer):
         SpeakerRequest.objects.get_or_create(
-        user=self.request.user,
-        meeting=serializer.validated_data['meeting'],
-        prioritized=serializer.validated_data.get('prioritized', False),
+            user=self.request.user,
+            meeting=serializer.validated_data["meeting"],
+            prioritized=serializer.validated_data.get("prioritized", False),
         )
-        
+
     def get_object(self):
         queryset = self.get_queryset()
 

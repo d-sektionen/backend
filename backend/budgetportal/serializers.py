@@ -35,7 +35,6 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         queryset=Committee.objects.all(),
         source="committee",
         default=CommitteeSerializer(),
-
     )
     committee = CommitteeSerializer(read_only=True)
     receipts = FileSerializer(many=True, read_only=True)
@@ -82,9 +81,11 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
         raw_file = request.data.get("files[]")
 
         if raw_file:
-            format, imgstr = raw_file.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=request.data["name"] + "." + ext)
+            format, imgstr = raw_file.split(";base64,")
+            ext = format.split("/")[-1]
+            data = ContentFile(
+                base64.b64decode(imgstr), name=request.data["name"] + "." + ext
+            )
             mf = File.objects.create(file=data, expense=instance)
             mf.save()
         else:
@@ -116,9 +117,11 @@ class BudgetEntrySerializer(serializers.ModelSerializer):
             amount = article.get("amount")
             price = article.get("price")
 
-            if type(spec) is not str or \
-                    type(int(amount)) is not int or \
-                    type(float(price)) is not float:
+            if (
+                type(spec) is not str
+                or type(int(amount)) is not int
+                or type(float(price)) is not float
+            ):
                 raise serializers.ValidationError(
                     "Each article must have the fields spec (string), amount (integer), and price (float)."
                 )

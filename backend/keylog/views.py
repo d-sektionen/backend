@@ -9,7 +9,8 @@ from .serializers import KeySerializer, LogEntrySerializer
 
 
 class KeyView(
-    mixins.ListModelMixin, GenericAPIView,
+    mixins.ListModelMixin,
+    GenericAPIView,
 ):
     queryset = Key.objects.all()
     serializer_class = KeySerializer
