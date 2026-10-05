@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from .models import Booking, ItemPoolAccessory, ItemPoolItem
 from rest_framework import serializers
 
