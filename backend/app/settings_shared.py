@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "backend.budgetportal",
     "backend.mail",
     "backend.oauth2",
+    "backend.photos",
     # ---
     # Django related
     # ---
@@ -134,6 +135,8 @@ STATIC_URL = "/static/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
+
+PROTECTED_MEDIA_ROOT = os.path.join(BASE_DIR, "protected_media")
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
