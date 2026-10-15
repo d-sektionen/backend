@@ -217,7 +217,7 @@ INFO_DSEKTIONEN_INFO_EMAIL = os.getenv(
 )
 INFO_DSEKTIONEN_GDPR_URL = os.getenv(
     "INFO_DSEKTIONEN_GDPR_URL",
-    "https://d-sektionen.se/wp-content/uploads/2018/05/Policy-datahantering-D-sektionen.pdf",
+    "https://gdpr.d-sektionen.se/",
 )
 INFO_DSEKTIONEN_LOGO_URL = os.getenv(
     "INFO_DSEKTIONEN_LOGO_URL",
@@ -230,7 +230,7 @@ INFO_DSEKTIONEN_INSTAGRAM_URL = os.getenv(
     "INFO_DSEKTIONEN_INSTAGRAM_URL", "https://www.instagram.com/dsektionen/"
 )
 INFO_DSEKTIONEN_FACEBOOK_URL = os.getenv(
-    "INFO_DSEKTIONEN_FACEBOOK_URL", "https://www.facebook.com/datateknologsektionen"
+    "INFO_DSEKTIONEN_FACEBOOK_URL", "https://www.facebook.com/profile.php?id=61594576509509/"
 )
 INFO_DSEKTIONEN_FACEBOOK_GROUP_URL = os.getenv(
     "INFO_DSEKTIONEN_FACEBOOK_GROUP_URL",
