@@ -1,4 +1,4 @@
-name: Lint backend
+name: Lint and check formatting
 
 on:
   pull_request:
@@ -29,4 +29,7 @@ jobs:
           pip install -r requirements.development.txt
 
       - name: Run linter
-        run: ruff check backend
+        run: ruff check .
+
+      - name: Check formatting
+        run: ruff format --check .
