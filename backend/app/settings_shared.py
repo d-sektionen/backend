@@ -231,7 +231,7 @@ INFO_DSEKTIONEN_INSTAGRAM_URL = os.getenv(
 )
 INFO_DSEKTIONEN_FACEBOOK_URL = os.getenv(
     "INFO_DSEKTIONEN_FACEBOOK_URL",
-    "https://www.facebook.com/profile.php?id=61594576509509/",
+    "https://www.facebook.com/profile.php?id=61594576509509",
 )
 INFO_DSEKTIONEN_FACEBOOK_GROUP_URL = os.getenv(
     "INFO_DSEKTIONEN_FACEBOOK_GROUP_URL",
