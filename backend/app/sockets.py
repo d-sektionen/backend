@@ -11,12 +11,16 @@ def _create_server():
     from django.conf import settings
 
     cors_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
-    manager = socketio.AsyncRedisManager(settings.REDIS_URL)
+    kwargs = {}
+    redis_url = getattr(settings, "REDIS_URL", None)
+    if redis_url:
+        kwargs["client_manager"] = socketio.AsyncRedisManager(redis_url)
+    # Without client_manager python-socketio uses its in-memory AsyncManager.
     return socketio.AsyncServer(
         async_mode="asgi",
         cors_allowed_origins=cors_origins,
-        client_manager=manager,
         transports=["websocket"],
+        **kwargs,
     )
 
 
