@@ -7,6 +7,9 @@ on:
       - development
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
@@ -18,10 +21,13 @@ jobs:
       id-token: write
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: registry.d-sektionen.se
           username: ${{ secrets.REGISTRY_USERNAME }}
@@ -29,7 +35,7 @@ jobs:
 
       - name: Extract metadata (tags) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v6
         with:
           images: registry.d-sektionen.se/backend
           tags: |
@@ -39,9 +45,11 @@ jobs:
 
       - name: Build and push Docker image
         id: push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=Dockerfile
+          cache-to: type=gha,mode=max,scope=Dockerfile
