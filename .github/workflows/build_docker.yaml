@@ -51,5 +51,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          # Keep plain image manifests like before buildx; the registry and the
+          # Portainer deploy have not been checked against OCI attestation indexes.
+          provenance: false
           cache-from: type=gha,scope=Dockerfile
           cache-to: type=gha,mode=max,scope=Dockerfile
