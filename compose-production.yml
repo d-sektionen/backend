@@ -34,6 +34,7 @@ services:
       - stack.env
     networks:
       - default
+      - internal
 
   home_assistant:
     container_name: D-sektionen-HA
