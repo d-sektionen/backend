@@ -13,7 +13,9 @@ class SpeakerRequestPermission(BasePermission):
 
         if request.method == "POST":
             if not check_membership(request.user.get_username()):
-                in_a_meeting = Meeting.objects.filter(archived=False).filter(Q(attendants__user=request.user))
+                in_a_meeting = Meeting.objects.filter(archived=False).filter(
+                    Q(attendants__user=request.user)
+                )
                 if in_a_meeting:
                     return True
 

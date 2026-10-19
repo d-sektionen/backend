@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class CarloggingConfig(AppConfig):
-    name = 'backend.carlogging'
+    name = "backend.carlogging"

@@ -52,7 +52,7 @@ MICROSOFT_IDENTITY = Auth(
     # then your project's redirect page will be mounted at '/x/y/z/redirect',
     # login page will be at '/x/y/z/login', and logout page will be at '/x/y/z/logout'.
     redirect_uri=f"{BASE_URL}/oauth2/callback",
-    authority=f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv("LIU_TENANT_ID")}",
+    authority=f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv('LIU_TENANT_ID')}",
 )
 
 # Enable file logging for all loggers. Change level with this env variable.
