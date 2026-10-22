@@ -114,11 +114,14 @@ class BookingViewSet(viewsets.ModelViewSet):
         old_obj = self.get_object()
         new_data = serializer.validated_data
         auto_confirm = old_obj.confirmed
-        # if time was changed we need to recalculate auto approval
+        # if time or restricted timeslot status (which is currently not doable in
+        # the UI but is theoretically possible) was changed, we need to recalculate
+        # auto approval
         if (
             old_obj.start != new_data["start"]
             or old_obj.end != new_data["end"]
             or old_obj.count != new_data["count"]
+            or old_obj.restricted_timeslot != new_data["restricted_timeslot"]
         ):
             if old_obj.confirmed:
                 # Recalculate confirmation
