@@ -4,6 +4,7 @@ push_image.sh
 __pycache__/
 static/
 media/
+protected_media/
 log/
 .github/
 .gitignore

@@ -6,17 +6,20 @@ from django.conf import settings
 from django.http import HttpResponse
 
 from .models import Photo, PhotoAlbum, PhotoTag
-from .permissions import PhotoPermissions
+from .permissions import PhotoMetaPermissions, PhotoPermissions
 from .serializers import PhotoAlbumSerializer, PhotoSerializer, PhotoTagSerializer
 
 class PhotoTagViewSet(viewsets.ModelViewSet):
     queryset = PhotoTag.objects.all()
+
     serializer_class = PhotoTagSerializer
+    permission_classes = (PhotoMetaPermissions,)
 
 class PhotoAlbumViewSet(viewsets.ModelViewSet):
     queryset = PhotoAlbum.objects.all()
 
     serializer_class = PhotoAlbumSerializer
+    permission_classes = (PhotoMetaPermissions,)
 
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all()
@@ -46,9 +49,15 @@ class PhotoViewSet(viewsets.ModelViewSet):
         if tags:
             tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
             if tag_list:
-                queryset = queryset.filter(tags__contains=tag_list)
+                # .distinct() is used to avoid duplicates when a photo matches multiple tags
+                queryset = queryset.filter(tags__name__in=tag_list).distinct()
 
         if album:
+            try:
+                album = int(album)
+            except ValueError:
+                return HttpResponse(status=400)
+
             queryset = queryset.filter(album__id=album)
 
         return queryset

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from .utils import get_photo_path
 from .storage import protected_storage
@@ -16,6 +17,7 @@ class PhotoAlbum(models.Model):
     def __str__(self):
         return self.title
 
+
 class Photo(models.Model):
     title = models.CharField(max_length=100)
     featured = models.BooleanField(default=False)
@@ -23,6 +25,7 @@ class Photo(models.Model):
     tags = models.ManyToManyField(PhotoTag, blank=True, related_name="photos")
     album = models.ForeignKey(PhotoAlbum, null=True, on_delete=models.SET_NULL, related_name="photos")
     image = models.ImageField(blank=False, upload_to=get_photo_path, storage=protected_storage)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="photos")
 
     def __str__(self):
         return self.title
