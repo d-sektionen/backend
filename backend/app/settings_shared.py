@@ -153,8 +153,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(hours=24),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(hours=24),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     # To allow some wiggleroom for clients to retrieve new tokens. This accounts for unsynced clocks and network delay.
