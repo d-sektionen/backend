@@ -92,9 +92,7 @@ def generate_mail_context(
         "instagram_url": settings.INFO_DSEKTIONEN_INSTAGRAM_URL,
         "facebook_url": settings.INFO_DSEKTIONEN_FACEBOOK_URL,
         "facebook_group_url": settings.INFO_DSEKTIONEN_FACEBOOK_GROUP_URL,
-        "facebook_sell_group_url": getattr(
-            settings, "INFO_DSEKTIONEN_FACEBOOK_SELL_GROUP_URL", ""
-        ),
+        "facebook_sell_group_url": settings.INFO_DSEKTIONEN_FACEBOOK_SELL_GROUP_URL,
         "more_social_media_url": settings.INFO_DSEKTIONEN_MORE_SOCIAL_MEDIA_URL,
         "calendar_url": settings.INFO_CALENDAR_ICAL_URL,
         "subject": subject,
