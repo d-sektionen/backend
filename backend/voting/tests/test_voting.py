@@ -18,7 +18,9 @@ class VotingTest(AuthenticatedTestCase):
     def setUpTestData(cls):
         cls.meeting = MeetingFactory.create(open_attendance=True)
 
-        cls.attendants = AttendantFactory.create_batch(NB_OF_ATTENDANTS, meeting=cls.meeting)
+        cls.attendants = AttendantFactory.create_batch(
+            NB_OF_ATTENDANTS, meeting=cls.meeting
+        )
 
         cls.alternatives = AlternativeFactory.create_batch(
             NB_OF_ALTERNATIVES, vote=cls.meeting.current_vote
@@ -34,7 +36,9 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 200)
         db_alternative = Alternative.objects.filter(id=alternative.id).first()
@@ -45,7 +49,9 @@ class VotingTest(AuthenticatedTestCase):
         alternative = AlternativeFactory.create(vote=meeting.current_vote)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -56,7 +62,9 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -66,7 +74,9 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 200)
         db_alternative = Alternative.objects.filter(id=alternative.id).first()
@@ -77,7 +87,9 @@ class VotingTest(AuthenticatedTestCase):
         alternative = AlternativeFactory.create(vote=meeting.current_vote)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -87,7 +99,9 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.delete("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.delete(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 405)
 
@@ -98,6 +112,8 @@ class VotingTest(AuthenticatedTestCase):
         MadeVoteFactory.create(user=self.member, vote=meeting.current_vote)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)

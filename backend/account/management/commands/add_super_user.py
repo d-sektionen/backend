@@ -7,15 +7,15 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # Creates a list with one or more users supplied from command line.
-        parser.add_argument('username', nargs='+', type=str)
+        parser.add_argument("username", nargs="+", type=str)
 
     def handle(self, *args, **kwargs):
-        for name in kwargs['username']:
+        for name in kwargs["username"]:
             try:
                 user = User.objects.get(username=name)
             except Exception:
                 self.stdout.write(f"Can't find user {name}")
-                continue # Continue to try and find next user
+                continue  # Continue to try and find next user
 
             # Make user admin
             user.is_staff = True

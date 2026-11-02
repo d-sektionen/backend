@@ -25,7 +25,6 @@ class MeetingAdminSerializer(serializers.ModelSerializer):
 
 
 class MeetingSerializer(serializers.ModelSerializer):
-
     attending = serializers.SerializerMethodField()
 
     def get_attending(self, obj):
@@ -71,13 +70,15 @@ class AttendantSerializer(serializers.ModelSerializer):
             user = User.objects.get(username=data["user"])
             attendant = Attendant.objects.get(meeting=data["meeting"], user=user)
         except User.DoesNotExist:
-            raise serializers.ValidationError(f"User not found: '{data["user"]}'")
+            raise serializers.ValidationError(f"User not found: '{data['user']}'")
         except Attendant.DoesNotExist:
             attendant = None
 
         if attendant:
-            raise serializers.ValidationError(f"Unique constraint violation: User '{data["user"]}' is already in meeting '{data["meeting"]}'.")
-        
+            raise serializers.ValidationError(
+                f"Unique constraint violation: User '{data['user']}' is already in meeting '{data['meeting']}'."
+            )
+
         return data
 
     def validate_user_username(self, value):

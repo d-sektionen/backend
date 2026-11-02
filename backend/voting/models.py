@@ -88,7 +88,9 @@ class Meeting(EventBase):
     def get_status_message(self):
         attendee_count = Attendant.objects.filter(meeting__id=self.id).count()
         count_str = str(attendee_count)
-        status_str = "Meeting currently has "+str(count_str)+" registered attendees."
+        status_str = (
+            "Meeting currently has " + str(count_str) + " registered attendees."
+        )
         return status_str
 
 
@@ -97,7 +99,9 @@ class Attendant(models.Model):
     meeting = models.ForeignKey(
         Meeting, null=False, related_name="attendants", on_delete=models.CASCADE
     )
-    has_voting_rights = models.BooleanField(default=True)  # OBS: se till att den sätts till False för personer som adjungeras in genom D-cide på medlemssidan.
+    has_voting_rights = models.BooleanField(
+        default=True
+    )  # OBS: se till att den sätts till False för personer som adjungeras in genom D-cide på medlemssidan.
 
     # OBS: vad händer om en mötesadmin klickar på "Återställ deltagarlistan"...?
 

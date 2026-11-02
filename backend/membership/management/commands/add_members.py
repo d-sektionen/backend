@@ -3,6 +3,7 @@ import json
 
 from ...models import Member, ProgramRegistration
 
+
 class Command(BaseCommand):
     help = """
     Imports users from a json file.
@@ -22,22 +23,24 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument('inputfile', type=str, help='The json file for the input.')
+        parser.add_argument("inputfile", type=str, help="The json file for the input.")
 
     def handle(self, *args, **kwargs):
-        inputfile = kwargs['inputfile']
+        inputfile = kwargs["inputfile"]
 
         data = None
         with open(inputfile) as f:
             data = json.load(f)
 
         for program in data:
-          for member in data[program]:
-            obj, created = Member.objects.get_or_create(
-              liu_id=member['liu_id'],
-              defaults={
-                'first_name': member['first_name'],
-                'last_name': member['last_name']
-              }
-            )
-            ProgramRegistration.objects.get_or_create(member=obj, registration=program)
+            for member in data[program]:
+                obj, created = Member.objects.get_or_create(
+                    liu_id=member["liu_id"],
+                    defaults={
+                        "first_name": member["first_name"],
+                        "last_name": member["last_name"],
+                    },
+                )
+                ProgramRegistration.objects.get_or_create(
+                    member=obj, registration=program
+                )

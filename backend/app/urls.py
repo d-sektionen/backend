@@ -36,12 +36,16 @@ from ..committee import urls as committee_urls
 from ..locks import urls as locks_urls
 from ..mail import urls as mail_urls
 
+from .views import index
+
 
 def redirect_to_my_auth(request):
     return redirect_to_login(reverse("wagtailadmin_home"), login_url="/account/login")
 
 
 urlpatterns = [
+    # Index
+    re_path(r"^$", index),
     # Admin pages
     re_path(r"^admin/", admin.site.urls),
     # Account
