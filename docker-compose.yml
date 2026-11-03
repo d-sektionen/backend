@@ -9,6 +9,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgresql_data:/var/lib/postgresql/data
+    command: >
+      postgres 
+      -c synchronous_commit=off
+      -c shared_buffers=256MB
+      -c max_wal_size=2GB
     ports:
       - 5432:5432
     networks:
