@@ -1,5 +1,5 @@
 from django.db import IntegrityError, transaction
-from django.db.models import Exists, F, OuterRef, Q, ObjectDoesNotExist
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q, ObjectDoesNotExist
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -10,7 +10,15 @@ from ..app.permissions import FixedDjangoModelPermissions
 from ..account.permissions import AllowMembers
 from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
-from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
+from .models import (
+    Meeting,
+    Attendant,
+    Vote,
+    MadeVote,
+    Alternative,
+    Ballot,
+    SpeakerRequest,
+)
 from .casting import claim_vote, lock_choice, lock_eligibility
 from .signals import batch_notifications, queue_alternative_update
 from .serializers import (
@@ -34,10 +42,14 @@ def _with_meeting_reads(queryset, user):
     )
 
 
-def _with_vote_reads(queryset, user):
+def _with_vote_reads(queryset, user, tallied=False):
+    alternatives = Alternative.objects.order_by("pk")
+    if tallied:
+        # One grouped query for every alternative of the fetched ballots.
+        alternatives = alternatives.annotate(num_votes=Count("ballot"))
     return queryset.annotate(
         _has_voted=Exists(MadeVote.objects.filter(user=user, vote_id=OuterRef("pk")))
-    ).prefetch_related("alternative_set")
+    ).prefetch_related(Prefetch("alternative_set", queryset=alternatives))
 
 
 class NoDeleteViewSet(
@@ -272,7 +284,9 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
                         raise exceptions.ParseError(f'Invalid "{parameter}"')
                     queryset = queryset.filter(meeting_id=meeting_id)
         if self.action in ("list", "retrieve"):
-            return _with_vote_reads(queryset, self.request.user)
+            return _with_vote_reads(
+                queryset, self.request.user, tallied=self.action == "retrieve"
+            )
         return queryset
 
     def get_serializer_class(self):
@@ -302,9 +316,22 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
 class MadeVoteViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
 
-    # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it:
-    @transaction.atomic
     def create(self, request):
+        try:
+            with transaction.atomic():
+                return self._cast(request)
+        except IntegrityError:
+            # Foreign keys are checked at commit (deferred): the alternative was
+            # deleted after it was validated. Nothing was recorded.
+            return Response(
+                {
+                    "error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def _cast(self, request):
+        """Validate and record one vote: a receipt row plus an anonymous ballot."""
         if "vote_id" not in request.data:
             raise exceptions.ParseError(detail='Missing required parameter "vote_id"')
 
@@ -350,18 +377,10 @@ class MadeVoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Update the reference by performing the addition directly in the database (using reference F)
-        updated = Alternative.objects.filter(pk=alternative.id, vote_id=vote_id).update(
-            num_votes=F("num_votes") + 1
-        )
-        if not updated:
-            transaction.set_rollback(True)
-            return Response(
-                {
-                    "error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        # Record the choice as its own anonymous row. An insert never waits for
+        # other voters, unlike incrementing a counter shared by everyone who
+        # picked the same alternative.
+        Ballot.objects.create(alternative_id=alternative.id)
 
         queue_alternative_update(
             alternative.id, alternative.text, vote_id, alternative.meeting_id

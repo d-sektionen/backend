@@ -7,7 +7,14 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from backend.account.tests.utils import AuthenticatedTestCase
-from backend.voting.models import Alternative, Attendant, MadeVote, Meeting, Vote
+from backend.voting.models import (
+    Alternative,
+    Attendant,
+    Ballot,
+    MadeVote,
+    Meeting,
+    Vote,
+)
 
 
 class VotingReadTests(AuthenticatedTestCase):
@@ -16,9 +23,8 @@ class VotingReadTests(AuthenticatedTestCase):
         with patch("backend.voting.signals.emit_event"):
             cls.meeting = Meeting.objects.create(name="Reads", clear_data=date.today())
             cls.vote = Vote.objects.create(meeting=cls.meeting, question="Current")
-            cls.alternative = Alternative.objects.create(
-                vote=cls.vote, text="Yes", num_votes=1
-            )
+            cls.alternative = Alternative.objects.create(vote=cls.vote, text="Yes")
+            Ballot.objects.create(alternative=cls.alternative)
             Attendant.objects.create(user=cls.member, meeting=cls.meeting)
             MadeVote.objects.create(user=cls.member, vote=cls.vote)
 

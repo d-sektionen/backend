@@ -2,7 +2,7 @@ from datetime import date
 from unittest.mock import patch
 
 from backend.account.tests.utils import AuthenticatedTestCase
-from backend.voting.models import Alternative, MadeVote, Meeting
+from backend.voting.models import Ballot, MadeVote, Meeting
 
 
 class MeetingWorkflowTests(AuthenticatedTestCase):
@@ -95,7 +95,7 @@ class MeetingWorkflowTests(AuthenticatedTestCase):
             self.assertFalse(self.member_client.get(url).data[0]["has_voted"])
             self.assertEqual(MadeVote.objects.filter(vote_id=ballot["id"]).count(), 1)
             self.assertEqual(
-                Alternative.objects.get(pk=body["alternative_id"]).num_votes, 1
+                Ballot.objects.filter(alternative_id=body["alternative_id"]).count(), 1
             )
             self.assertEqual(
                 self.admin_client.get(results_url).data["alternatives"][0]["num_votes"],

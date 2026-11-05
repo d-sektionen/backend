@@ -8,13 +8,19 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.db import connection, connections
-from django.db.models.query import QuerySet
 from django.test import TransactionTestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from backend.membership.models import Member
-from backend.voting.casting import claim_vote
-from backend.voting.models import Alternative, Attendant, MadeVote, Meeting, Vote
+from backend.voting.casting import claim_vote, lock_choice
+from backend.voting.models import (
+    Alternative,
+    Attendant,
+    Ballot,
+    MadeVote,
+    Meeting,
+    Vote,
+)
 from backend.voting.views import MadeVoteViewSet
 
 
@@ -61,14 +67,7 @@ class VoteConcurrencyTests(TransactionTestCase):
                 )
         self.assertEqual(sorted(statuses), [200, 403])
         self.assertEqual(MadeVote.objects.filter(vote=self.vote).count(), 1)
-        self.assertEqual(
-            sum(
-                Alternative.objects.filter(vote=self.vote).values_list(
-                    "num_votes", flat=True
-                )
-            ),
-            1,
-        )
+        self.assertEqual(Ballot.objects.filter(alternative__vote=self.vote).count(), 1)
 
     def test_publication_runs_after_commit_and_failure_does_not_reject_vote(self):
         observed = []
@@ -87,29 +86,42 @@ class VoteConcurrencyTests(TransactionTestCase):
         self.assertEqual(set(observed[0][2]), {"id", "text", "vote", "meeting"})
         self.assertEqual(self.submit(self.alternatives[1].pk), 403)
         self.assertEqual(MadeVote.objects.count(), 1)
-        self.alternatives[0].refresh_from_db()
-        self.assertEqual(self.alternatives[0].num_votes, 1)
+        self.assertEqual(
+            Ballot.objects.filter(alternative=self.alternatives[0]).count(), 1
+        )
 
-    def test_counter_failure_rolls_back_receipt_without_publication(self):
+    def test_ballot_failure_rolls_back_receipt_without_publication(self):
         from django.db import DatabaseError
 
         self.publication.reset_mock()
-        with patch.object(QuerySet, "update", side_effect=DatabaseError("failure")):
+        with patch.object(
+            Ballot.objects, "create", side_effect=DatabaseError("failure")
+        ):
             with self.assertRaises(DatabaseError):
                 self.submit(self.alternatives[0].pk)
         self.assertFalse(MadeVote.objects.exists())
-        self.alternatives[0].refresh_from_db()
-        self.assertEqual(self.alternatives[0].num_votes, 0)
+        self.assertFalse(Ballot.objects.exists())
         self.publication.assert_not_called()
 
-    def test_missing_counter_rolls_back_receipt_without_publication(self):
+    def test_deleted_alternative_rolls_back_receipt_without_publication(self):
+        def lock_then_lose_choice(alternative_id):
+            choice = lock_choice(alternative_id)
+            # Alternatives are not locked by voters; an admin edit can remove
+            # one between validation and the ballot insert. The deferred
+            # foreign key then fails at commit.
+            Alternative.objects.filter(pk=alternative_id).delete()
+            return choice
+
         self.publication.reset_mock()
-        with patch.object(QuerySet, "update", return_value=0):
+        with patch("backend.voting.views.lock_choice", lock_then_lose_choice):
             self.assertEqual(self.submit(self.alternatives[0].pk), 404)
         self.assertFalse(MadeVote.objects.exists())
-        self.alternatives[0].refresh_from_db()
-        self.assertEqual(self.alternatives[0].num_votes, 0)
-        self.publication.assert_not_called()
+        self.assertFalse(Ballot.objects.exists())
+        self.assertTrue(Alternative.objects.filter(pk=self.alternatives[0].pk).exists())
+        # The rolled-back deletion published its own signal; the vote did not.
+        self.assertNotIn(
+            "update_alternative", [c.args[0] for c in self.publication.call_args_list]
+        )
 
     def test_revoked_voting_rights_reject_without_counting(self):
         Attendant.objects.filter(user=self.user).update(has_voting_rights=False)
@@ -149,8 +161,9 @@ class VoteConcurrencyTests(TransactionTestCase):
         self.assertTrue(blocked, "Vote did not synchronize with in-flight revocation")
         self.assertEqual(status, 403)
         self.assertFalse(MadeVote.objects.exists())
-        self.alternatives[0].refresh_from_db()
-        self.assertEqual(self.alternatives[0].num_votes, 0)
+        self.assertEqual(
+            Ballot.objects.filter(alternative=self.alternatives[0]).count(), 0
+        )
 
     def test_concurrent_ballot_closure(self):
         self.assert_revocation_precedes_vote(
@@ -258,8 +271,9 @@ class VoteConcurrencyTests(TransactionTestCase):
                 with self.assertRaises(OperationalError):
                     cast.result(timeout=10)
         self.assertFalse(MadeVote.objects.exists())
-        self.alternatives[0].refresh_from_db()
-        self.assertEqual(self.alternatives[0].num_votes, 0)
+        self.assertEqual(
+            Ballot.objects.filter(alternative=self.alternatives[0]).count(), 0
+        )
 
         client = APIClient()
         client.force_authenticate(self.user)
@@ -268,5 +282,6 @@ class VoteConcurrencyTests(TransactionTestCase):
         self.assertEqual(self.submit(self.alternatives[1].pk), 200)
         self.assertTrue(client.get(url).data[0]["has_voted"])
         self.assertEqual(self.submit(self.alternatives[0].pk), 403)
-        self.alternatives[1].refresh_from_db()
-        self.assertEqual(self.alternatives[1].num_votes, 1)
+        self.assertEqual(
+            Ballot.objects.filter(alternative=self.alternatives[1]).count(), 1
+        )

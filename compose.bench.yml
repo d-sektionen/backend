@@ -1,0 +1,29 @@
+# Benchmark overlay for the development stack. Never use in production.
+#
+#   docker compose -f docker-compose.yml -f compose.bench.yml up -d --build postgres redis backend
+#   docker compose -f docker-compose.yml -f compose.bench.yml exec backend \
+#       python manage.py bench_voting --voters 200 --concurrency 50
+#
+# - postgres: every fsync/fdatasync sleeps FSYNC_DELAY_MS, imitating slow
+#   network-attached storage (see benchmark/postgres-slow-fsync).
+# - backend: runs several worker processes without auto-reload, like
+#   production (gunicorn.conf.py uses four uvicorn workers).
+services:
+  postgres:
+    build: ./benchmark/postgres-slow-fsync
+    image: backend-bench-postgres
+    environment:
+      FSYNC_DELAY_MS: ${FSYNC_DELAY_MS:-20}
+
+  backend:
+    entrypoint:
+      [
+        "uvicorn",
+        "backend.app.asgi:application",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--workers",
+        "4",
+      ]

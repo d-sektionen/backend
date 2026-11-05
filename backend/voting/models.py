@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -147,7 +149,6 @@ def update_current_vote(sender, instance, created, **kwargs):
 
 class Alternative(models.Model):
     text = models.CharField(max_length=64)
-    num_votes = models.IntegerField(default=0)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
 
     @staticmethod
@@ -155,7 +156,21 @@ class Alternative(models.Model):
         return "Alternativ"
 
 
+class Ballot(models.Model):
+    """One accepted choice. Never stores who cast it; see MadeVote for that.
+
+    Each cast vote appends one row here instead of incrementing a shared
+    counter on the alternative. Concurrent voters therefore never wait for
+    each other's row lock (and, on slow storage, for each other's commit).
+    Tallies are COUNT queries over this table.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    alternative = models.ForeignKey(Alternative, null=False, on_delete=models.CASCADE)
+
+
 class MadeVote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # The unique index below already supports user-prefix lookups/deletion.
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE, db_index=False)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)

@@ -13,6 +13,7 @@ from backend.membership.tests.factories import MemberFactory
 from backend.voting.models import (
     Alternative,
     Attendant,
+    Ballot,
     MadeVote,
     Meeting,
     SpeakerRequest,
@@ -31,7 +32,8 @@ class EndpointQueryTests(AuthenticatedTestCase):
             )
             Attendant.objects.create(user=cls.member, meeting=cls.meeting)
             cls.vote = Vote.objects.create(meeting=cls.meeting, question="Current")
-            Alternative.objects.create(vote=cls.vote, text="Yes", num_votes=1)
+            yes = Alternative.objects.create(vote=cls.vote, text="Yes")
+            Ballot.objects.create(alternative=yes)
             MadeVote.objects.create(user=cls.member, vote=cls.vote)
             SpeakerRequest.objects.create(user=cls.member, meeting=cls.meeting)
 
@@ -184,7 +186,7 @@ class EndpointQueryTests(AuthenticatedTestCase):
             all(c.args[0] == "delete_attendant" for c in emit.call_args_list)
         )
         self.assertEqual(MadeVote.objects.filter(vote=self.vote).count(), 1)
-        self.assertEqual(Alternative.objects.get(vote=self.vote).num_votes, 1)
+        self.assertEqual(Ballot.objects.filter(alternative__vote=self.vote).count(), 1)
 
     def test_admin_attendee_creation_reuses_the_validated_user(self):
         guest = UserFactory()
@@ -405,7 +407,7 @@ class AdminAlternativeConcurrencyTests(TransactionTestCase):
         self.assertTrue(injected)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(MadeVote.objects.filter(vote=vote).count(), 1)
-        self.assertEqual(Alternative.objects.get(pk=yes.pk).num_votes, 1)
+        self.assertEqual(Ballot.objects.filter(alternative=yes).count(), 1)
         self.assertEqual(Alternative.objects.get(pk=yes.pk).text, "Edited Yes")
 
 
