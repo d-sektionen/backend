@@ -28,6 +28,8 @@ class MeetingSerializer(serializers.ModelSerializer):
     attending = serializers.SerializerMethodField()
 
     def get_attending(self, obj):
+        if hasattr(obj, "_attending"):
+            return obj._attending
         current_user = self.context["request"].user
         return Attendant.objects.filter(user=current_user, meeting=obj).exists()
 
@@ -66,15 +68,10 @@ class AttendantSerializer(serializers.ModelSerializer):
     has_voting_rights = serializers.BooleanField(required=True)
 
     def validate(self, data):
-        try:
-            user = User.objects.get(username=data["user"])
-            attendant = Attendant.objects.get(meeting=data["meeting"], user=user)
-        except User.DoesNotExist:
-            raise serializers.ValidationError(f"User not found: '{data['user']}'")
-        except Attendant.DoesNotExist:
-            attendant = None
-
-        if attendant:
+        # SlugRelatedField already resolved and validated this User instance.
+        if Attendant.objects.filter(
+            meeting=data["meeting"], user=data["user"]
+        ).exists():
             raise serializers.ValidationError(
                 f"Unique constraint violation: User '{data['user']}' is already in meeting '{data['meeting']}'."
             )
@@ -85,8 +82,7 @@ class AttendantSerializer(serializers.ModelSerializer):
         """
         Validate that user and voting_rights are an allowed combination
         """
-        user = User.objects.get(username=value)
-        is_member = check_membership(user.get_username())
+        is_member = check_membership(value.get_username())
         requested_voting_rights = self.initial_data.get("has_voting_rights")
 
         if not is_member and requested_voting_rights is True:
@@ -132,6 +128,21 @@ class SelfAttendSerializer(serializers.ModelSerializer):
 
 
 class PublicAlternativeSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        # Nested updates also supply the parent vote. Cache that relation even
+        # when unchanged, but never save a stale num_votes from this instance:
+        # another request may have counted a vote since the child was loaded.
+        changed = []
+        for name, value in validated_data.items():
+            field = instance._meta.get_field(name)
+            incoming = value.pk if field.is_relation and value is not None else value
+            if getattr(instance, field.attname) != incoming:
+                changed.append(name)
+            setattr(instance, name, value)
+        if changed:
+            instance.save(update_fields=changed)
+        return instance
+
     class Meta:
         model = Alternative
         fields = ("id", "text")
@@ -152,6 +163,8 @@ class VoteListSerializer(WritableNestedModelSerializer):
         fields = ("id", "question", "open", "alternatives", "meeting", "has_voted")
 
     def get_has_voted(self, obj):
+        if hasattr(obj, "_has_voted"):
+            return obj._has_voted
         current_user = self.context["request"].user
         return MadeVote.objects.filter(user=current_user, vote=obj).exists()
 
