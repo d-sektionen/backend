@@ -147,12 +147,23 @@ def update_current_vote(sender, instance, created, **kwargs):
 
 class Alternative(models.Model):
     text = models.CharField(max_length=64)
-    num_votes = models.IntegerField(default=0)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
 
     @staticmethod
     def get_model_name():
         return "Alternativ"
+
+
+class Ballot(models.Model):
+    """One accepted choice. Never stores who cast it; see MadeVote for that.
+
+    Each cast vote appends one row here instead of incrementing a shared
+    counter on the alternative. Concurrent voters therefore never wait for
+    each other's row lock (and, on slow storage, for each other's commit).
+    Tallies are COUNT queries over this table.
+    """
+
+    alternative = models.ForeignKey(Alternative, null=False, on_delete=models.CASCADE)
 
 
 class MadeVote(models.Model):

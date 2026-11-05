@@ -128,27 +128,22 @@ class SelfAttendSerializer(serializers.ModelSerializer):
 
 
 class PublicAlternativeSerializer(serializers.ModelSerializer):
-    def update(self, instance, validated_data):
-        # Nested updates also supply the parent vote. Cache that relation even
-        # when unchanged, but never save a stale num_votes from this instance:
-        # another request may have counted a vote since the child was loaded.
-        changed = []
-        for name, value in validated_data.items():
-            field = instance._meta.get_field(name)
-            incoming = value.pk if field.is_relation and value is not None else value
-            if getattr(instance, field.attname) != incoming:
-                changed.append(name)
-            setattr(instance, name, value)
-        if changed:
-            instance.save(update_fields=changed)
-        return instance
-
+    # Saving an alternative never touches a tally: votes live in Ballot rows,
+    # so a nested update cannot overwrite votes cast since the child was loaded.
     class Meta:
         model = Alternative
         fields = ("id", "text")
 
 
 class PrivateAlternativeSerializer(serializers.ModelSerializer):
+    num_votes = serializers.SerializerMethodField()
+
+    def get_num_votes(self, obj):
+        # The admin result view annotates this in one query; count otherwise.
+        if hasattr(obj, "num_votes"):
+            return obj.num_votes
+        return obj.ballot_set.count()
+
     class Meta:
         model = Alternative
         fields = ("id", "text", "num_votes")

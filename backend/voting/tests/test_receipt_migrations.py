@@ -9,7 +9,7 @@ from django.test import TransactionTestCase
 @skipUnless(connection.vendor == "postgresql", "Verifies PostgreSQL schema and indexes")
 class ReceiptMigrationTests(TransactionTestCase):
     old = [("voting", "0012_auto_20240524_2224")]
-    new = [("voting", "0014_remove_redundant_receipt_index")]
+    new = [("voting", "0015_ballot_rows_replace_counters")]
 
     def setUp(self):
         executor = MigrationExecutor(connection)
@@ -44,7 +44,14 @@ class ReceiptMigrationTests(TransactionTestCase):
         self.assertEqual(self.Alternative.objects.get(pk=self.choice.pk).num_votes, 2)
 
     def test_upgrade_and_rollback_preserve_tally_and_index_coverage(self):
-        MigrationExecutor(connection).migrate(self.new)
+        executor = MigrationExecutor(connection)
+        executor.migrate(self.new)
+        Ballot = executor.loader.project_state(self.new).apps.get_model(
+            "voting", "Ballot"
+        )
+        self.assertEqual(
+            Ballot.objects.filter(alternative_id=self.choice.pk).count(), 1
+        )
         with connection.cursor() as cursor:
             indexes = connection.introspection.get_constraints(
                 cursor, "voting_madevote"
