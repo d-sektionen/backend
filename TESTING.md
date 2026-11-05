@@ -8,6 +8,10 @@ Tests can be run with the following command:
 A tests for a specific app can be run by specifying it in the command:
 `python manage.py test voting`
 
+By default the tests use an in-memory SQLite database. CI runs them against Postgres; to do the same locally, set `TEST_DATABASE=postgres` and point the `POSTGRES_*` variables at a running Postgres (for example the one from `docker compose up`):
+
+`TEST_DATABASE=postgres POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_NAME=django POSTGRES_USER=django POSTGRES_PASSWORD=django python manage.py test`
+
 The following libaries are used to test:
 
 * [factory_boy](https://factoryboy.readthedocs.io/en/stable/)
