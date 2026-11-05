@@ -19,7 +19,8 @@ permissions:
 
 jobs:
   lint:
-    name: Lint
+    # Job names are required status checks in the repo ruleset; keep them in sync.
+    name: Lint code (3.12)
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -44,7 +45,7 @@ jobs:
         run: ruff format --check .
 
   test:
-    name: Test (Postgres)
+    name: Unit tests (3.12)
     runs-on: ubuntu-latest
     services:
       postgres:
