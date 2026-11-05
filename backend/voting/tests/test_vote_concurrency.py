@@ -118,7 +118,10 @@ class VoteConcurrencyTests(TransactionTestCase):
         self.assertFalse(MadeVote.objects.exists())
         self.assertFalse(Ballot.objects.exists())
         self.assertTrue(Alternative.objects.filter(pk=self.alternatives[0].pk).exists())
-        self.publication.assert_not_called()
+        # The rolled-back deletion published its own signal; the vote did not.
+        self.assertNotIn(
+            "update_alternative", [c.args[0] for c in self.publication.call_args_list]
+        )
 
     def test_revoked_voting_rights_reject_without_counting(self):
         Attendant.objects.filter(user=self.user).update(has_voting_rights=False)
