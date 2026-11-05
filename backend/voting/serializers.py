@@ -6,6 +6,7 @@ from ..membership.utils import check_membership
 from ..account.serializers import SimpleUserSerializer
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
+from . import memory_buffer
 
 
 class MeetingAdminSerializer(serializers.ModelSerializer):
@@ -149,6 +150,13 @@ class PublicAlternativeSerializer(serializers.ModelSerializer):
 
 
 class PrivateAlternativeSerializer(serializers.ModelSerializer):
+    num_votes = serializers.SerializerMethodField()
+
+    def get_num_votes(self, obj):
+        if obj.vote.open:
+            return memory_buffer.snapshot(obj.vote_id)[1].get(obj.pk, 0)
+        return obj.num_votes
+
     class Meta:
         model = Alternative
         fields = ("id", "text", "num_votes")
@@ -163,6 +171,8 @@ class VoteListSerializer(WritableNestedModelSerializer):
         fields = ("id", "question", "open", "alternatives", "meeting", "has_voted")
 
     def get_has_voted(self, obj):
+        if obj.open:
+            return memory_buffer.has_voted(obj.pk, self.context["request"].user.pk)
         if hasattr(obj, "_has_voted"):
             return obj._has_voted
         current_user = self.context["request"].user

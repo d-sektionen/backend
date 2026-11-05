@@ -11,8 +11,9 @@ from ..account.permissions import AllowMembers
 from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
 from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
-from .casting import claim_vote, lock_choice, lock_eligibility
-from .signals import batch_notifications, queue_alternative_update
+from .casting import lock_choice, lock_eligibility
+from . import memory_buffer
+from .signals import batch_notifications, queue_alternative_update, _queue_event
 from .serializers import (
     MeetingSerializer,
     MeetingAdminSerializer,
@@ -258,6 +259,75 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
     queryset = Vote.objects.all()
     permission_classes = (FixedDjangoModelPermissions,)
 
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            meeting = Meeting.objects.select_for_update().get(
+                pk=serializer.validated_data["meeting"].pk
+            )
+            if meeting.current_vote_id and Vote.objects.filter(
+                pk=meeting.current_vote_id, open=True
+            ).exists():
+                raise exceptions.ValidationError(
+                    "Close or discard the current ballot before opening another."
+                )
+            vote = serializer.save()
+            if vote.open:
+                memory_buffer.initialize(vote.pk)
+
+    def update(self, request, *args, **kwargs):
+        # This prototype supports closing only; changing alternatives or
+        # reopening a ballot would invalidate the in-memory snapshot.
+        data = request.data
+        if data.get("open") is not False or set(data) - {
+            "open", "question", "meeting", "alternatives"
+        }:
+            raise exceptions.ValidationError("Only closing a ballot is supported by the voting prototype.")
+
+        vote = self.get_object()
+        with transaction.atomic():
+            vote = Vote.objects.select_for_update().get(pk=vote.pk)
+            if ("question" in data and data["question"] != vote.question) or (
+                "meeting" in data and str(data["meeting"]) != str(vote.meeting_id)
+            ):
+                raise exceptions.ValidationError("Ballot edits are not supported by the voting prototype.")
+            if "alternatives" in data:
+                supplied = data["alternatives"]
+                if not isinstance(supplied, list) or any(
+                    not isinstance(item, dict)
+                    or not isinstance(item.get("id"), (int, str))
+                    or not isinstance(item.get("text"), str)
+                    for item in supplied
+                ):
+                    raise exceptions.ValidationError("Ballot edits are not supported by the voting prototype.")
+                supplied_choices = sorted((str(item["id"]), item["text"]) for item in supplied)
+                current_choices = sorted(
+                    (str(pk), text) for pk, text in Alternative.objects.filter(vote=vote).values_list("pk", "text")
+                )
+                if supplied_choices != current_choices:
+                    raise exceptions.ValidationError("Ballot edits are not supported by the voting prototype.")
+            if vote.open:
+                # Keep a failed close frozen until retry: a lost DB connection
+                # can leave the commit outcome uncertain.
+                memory_buffer.freeze(vote.pk)
+                voters, counts = memory_buffer.snapshot(vote.pk)
+                alternatives = set(Alternative.objects.filter(vote=vote).values_list("pk", flat=True))
+                if not set(counts).issubset(alternatives) or sum(counts.values()) != len(voters):
+                    raise memory_buffer.BufferUnavailable("Invalid buffer; discard ballot and revote.")
+                MadeVote.objects.bulk_create(
+                    [MadeVote(user_id=user_id, vote_id=vote.pk) for user_id in voters],
+                    batch_size=500,
+                )
+                for alternative_id, count in counts.items():
+                    Alternative.objects.filter(pk=alternative_id, vote=vote).update(
+                        num_votes=F("num_votes") + count
+                    )
+                Vote.objects.filter(pk=vote.pk).update(open=False)
+                vote.open = False
+                transaction.on_commit(lambda: memory_buffer.discard(vote.pk))
+                _queue_event("delete_vote", {"id": vote.pk, "meeting": vote.meeting_id},
+                             f"meeting_votes_{vote.meeting_id}")
+        return Response(self.get_serializer(vote).data)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.action == "list":
@@ -294,7 +364,10 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
             meeting_id=request.query_params["meeting_id"],
         )
         if vote:
+            vote_ids = list(vote.values_list("pk", flat=True))
             vote.delete()
+            for vote_id in vote_ids:
+                transaction.on_commit(lambda vote_id=vote_id: memory_buffer.discard(vote_id))
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -344,23 +417,10 @@ class MadeVoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if not claim_vote(request.user.pk, vote_id):
+        if not memory_buffer.cast(vote_id, request.user.pk, alternative.id):
             return Response(
                 {"error": "Du har redan röstat i den här omröstningen"},
                 status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # Update the reference by performing the addition directly in the database (using reference F)
-        updated = Alternative.objects.filter(pk=alternative.id, vote_id=vote_id).update(
-            num_votes=F("num_votes") + 1
-        )
-        if not updated:
-            transaction.set_rollback(True)
-            return Response(
-                {
-                    "error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"
-                },
-                status=status.HTTP_404_NOT_FOUND,
             )
 
         queue_alternative_update(

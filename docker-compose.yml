@@ -23,6 +23,13 @@ services:
       - internal
       - default
 
+  # Experimental vote buffer: losing this container requires a revote.
+  voting-buffer:
+    image: redis:7
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - internal
+
   backend:
     build:
       context: .
@@ -39,6 +46,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      VOTING_BUFFER_REDIS_URL: redis://voting-buffer:6379/0
     env_file:
       - .env
     networks:
@@ -51,6 +59,7 @@ services:
         user: root
     depends_on:
       - postgres
+      - voting-buffer
 
   home_assistant:
     container_name: D-sektionen-HA
