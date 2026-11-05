@@ -6,6 +6,7 @@ parallel voters while blocking edits/deletion of the validated state.
 """
 
 from dataclasses import dataclass
+from uuid import uuid4
 
 from django.db import IntegrityError, connection, transaction
 
@@ -88,11 +89,11 @@ def claim_vote(user_id, vote_id):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO voting_madevote (user_id, vote_id) VALUES (%s, %s)
+                INSERT INTO voting_madevote (id, user_id, vote_id) VALUES (%s, %s, %s)
                 ON CONFLICT ON CONSTRAINT one_vote_per_user DO NOTHING
                 RETURNING id
                 """,
-                [user_id, vote_id],
+                [uuid4(), user_id, vote_id],
             )
             return cursor.fetchone() is not None
 

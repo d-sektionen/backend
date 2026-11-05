@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -163,10 +165,12 @@ class Ballot(models.Model):
     Tallies are COUNT queries over this table.
     """
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     alternative = models.ForeignKey(Alternative, null=False, on_delete=models.CASCADE)
 
 
 class MadeVote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # The unique index below already supports user-prefix lookups/deletion.
     user = models.ForeignKey(User, null=False, on_delete=models.CASCADE, db_index=False)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
