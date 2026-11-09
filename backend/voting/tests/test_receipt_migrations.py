@@ -9,7 +9,7 @@ from django.test import TransactionTestCase
 @skipUnless(connection.vendor == "postgresql", "Verifies PostgreSQL schema and indexes")
 class ReceiptMigrationTests(TransactionTestCase):
     old = [("voting", "0012_auto_20240524_2224")]
-    new = [("voting", "0015_ballot_rows_replace_counters")]
+    new = [("voting", "0017_random_receipt_ids")]
 
     def setUp(self):
         executor = MigrationExecutor(connection)
