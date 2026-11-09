@@ -21,26 +21,33 @@ def send(subject: str, body: str, *recipient_emails: str):
         use_tls=True,
     ) as connection:
         EmailMessage(
-            subject,
-            body,
-            NOREPLY_EMAIL,
-            recipient_emails,
-            connection=connection
+            subject, body, NOREPLY_EMAIL, recipient_emails, connection=connection
         ).send()
 
 
 def send_new_entry_mails(creator: User, entry: BudgetEntry):
     # Send e-mail to the concerned committee's treasurer
     treasurer_subject = "Ett nytt personligt utlägg finns att granska"
-    treasurer_body = "Hej!\n"+str(creator.get_full_name()) +" har fyllt ut ett nytt personligt utlägg som gäller ditt utskott. Gå in och granska det här: [länk]"  # TODO: fill in link
+    treasurer_body = (
+        "Hej!\n"
+        + str(creator.get_full_name())
+        + " har fyllt ut ett nytt personligt utlägg som gäller ditt utskott. Gå in och granska det här: [länk]"
+    )  # TODO: fill in link
     send(treasurer_subject, treasurer_body, entry.committee.treasurer_email)  # type: ignore[attr-defined]
 
     # Send e-mail to all DEG members
     deg_committee = Committee.objects.filter(name="deg").first()  # type: ignore[attr-defined]
     if deg_committee:
         deg_subject = "Ett nytt personligt utlägg finns att granska"
-        deg_body = "Hej!\nDet finns ett nytt personligt utlägg för" + str(entry.committee.name) + "för dig att granska och bokföra, du hittar utlägget här: [länk]"  # TODO: fill in link
-        deg_emails = [str(x.first_name)+"."+str(x.last_name)+"@d-sektionen.se" for x in deg_committee.members.all()]
+        deg_body = (
+            "Hej!\nDet finns ett nytt personligt utlägg för"
+            + str(entry.committee.name)
+            + "för dig att granska och bokföra, du hittar utlägget här: [länk]"
+        )  # TODO: fill in link
+        deg_emails = [
+            str(x.first_name) + "." + str(x.last_name) + "@d-sektionen.se"
+            for x in deg_committee.members.all()
+        ]
         send(deg_subject, deg_body, *deg_emails)
     else:
         print("A committee for DEG does not exist in the backend.")
@@ -59,7 +66,13 @@ def send_entry_denied_mail(denier: User, entry: BudgetEntry):
 
 
 def send_unpayed_entries_mail(entry: BudgetEntry):
-    unpayed_entry_count = BudgetEntry.objects.filter(payed=False, approvedDeg=True, committee__treasurer=entry.committee.treasurer).count()  # type: ignore[attr-defined]
+    unpayed_entry_count = BudgetEntry.objects.filter(
+        payed=False, approvedDeg=True, committee__treasurer=entry.committee.treasurer
+    ).count()  # type: ignore[attr-defined]
     subject = str(unpayed_entry_count) + "bokförda utlägg finns att betala ut"
-    body = "Hej! Det finns "+str(unpayed_entry_count)+" nya bokförda personliga utlägg för dig att betala ut. Du kommer åt dem här: [länk]"  # TODO: fill in link
+    body = (
+        "Hej! Det finns "
+        + str(unpayed_entry_count)
+        + " nya bokförda personliga utlägg för dig att betala ut. Du kommer åt dem här: [länk]"
+    )  # TODO: fill in link
     send(subject, body, entry.committee.treasurer_email)  # type: ignore[attr-defined]

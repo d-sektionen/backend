@@ -14,11 +14,14 @@ NB_OF_ALTERNATIVES = 4
 
 class AttendantTest(AuthenticatedTestCase):
     """Tests for endpoints under /voting/attendants and /voting/attend."""
+
     @classmethod
     def setUpTestData(cls):
         cls.meeting = MeetingFactory.create(open_attendance=True)
 
-        cls.attendants = AttendantFactory.create_batch(NB_OF_ATTENDANTS, meeting=cls.meeting)
+        cls.attendants = AttendantFactory.create_batch(
+            NB_OF_ATTENDANTS, meeting=cls.meeting
+        )
 
         cls.alternatives = AlternativeFactory.create_batch(
             NB_OF_ALTERNATIVES, vote=cls.meeting.current_vote
@@ -27,12 +30,16 @@ class AttendantTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=cls.meeting, user=cls.member)
 
     def test_list_attendants_as_attending_member(self):
-        response = self.member_client.get(f"/voting/attendants/?meeting_id={self.meeting.id}")
+        response = self.member_client.get(
+            f"/voting/attendants/?meeting_id={self.meeting.id}"
+        )
 
         self.assertEqual(response.status_code, 403)
 
     def test_list_attendants_as_admin(self):
-        response = self.admin_client.get(f"/voting/attendants/?meeting_id={self.meeting.id}")
+        response = self.admin_client.get(
+            f"/voting/attendants/?meeting_id={self.meeting.id}"
+        )
 
         self.assertEqual(response.status_code, 200)
 

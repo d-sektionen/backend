@@ -37,7 +37,7 @@ def _sanitize_html(content: str) -> str:
         "li",
         "a",
         "img",
-        "pre"
+        "pre",
     }
 
     allowed_attributes = {
@@ -184,9 +184,11 @@ def _fetch_events() -> list[EventDict]:
     # Sort all events by start time (earliest first)
     # Events without start time are sorted to the end
     events.sort(
-        key=lambda e: to_datetime(e.get("dtstart"))
-        if e.get("dtstart")
-        else datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
+        key=lambda e: (
+            to_datetime(e.get("dtstart"))
+            if e.get("dtstart")
+            else datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
+        )
     )
 
     # Filter to only include events that haven't started yet

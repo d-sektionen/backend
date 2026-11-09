@@ -1,5 +1,5 @@
 from ...account.tests.utils import AuthenticatedTestCase
-from ..models import Alternative
+from ..models import Ballot
 from .factories import (
     AlternativeFactory,
     AttendantFactory,
@@ -18,7 +18,9 @@ class VotingTest(AuthenticatedTestCase):
     def setUpTestData(cls):
         cls.meeting = MeetingFactory.create(open_attendance=True)
 
-        cls.attendants = AttendantFactory.create_batch(NB_OF_ATTENDANTS, meeting=cls.meeting)
+        cls.attendants = AttendantFactory.create_batch(
+            NB_OF_ATTENDANTS, meeting=cls.meeting
+        )
 
         cls.alternatives = AlternativeFactory.create_batch(
             NB_OF_ALTERNATIVES, vote=cls.meeting.current_vote
@@ -34,18 +36,21 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 200)
-        db_alternative = Alternative.objects.filter(id=alternative.id).first()
-        self.assertEqual(db_alternative.num_votes, 1)
+        self.assertEqual(Ballot.objects.filter(alternative=alternative).count(), 1)
 
     def test_voting_as_unattending_member(self):
         meeting = MeetingFactory.create(open_attendance=True)
         alternative = AlternativeFactory.create(vote=meeting.current_vote)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -56,7 +61,9 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -66,18 +73,21 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 200)
-        db_alternative = Alternative.objects.filter(id=alternative.id).first()
-        self.assertEqual(db_alternative.num_votes, 1)
+        self.assertEqual(Ballot.objects.filter(alternative=alternative).count(), 1)
 
     def test_voting_on_closed_meeting_as_unattending_member(self):
         meeting = MeetingFactory.create(open_attendance=False)
         alternative = AlternativeFactory.create(vote=meeting.current_vote)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
 
@@ -87,7 +97,9 @@ class VotingTest(AuthenticatedTestCase):
         AttendantFactory.create(meeting=meeting, user=self.member)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.delete("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.delete(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 405)
 
@@ -98,6 +110,8 @@ class VotingTest(AuthenticatedTestCase):
         MadeVoteFactory.create(user=self.member, vote=meeting.current_vote)
 
         data = {"vote_id": meeting.current_vote.id, "alternative_id": alternative.id}
-        response = self.member_client.post("/voting/made_votes/", data=data, format="json")
+        response = self.member_client.post(
+            "/voting/made_votes/", data=data, format="json"
+        )
 
         self.assertEqual(response.status_code, 403)
