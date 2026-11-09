@@ -20,6 +20,11 @@ def check_membership(liu_id):
     return member.membership_type == "S"
 
 
+def student_member_liu_ids():
+    """A live subquery for membership-based bulk operations; never a cache."""
+    return Member.objects.filter(membership_type="S").values_list("liu_id", flat=True)
+
+
 """
 Gets the first_name and last_name of a liu_id.
 
