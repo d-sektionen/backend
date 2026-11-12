@@ -9,7 +9,6 @@ from django.test import SimpleTestCase
 from backend.app import settings_test, sockets
 
 PG_ENV = {
-    "TEST_DATABASE": "postgres",
     "POSTGRES_NAME": "ci_db",
     "POSTGRES_USER": "ci_user",
     "POSTGRES_PASSWORD": "ci_pw",
@@ -34,18 +33,15 @@ class SettingsTestModuleTests(SimpleTestCase):
         # Restore the module to what the real environment produces.
         importlib.reload(settings_test)
 
-    def test_default_is_sqlite_in_memory_even_if_postgres_host_is_set(self):
-        # .env sets POSTGRES_HOST=postgres for Docker; that must not flip the DB.
-        module = reload_settings_module(
-            {"POSTGRES_HOST": "postgres"}, remove=["TEST_DATABASE"]
-        )
+    def test_test_database_sqlite_is_in_memory_even_if_postgres_env_is_set(self):
+        module = reload_settings_module({**PG_ENV, "TEST_DATABASE": "sqlite"})
         self.assertEqual(
             module.DATABASES["default"],
             {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
         )
 
-    def test_test_database_postgres_reads_postgres_env(self):
-        module = reload_settings_module(PG_ENV)
+    def test_default_is_postgres_from_postgres_env(self):
+        module = reload_settings_module(PG_ENV, remove=["TEST_DATABASE"])
         self.assertEqual(
             module.DATABASES["default"],
             {

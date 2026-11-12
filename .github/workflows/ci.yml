@@ -62,7 +62,6 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      TEST_DATABASE: postgres
       POSTGRES_HOST: localhost
       POSTGRES_PORT: "5432"
       POSTGRES_NAME: django

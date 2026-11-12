@@ -26,10 +26,17 @@ MICROSOFT_IDENTITY = Auth(
 
 
 # Database
-# TEST_DATABASE=postgres is an explicit switch (used by CI). Do not key this on
-# POSTGRES_HOST: .env sets POSTGRES_HOST=postgres for Docker, which would break a
-# plain local `python manage.py test`.
-if os.getenv("TEST_DATABASE") == "postgres":
+# Tests run against Postgres by default: some tests need it (row locking, schema
+# checks) and are silently skipped on SQLite. TEST_DATABASE=sqlite opts into a
+# quick in-memory run that needs no database server.
+if os.getenv("TEST_DATABASE") == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -38,13 +45,6 @@ if os.getenv("TEST_DATABASE") == "postgres":
             "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django"),
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
             "PORT": os.getenv("POSTGRES_PORT", "5432"),
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": ":memory:",
         }
     }
 
