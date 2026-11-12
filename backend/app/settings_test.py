@@ -12,9 +12,6 @@ DEBUG = True
 EMAIL_ENABLED = False
 ALLOWED_HOSTS = ["*"]
 
-# Database
-# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
 MICROSOFT_IDENTITY = Auth(
     client_id="CLIENT_ID",
     client_credential="CLIENT_SECRET",
@@ -28,13 +25,30 @@ MICROSOFT_IDENTITY = Auth(
 )
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
+# Database
+# Tests run against Postgres by default: some tests need it (row locking, schema
+# checks) and are silently skipped on SQLite. TEST_DATABASE=sqlite opts into a
+# quick in-memory run that needs no database server.
+if os.getenv("TEST_DATABASE") == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_NAME", "django"),
+            "USER": os.getenv("POSTGRES_USER", "django"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django"),
+            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        }
+    }
 
-REDIS_URL = "redis://redis:6379"
+# No Redis in tests: sockets.py falls back to python-socketio's in-memory manager.
+REDIS_URL = None
 
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
