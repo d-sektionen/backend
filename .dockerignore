@@ -16,3 +16,5 @@ log/
 *.yml
 *.yaml
 *.toml
+# uv needs these to install the dependencies during the build.
+!pyproject.toml
