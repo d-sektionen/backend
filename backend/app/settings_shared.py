@@ -57,6 +57,10 @@ INSTALLED_APPS = [
 
 ASGI_APPLICATION = "backend.app.asgi.application"
 
+# Per process: leave database capacity for other workers, sockets and commands.
+# Admission happens before Django opens a per-request database connection.
+ASGI_HTTP_CONCURRENCY = int(os.getenv("ASGI_HTTP_CONCURRENCY", "8"))
+
 REDIS_URL = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
 
 CHANNEL_LAYERS = {
