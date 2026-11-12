@@ -28,21 +28,20 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v7
+      - name: Set up uv
+        # Installs the Python version from .python-version.
+        uses: astral-sh/setup-uv@v10
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements*.txt
+          enable-cache: true
 
       - name: Install dependencies
-        run: pip install -r requirements.development.txt
+        run: uv sync --locked
 
       - name: Run linter
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Check formatting
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
   test:
     name: Unit tests (3.12)
@@ -74,24 +73,23 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v7
+      - name: Set up uv
+        # Installs the Python version from .python-version.
+        uses: astral-sh/setup-uv@v10
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements*.txt
+          enable-cache: true
 
       - name: Install dependencies
-        run: pip install -r requirements.development.txt
+        run: uv sync --locked
 
       - name: Check for missing migrations
         # manage.py only selects settings_test for the `test` command.
         env:
           DJANGO_SETTINGS_MODULE: backend.app.settings_test
-        run: python manage.py makemigrations --check --dry-run
+        run: uv run python manage.py makemigrations --check --dry-run
 
       - name: Run tests
-        run: python manage.py test
+        run: uv run python manage.py test
 
   docker:
     name: Docker build (${{ matrix.dockerfile }})
