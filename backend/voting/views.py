@@ -1,5 +1,5 @@
-from django.db import transaction
-from django.db.models import F, Q, ObjectDoesNotExist
+from django.db import IntegrityError, transaction
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q, ObjectDoesNotExist
 from rest_framework import mixins, viewsets, status, exceptions
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -10,7 +10,17 @@ from ..app.permissions import FixedDjangoModelPermissions
 from ..account.permissions import AllowMembers
 from .permissions import OpenAttendancePermission, SpeakerRequestPermission
 
-from .models import Meeting, Attendant, Vote, MadeVote, Alternative, SpeakerRequest
+from .models import (
+    Meeting,
+    Attendant,
+    Vote,
+    MadeVote,
+    Alternative,
+    Ballot,
+    SpeakerRequest,
+)
+from .casting import claim_vote, lock_choice, lock_eligibility
+from .signals import batch_notifications, queue_alternative_update
 from .serializers import (
     MeetingSerializer,
     MeetingAdminSerializer,
@@ -21,7 +31,25 @@ from .serializers import (
     SpeakerRequestSerializer,
 )
 
-from ..membership.utils import check_membership
+from ..membership.utils import student_member_liu_ids
+
+
+def _with_meeting_reads(queryset, user):
+    return queryset.annotate(
+        _attending=Exists(
+            Attendant.objects.filter(user=user, meeting_id=OuterRef("pk"))
+        )
+    )
+
+
+def _with_vote_reads(queryset, user, tallied=False):
+    alternatives = Alternative.objects.order_by("pk")
+    if tallied:
+        # One grouped query for every alternative of the fetched ballots.
+        alternatives = alternatives.annotate(num_votes=Count("ballot"))
+    return queryset.annotate(
+        _has_voted=Exists(MadeVote.objects.filter(user=user, vote_id=OuterRef("pk")))
+    ).prefetch_related(Prefetch("alternative_set", queryset=alternatives))
 
 
 class NoDeleteViewSet(
@@ -40,12 +68,9 @@ class MeetingViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (AllowMembers,)
 
     def get_queryset(self):
-        queryset = (
-            Meeting.objects.filter(archived=False)
-            .filter(Q(attendants__user=self.request.user) | Q(open_attendance=True))
-            .distinct()
-        )
-        return queryset
+        return _with_meeting_reads(
+            Meeting.objects.filter(archived=False), self.request.user
+        ).filter(Q(_attending=True) | Q(open_attendance=True))
 
 
 class MeetingGuestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -54,10 +79,9 @@ class MeetingGuestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     # permission_classes = (AllowMembers,)
 
     def get_queryset(self):
-        queryset = Meeting.objects.filter(archived=False).filter(
-            Q(attendants__user=self.request.user)
-        )
-        return queryset
+        return _with_meeting_reads(
+            Meeting.objects.filter(archived=False), self.request.user
+        ).filter(_attending=True)
 
 
 class MeetingAdminViewSet(NoDeleteViewSet):
@@ -72,7 +96,7 @@ class SpeakerRequestView(
     mixins.ListModelMixin,
     GenericAPIView,
 ):
-    queryset = SpeakerRequest.objects.all()
+    queryset = SpeakerRequest.objects.select_related("user")
     serializer_class = SpeakerRequestSerializer
     permission_classes = (SpeakerRequestPermission,)
     # TODO: Permission require user to be attendant?
@@ -81,7 +105,7 @@ class SpeakerRequestView(
 
     # TODO: Add error handling for missing meeting parameter.
     def get_queryset(self):
-        queryset = SpeakerRequest.objects.all()
+        queryset = self.queryset.all()
         queryset = queryset.filter(
             meeting_id=self.request.query_params.get("meeting_id", None)
         )
@@ -122,7 +146,7 @@ class SpeakerRequestDetailView(
     Allows an admin to delete any SpeakerRequest.
     """
 
-    queryset = SpeakerRequest.objects.all()
+    queryset = SpeakerRequest.objects.select_related("user")
     serializer_class = SpeakerRequestSerializer
     permission_classes = (FixedDjangoModelPermissions,)
 
@@ -147,7 +171,21 @@ class SelfAttendView(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericA
         return Attendant.objects.filter(meeting_id=meeting_id)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        try:
+            # The unique constraint also handles simultaneous check-in retries.
+            with transaction.atomic():
+                serializer.save(user=self.request.user)
+        except IntegrityError:
+            if Attendant.objects.filter(
+                user=self.request.user, meeting=serializer.validated_data["meeting"]
+            ).exists():
+                raise exceptions.ValidationError(
+                    "You are already attending this meeting"
+                )
+            raise
+        # The serializer's nested meeting belongs to this newly created attendee.
+        # Reuse that request-local fact without another attendance SELECT.
+        serializer.instance.meeting._attending = True
 
     def get_object(self):
         queryset = self.get_queryset()
@@ -192,20 +230,19 @@ class AttendantViewSet(
                 #     detail='Missing required parameter "meeting_id"'
                 # )
             meeting_id = self.request.query_params["meeting_id"]
-            return Attendant.objects.filter(meeting_id=meeting_id)
+            return Attendant.objects.filter(meeting_id=meeting_id).select_related(
+                "user", "meeting"
+            )
 
         return Attendant.objects.all()
 
     @action(detail=False, methods=["delete"])
     def clear(self, request, pk=None):
         attendants = self.get_queryset(meeting_specific=True)
-
-        for attendant in attendants:
-            # do not remove guests from meeting:
-            if check_membership(attendant.user.username):
-                attendant.delete()
-
-        # attendants.delete()
+        # Keep the existing membership criterion, including guests whose rights
+        # flag differs from their current membership. Signals still fire per row.
+        with batch_notifications():
+            attendants.filter(user__username__in=student_member_liu_ids()).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -222,7 +259,9 @@ class VoteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             )
         meeting_id = self.request.query_params["meeting_id"]
         if Meeting.objects.filter(id=meeting_id, attendants__user__in=[user]).exists():
-            return Vote.objects.filter(meeting_id=meeting_id, open=True)
+            return _with_vote_reads(
+                Vote.objects.filter(meeting_id=meeting_id, open=True), user
+            )
         return Vote.objects.none()
 
 
@@ -230,6 +269,25 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
     serializer_class = VoteListSerializer
     queryset = Vote.objects.all()
     permission_classes = (FixedDjangoModelPermissions,)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == "list":
+            # The browser uses event_id; meeting_id is the voting API spelling.
+            # Unfiltered lists retain the existing all-meetings history contract.
+            for parameter in ("event_id", "meeting_id"):
+                value = self.request.query_params.get(parameter)
+                if value is not None:
+                    try:
+                        meeting_id = int(value)
+                    except (ValueError, TypeError):
+                        raise exceptions.ParseError(f'Invalid "{parameter}"')
+                    queryset = queryset.filter(meeting_id=meeting_id)
+        if self.action in ("list", "retrieve"):
+            return _with_vote_reads(
+                queryset, self.request.user, tallied=self.action == "retrieve"
+            )
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -258,9 +316,22 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
 class MadeVoteViewSet(viewsets.ViewSet):
     permission_classes = (AllowMembers,)
 
-    # Added to ensure that we don't end up with a plus-oned alternative but no existing record of it:
-    @transaction.atomic
     def create(self, request):
+        try:
+            with transaction.atomic():
+                return self._cast(request)
+        except IntegrityError:
+            # Foreign keys are checked at commit (deferred): the alternative was
+            # deleted after it was validated. Nothing was recorded.
+            return Response(
+                {
+                    "error": "Alternativet hittades inte. Omröstningen kan ha tagits bort"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def _cast(self, request):
+        """Validate and record one vote: a receipt row plus an anonymous ballot."""
         if "vote_id" not in request.data:
             raise exceptions.ParseError(detail='Missing required parameter "vote_id"')
 
@@ -272,7 +343,7 @@ class MadeVoteViewSet(viewsets.ViewSet):
         alternative_id = request.data["alternative_id"]
 
         try:
-            alternative = Alternative.objects.get(id=alternative_id)
+            alternative = lock_choice(alternative_id)
         except ObjectDoesNotExist:
             return Response(
                 {
@@ -287,42 +358,32 @@ class MadeVoteViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            vote = Vote.objects.get(id=vote_id)
-        except ObjectDoesNotExist:
-            return Response(
-                {"error": "Omröstningen hittades inte"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if not Attendant.objects.filter(
-            meeting=vote.meeting, user=request.user
-        ).exists():
+        if not lock_eligibility(alternative.meeting_id, request.user):
             return Response(
                 {"error": "Du måste närvara på mötet för att få rösta"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Make sure that no one can make a vote after the meeting's voting admins have set the Vote to inactive:
-        if (
-            vote.meeting.current_vote.id != vote.id
-            or not vote.meeting.current_vote.open
-        ):
+        if alternative.current_vote_id != vote_id or not alternative.open:
             return Response(
                 {"error": "Den här omröstningen är inte aktiv"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if MadeVote.objects.filter(vote_id=vote_id, user=request.user).exists():
+        if not claim_vote(request.user.pk, vote_id):
             return Response(
                 {"error": "Du har redan röstat i den här omröstningen"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Update the reference by performing the addition directly in the database (using reference F)
-        alternative.num_votes = F("num_votes") + 1
-        alternative.save()
+        # Record the choice as its own anonymous row. An insert never waits for
+        # other voters, unlike incrementing a counter shared by everyone who
+        # picked the same alternative.
+        Ballot.objects.create(alternative_id=alternative.id)
 
-        MadeVote.objects.create(vote_id=vote_id, user=request.user)
+        queue_alternative_update(
+            alternative.id, alternative.text, vote_id, alternative.meeting_id
+        )
 
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
