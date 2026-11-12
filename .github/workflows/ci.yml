@@ -30,7 +30,7 @@ jobs:
 
       - name: Set up uv
         # Installs the Python version from .python-version.
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
 
@@ -75,7 +75,7 @@ jobs:
 
       - name: Set up uv
         # Installs the Python version from .python-version.
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
 
