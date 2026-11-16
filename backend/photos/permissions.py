@@ -14,7 +14,7 @@ class PhotoMetaPermissions(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         
-        return request.user.has_perm("photos.manage_photo_meta")
+        return request.user.has_perm("photos.change_photo")
 
     def has_object_permission(self, request, view, obj):
         if not request.user:
@@ -25,7 +25,7 @@ class PhotoMetaPermissions(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return request.user.has_perm("photos.manage_photo_meta")
+        return request.user.has_perm("photos.change_photo")
 
 
 class PhotoPermissions(permissions.BasePermission):
