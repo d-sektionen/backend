@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.12.*"
 
 [[package]]
@@ -104,8 +104,8 @@ dependencies = [
     { name = "djangorestframework-simplejwt" },
     { name = "drf-writable-nested" },
     { name = "icalendar" },
-    { name = "identity", extra = ["django"] },
     { name = "minify-html" },
+    { name = "msal" },
     { name = "nh3" },
     { name = "psycopg", extra = ["binary"] },
     { name = "python-dotenv" },
@@ -139,8 +139,8 @@ requires-dist = [
     { name = "djangorestframework-simplejwt", specifier = "==5.3.1" },
     { name = "drf-writable-nested", specifier = "==0.7.0" },
     { name = "icalendar", specifier = "==4.0.7" },
-    { name = "identity", extras = ["django"], specifier = "==0.9.2" },
     { name = "minify-html", specifier = "==0.18.1" },
+    { name = "msal", specifier = "==1.39.0" },
     { name = "nh3", specifier = "==0.3.2" },
     { name = "psycopg", extras = ["binary"], specifier = "==3.3.3" },
     { name = "python-dotenv", specifier = "==1.0.1" },
@@ -627,24 +627,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/58/b8/9aa7963f442b2a8bfdfc40eab8bc399c5eaac5711b8919c52122e4903544/icalendar-4.0.7.tar.gz", hash = "sha256:0fc18d87f66e0b5da84fa731389496cfe18e4c21304e8f6713556b2e8724a7a4", size = 78569, upload-time = "2020-09-07T11:08:50.87Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c5/14/85ffbeefb591e8be0d51e4611750653549f60b27221ce6b0f9c724b3f5c0/icalendar-4.0.7-py2.py3-none-any.whl", hash = "sha256:8c35be16c1d0581a276002af883297aeffa8116e366fdce4d5318e1424aa1903", size = 74326, upload-time = "2020-09-07T11:08:48.477Z" },
-]
-
-[[package]]
-name = "identity"
-version = "0.9.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "msal" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/57/ce/fe1f0d8bdc5b0a3885ea18e4458bbe190e880e7fe7dfdc50151fdf9da2e7/identity-0.9.2.tar.gz", hash = "sha256:bd1808efa349d2150aa50d63823a2db89d0f6dc777d31ce5cb0f73c41ae12d73", size = 22925, upload-time = "2024-10-27T06:27:01.522Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e7/37/cd064252a558ae68afbc8937c6e98d7fc4df2cfb31af5fd39a899111dc43/identity-0.9.2-py3-none-any.whl", hash = "sha256:aa43aa0b802b50523e65e81550c860490d0c2c42c328821b8ea4be94450826be", size = 24366, upload-time = "2024-10-27T06:26:59.937Z" },
-]
-
-[package.optional-dependencies]
-django = [
-    { name = "django" },
 ]
 
 [[package]]

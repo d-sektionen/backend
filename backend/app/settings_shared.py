@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "imagekit",
     "post_office",
-    "identity",
     "channels",
 ]
 
@@ -84,6 +83,11 @@ MIDDLEWARE = [
 MICROSOFT_LOGIN_HOST = "login.microsoftonline.com"
 BASE_URL = os.getenv("BASE_URL")
 APP_HOSTNAME = urlparse(BASE_URL).hostname
+
+MICROSOFT_CLIENT_ID = os.getenv("CLIENT_ID")
+MICROSOFT_CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+MICROSOFT_AUTHORITY = f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv('LIU_TENANT_ID')}"
+MICROSOFT_REDIRECT_URI = f"{BASE_URL}/oauth2/callback"
 
 ALLOWED_HOSTS = [
     APP_HOSTNAME,
