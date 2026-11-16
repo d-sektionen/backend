@@ -214,12 +214,32 @@ CAL_URL = os.getenv(
 )
 
 
-EMAIL_BACKEND = "post_office.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
-EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
-EMAIL_HOST_USER = os.getenv("EMAIL_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
-EMAIL_USE_TLS = True
+MAILERS = {
+    "default": {"BACKEND": "post_office.EmailBackend"},
+    "smtp": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": os.getenv("EMAIL_HOST") or "localhost",
+            "port": int(os.getenv("EMAIL_PORT") or "587"),
+            "username": os.getenv("EMAIL_USER"),
+            "password": os.getenv("EMAIL_PASSWORD"),
+            "use_tls": True,
+        },
+    },
+    "budget": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": os.getenv("BUDGET_EMAIL_HOST") or "smtp.gmail.com",
+            "port": int(os.getenv("BUDGET_EMAIL_PORT") or "587"),
+            "username": os.getenv("BUDGET_EMAIL_USER")
+            or "noreply.budget@d-sektionen.se",
+            "password": os.getenv("BUDGET_EMAIL_PASSWORD"),
+            "use_tls": True,
+        },
+    },
+}
+# The default mailer queues; delivery must use a transport to avoid requeuing.
+POST_OFFICE = {"DEFAULT_MAILER": "smtp"}
 
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@d-sektionen.se")
