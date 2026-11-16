@@ -91,6 +91,14 @@ class MeSerializer(serializers.ModelSerializer):
                     "voting.view_meeting",
                 )
             ),
+            "photos_admin": obj.has_perms(
+                (
+                    "photos.add_photo",
+                    "photos.change_photo",
+                    "photos.delete_photo",
+                    "photos.view_photo",
+                )
+            ),
             "infomail_sender": profile.infomail_sender,
             "voting_counter": obj.has_perms(("voting.view_meeting",)),
             "not_member": not check_membership(obj.username),
