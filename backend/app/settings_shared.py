@@ -146,12 +146,19 @@ MEDIA_URL = "/media/"
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    },
+}
 
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 # Django REST Framework
 REST_FRAMEWORK = {
+    # Preserve the API's list-shaped validation errors across the DRF upgrade.
+    "LIST_SERIALIZER_ERRORS_AS_DICT": False,
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_PERMISSION_CLASSES": (
         "backend.app.permissions.AllowOptionsAuthentication",
