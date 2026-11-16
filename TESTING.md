@@ -2,11 +2,13 @@
 
 All apps should have a tests dir where all tests and related logic is stored. Unless there's a good reason not to each test class should inherit from AuthenticatedTestCase. Inheriting from this class automatically creates users with different privileges for use in the tests.
 
+Dependencies are managed with [uv](https://docs.astral.sh/uv/). `uv sync` installs them into `.venv`, and `uv run` runs a command inside that environment.
+
 Tests can be run with the following command:
-`python manage.py test`
+`uv run python manage.py test`
 
 A tests for a specific app can be run by specifying it in the command:
-`python manage.py test voting`
+`uv run python manage.py test voting`
 
 The tests run against Postgres, both locally and in CI, using the `POSTGRES_*` variables from `.env`. Some tests only work on Postgres and are skipped on other databases. With `docker compose up` running, the simplest way is to run them inside the backend container:
 
@@ -14,9 +16,9 @@ The tests run against Postgres, both locally and in CI, using the `POSTGRES_*` v
 
 To run them directly on your machine instead, point `POSTGRES_HOST` at the published port (`.env` uses the compose service name, which only resolves inside Docker):
 
-`POSTGRES_HOST=localhost python manage.py test`
+`POSTGRES_HOST=localhost uv run python manage.py test`
 
-For a quick run without a database server, `TEST_DATABASE=sqlite python manage.py test` uses an in-memory SQLite database. The Postgres-only tests are then skipped, so do not rely on it before opening a PR.
+For a quick run without a database server, `TEST_DATABASE=sqlite uv run python manage.py test` uses an in-memory SQLite database. The Postgres-only tests are then skipped, so do not rely on it before opening a PR.
 
 The following libaries are used to test:
 
