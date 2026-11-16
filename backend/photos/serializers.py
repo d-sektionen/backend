@@ -16,7 +16,9 @@ class PhotoTagSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id",)
 
-class PhotoAlbumSerializer(serializers.ModelSerializer):
+
+
+class SimplePhotoAlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoAlbum
         fields = (
@@ -36,7 +38,7 @@ class PhotoSerializer(serializers.ModelSerializer):
         source="tags",
         required=False,
     )
-    album = PhotoAlbumSerializer(read_only=True)
+    album = SimplePhotoAlbumSerializer(read_only=True)
     album_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=PhotoAlbum.objects.all(),
@@ -76,3 +78,15 @@ class PhotoSerializer(serializers.ModelSerializer):
         return f"{settings.BASE_URL}/photos/photos/{obj.id}/download"
 
 
+class PhotoAlbumSerializer(serializers.ModelSerializer):
+    photos = PhotoSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PhotoAlbum
+        fields = (
+            "id",
+            "title",
+            "description",
+            "photos"
+        )
+        read_only_fields = ("id", "photos",)

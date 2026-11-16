@@ -70,6 +70,10 @@ class PhotoViewSet(viewsets.ModelViewSet):
         ext = filename.split('.')[-1]
 
         content_type = f'image/{ext}'
-        
+
         # read the full image and pass it through (this is slow)
-        return FileResponse(obj.image.open('rb'), content_type=content_type)
+        return FileResponse(
+            obj.image.open('rb'),
+            content_type=content_type,
+            as_attachment=True
+        )
