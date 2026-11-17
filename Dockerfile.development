@@ -1,7 +1,7 @@
 # Pinned uv release; Dependabot keeps it up to date.
 FROM ghcr.io/astral-sh/uv:0.13.8 AS uv
 
-FROM python:3.12-alpine AS base
+FROM python:3.14.10-alpine AS base
 WORKDIR /app
 RUN apk add gcc musl-dev
 # Keep the virtual environment outside /app and use the image's own Python.

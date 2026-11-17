@@ -4,6 +4,14 @@ The backend and API for D-sektionens member services.
 
 The project is built using [Django](https://www.djangoproject.com/) (Python).
 
+Use standard CPython 3.14.10 (with the GIL enabled) and uv 0.13.8 or newer.
+Run `uv sync --locked` to install the development environment, and use
+`uv run python manage.py test` with PostgreSQL configured to run the full suite.
+`TEST_DATABASE=sqlite uv run python manage.py test` is a quick alternative that
+skips PostgreSQL-specific checks. CI's legacy `3.12` job labels are retained
+because branch protection requires those names; the jobs run Python 3.14.10.
+Email HTML uses the original `minify-html` package from PyPI.
+
 Microsoft Entra login uses MSAL's authorization-code flow. Set `CLIENT_ID`,
 `CLIENT_SECRET`, `LIU_TENANT_ID`, and `BASE_URL`; register
 `<BASE_URL>/oauth2/callback` as the application's Web redirect URI in Entra.

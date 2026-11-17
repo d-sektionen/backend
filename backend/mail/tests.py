@@ -1,11 +1,14 @@
+from html.parser import HTMLParser
+
 from django.core import mail as django_mail
 from django.core.mail.backends.locmem import EmailBackend
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from post_office import mail
 from post_office.connections import connections
 from post_office.models import Email, STATUS
 
 from backend.app import settings_shared
+from backend.app.utils import render_email
 from backend.budgetportal.email import NOREPLY_EMAIL, send as send_budget_email
 
 
@@ -27,6 +30,54 @@ TEST_MAILERS = {
     "smtp": {"BACKEND": "backend.mail.tests.RecordingBackend"},
     "budget": {"BACKEND": "backend.mail.tests.RecordingBackend"},
 }
+
+
+class EmailRenderingTests(SimpleTestCase):
+    def test_rendering_preserves_inline_spaces_and_escapes_user_content(self):
+        html = (
+            '<p>\n  <span>{{ name }}</span> <a href="{{ url }}">Open booking</a>\n</p>'
+        )
+        templates = {
+            "message.subject.txt": "  Booking: {{ name }}\n",
+            "message.html": html,
+        }
+        with override_settings(
+            TEMPLATES=[
+                {
+                    "BACKEND": "django.template.backends.django.DjangoTemplates",
+                    "OPTIONS": {
+                        "loaders": [
+                            ("django.template.loaders.locmem.Loader", templates)
+                        ]
+                    },
+                }
+            ]
+        ):
+            subject, body = render_email(
+                "message",
+                {"name": "Åsa <guest>", "url": "https://example.com/?a=1&b=2"},
+            )
+        self.assertEqual(subject, "Booking: Åsa &lt;guest&gt;")
+
+        # Minification may rewrite entities and omit attribute quotes.
+        class ContentParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.text = ""
+                self.links = []
+
+            def handle_data(self, data):
+                self.text += data
+
+            def handle_starttag(self, tag, attrs):
+                if tag == "a":
+                    self.links.append(dict(attrs)["href"])
+
+        parsed = ContentParser()
+        parsed.feed(body)
+        self.assertEqual(parsed.text, "Åsa <guest> Open booking")
+        self.assertEqual(parsed.links, ["https://example.com/?a=1&b=2"])
+        self.assertNotIn("\n", body)
 
 
 @override_settings(MAILERS=TEST_MAILERS)
