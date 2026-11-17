@@ -226,17 +226,6 @@ MAILERS = {
             "use_tls": True,
         },
     },
-    "budget": {
-        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
-        "OPTIONS": {
-            "host": os.getenv("BUDGET_EMAIL_HOST") or "smtp.gmail.com",
-            "port": int(os.getenv("BUDGET_EMAIL_PORT") or "587"),
-            "username": os.getenv("BUDGET_EMAIL_USER")
-            or "noreply.budget@d-sektionen.se",
-            "password": os.getenv("BUDGET_EMAIL_PASSWORD"),
-            "use_tls": True,
-        },
-    },
 }
 # The default mailer queues; delivery must use a transport to avoid requeuing.
 POST_OFFICE = {"DEFAULT_MAILER": "smtp"}

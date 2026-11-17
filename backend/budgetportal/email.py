@@ -17,7 +17,7 @@ def send(subject: str, body: str, *recipient_emails: str):
         body=body,
         from_email=NOREPLY_EMAIL,
         to=recipient_emails,
-    ).send(using="budget")
+    ).send()
 
 
 def send_new_entry_mails(creator: User, entry: BudgetEntry):
