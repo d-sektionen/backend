@@ -27,8 +27,8 @@ class FailingBackend(EmailBackend):
 
 TEST_MAILERS = {
     **settings_shared.MAILERS,
-    "smtp": {"BACKEND": "backend.mail.tests.RecordingBackend"},
-    "budget": {"BACKEND": "backend.mail.tests.RecordingBackend"},
+    "smtp": {"BACKEND": "backend.mail.tests.test_email.RecordingBackend"},
+    "budget": {"BACKEND": "backend.mail.tests.test_email.RecordingBackend"},
 }
 
 
@@ -151,7 +151,7 @@ class MailerRoutingTests(TestCase):
     @override_settings(
         MAILERS={
             **TEST_MAILERS,
-            "smtp": {"BACKEND": "backend.mail.tests.FailingBackend"},
+            "smtp": {"BACKEND": "backend.mail.tests.test_email.FailingBackend"},
         }
     )
     def test_delivery_failure_is_recorded_without_requeuing(self):

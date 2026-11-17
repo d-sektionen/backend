@@ -12,6 +12,8 @@ SCOPES = ["User.Read"]
 # Reuse Identity's pending-flow keys so a login started before deployment can finish.
 FLOW_KEY = "_auth_flow"
 NEXT_KEY = "identity.web.next_link"
+# Discovery metadata can be reused across requests without sharing user tokens.
+_HTTP_CACHE = {}
 
 
 class LoginError(Exception):
@@ -25,6 +27,7 @@ def _client():
         settings.MICROSOFT_CLIENT_ID,
         client_credential=settings.MICROSOFT_CLIENT_SECRET,
         authority=settings.MICROSOFT_AUTHORITY,
+        http_cache=_HTTP_CACHE,
         instance_discovery=False,
         timeout=30,
     )

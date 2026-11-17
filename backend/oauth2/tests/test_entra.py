@@ -4,11 +4,11 @@ import requests
 
 from django.contrib.auth import SESSION_KEY
 from django.contrib.auth.models import User
-from django.test import Client, TestCase, override_settings
+from django.test import Client, SimpleTestCase, TestCase, override_settings
 from msal import ConfidentialClientApplication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .entra import FLOW_KEY, NEXT_KEY
+from ..entra import FLOW_KEY, NEXT_KEY, _client
 
 
 @override_settings(
@@ -214,6 +214,19 @@ class EntraLoginTests(TestCase):
             200,
         )
 
+    def test_refresh_rejects_a_deleted_user(self):
+        user = User.objects.create_user("deleted")
+        self.client.cookies["refresh_token"] = str(RefreshToken.for_user(user))
+        user.delete()
+
+        response = self.client.post(
+            "/oauth2/login/refresh", {}, content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertNotIn("access_token", response.cookies)
+        self.assertNotIn("refresh_token", response.cookies)
+
     def test_logout_is_local_and_clears_both_cookie_paths(self):
         user = User.objects.create_user("existing")
         self.client.force_login(user)
@@ -229,3 +242,54 @@ class EntraLoginTests(TestCase):
         self.assertEqual(response.cookies["refresh_token"]["max-age"], 0)
         self.assertEqual(response.cookies["access_token"]["path"], "/")
         self.msal.remove_account.assert_not_called()
+
+
+@override_settings(
+    MICROSOFT_CLIENT_ID="test-client",
+    MICROSOFT_CLIENT_SECRET="secret",
+    MICROSOFT_AUTHORITY="https://login.microsoftonline.com/tenant",
+)
+class EntraClientTests(SimpleTestCase):
+    def test_clients_share_discovery_metadata_but_isolate_tokens(self):
+        http = Mock()
+        discovery = requests.Response()
+        discovery.status_code = 200
+        discovery._content = json.dumps(
+            {
+                "authorization_endpoint": "https://login.microsoftonline.com/tenant/authorize",
+                "token_endpoint": "https://login.microsoftonline.com/tenant/token",
+                "issuer": "https://login.microsoftonline.com/tenant/v2.0",
+            }
+        ).encode()
+        http.get.return_value = discovery
+
+        def create_client(*args, **kwargs):
+            return ConfidentialClientApplication(*args, http_client=http, **kwargs)
+
+        with (
+            patch("backend.oauth2.entra._HTTP_CACHE", {}, create=True),
+            patch(
+                "backend.oauth2.entra.msal.ConfidentialClientApplication",
+                side_effect=create_client,
+            ),
+        ):
+            first, second, third = [_client() for _ in range(3)]
+
+        http.get.assert_called_once()
+        first.token_cache.add(
+            {
+                "client_id": "test-client",
+                "scope": ["User.Read"],
+                "token_endpoint": "https://login.microsoftonline.com/tenant/token",
+                "response": {
+                    "access_token": "graph-token",
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                },
+            }
+        )
+        self.assertTrue(list(first.token_cache.search("AccessToken")))
+        for other in (second, third):
+            self.assertIsNot(first, other)
+            self.assertIsNot(first.token_cache, other.token_cache)
+            self.assertEqual(list(other.token_cache.search("AccessToken")), [])

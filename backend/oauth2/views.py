@@ -2,6 +2,7 @@ import logging
 import requests
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -53,6 +54,11 @@ class TokenRefreshView(BaseTokenRefreshView):
             response = super().post(request, *args, **kwargs)
         except TokenError as e:
             return Response({"error": str(e)}, status=401)
+        except get_user_model().DoesNotExist:
+            # SimpleJWT looks up the user even when the refresh token is valid.
+            return Response(
+                {"error": "No active account found for the given token."}, status=401
+            )
 
         if response.status_code == 200:
             new_access_token = AccessToken(response.data.get("access"))
