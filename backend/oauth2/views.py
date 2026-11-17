@@ -1,7 +1,8 @@
 import logging
+import requests
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
-from django.urls import reverse
+from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,12 +15,11 @@ from datetime import datetime, timezone
 
 
 from .auth import (
-    AUTH,
-    SCOPES,
     auth_logout,
     external_auth_callback_login,
     get_safe_redirect,
 )
+from .entra import LoginError, start_login
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,11 @@ class TokenRefreshView(BaseTokenRefreshView):
             response = super().post(request, *args, **kwargs)
         except TokenError as e:
             return Response({"error": str(e)}, status=401)
+        except get_user_model().DoesNotExist:
+            # SimpleJWT looks up the user even when the refresh token is valid.
+            return Response(
+                {"error": "No active account found for the given token."}, status=401
+            )
 
         if response.status_code == 200:
             new_access_token = AccessToken(response.data.get("access"))
@@ -71,15 +76,16 @@ class LoginView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request):
-        logger.debug(str(request))
         next_link = get_safe_redirect(request)
         logger.debug(f"Logging in user with redirect: {next_link}")
-        # Save an http 302 by calling self.login(request) instead of redirect(self.login)
-        return AUTH.login(
-            request,
-            next_link=next_link,
-            scopes=SCOPES,
-        )
+        try:
+            return HttpResponseRedirect(start_login(request, next_link))
+        except LoginError as exc:
+            return HttpResponseBadRequest(str(exc))
+        except requests.RequestException:
+            return HttpResponse(
+                "Microsoft login is temporarily unavailable.", status=503
+            )
 
 
 class LogoutView(APIView):
@@ -90,17 +96,17 @@ class LogoutView(APIView):
         auth_logout(request)
         if response:
             response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token", path=reverse("token_refresh"))
+            response.delete_cookie("refresh_token", path="/oauth2")
             return response
 
         redirect_url = request.GET.get("next")
         if redirect_url:
-            new_resp = HttpResponseRedirect(redirect_to=redirect_url)
+            new_resp = HttpResponseRedirect(get_safe_redirect(request, redirect_url))
         else:
             new_resp = HttpResponse(status=200)
 
         new_resp.delete_cookie("access_token")
-        new_resp.delete_cookie("refresh_token", path=reverse("token_refresh"))
+        new_resp.delete_cookie("refresh_token", path="/oauth2")
         return new_resp
 
 
@@ -108,7 +114,12 @@ class ExternalAuthCallbackView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request):
-        response, django_user = external_auth_callback_login(request)
+        try:
+            response, django_user = external_auth_callback_login(request)
+        except requests.RequestException:
+            return HttpResponse(
+                "Microsoft login is temporarily unavailable.", status=503
+            )
 
         if django_user is None:
             return response

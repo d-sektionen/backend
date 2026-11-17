@@ -19,7 +19,8 @@ permissions:
 
 jobs:
   lint:
-    # Job names are required status checks in the repo ruleset; keep them in sync.
+    # Keep the legacy 3.12 display names: they are required checks in the ruleset.
+    # Both jobs run Python 3.14.10 from .python-version.
     name: Lint code (3.12)
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +33,7 @@ jobs:
         # Installs the Python version from .python-version.
         uses: astral-sh/setup-uv@v10.3.3
         with:
+          version: "0.13.8"
           enable-cache: true
 
       - name: Install dependencies
@@ -77,6 +79,7 @@ jobs:
         # Installs the Python version from .python-version.
         uses: astral-sh/setup-uv@v10.3.3
         with:
+          version: "0.13.8"
           enable-cache: true
 
       - name: Install dependencies
@@ -87,6 +90,11 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: backend.app.settings_test
         run: uv run python manage.py makemigrations --check --dry-run
+
+      - name: Check Django configuration
+        env:
+          DJANGO_SETTINGS_MODULE: backend.app.settings_test
+        run: uv run python manage.py check
 
       - name: Run tests
         run: uv run python manage.py test

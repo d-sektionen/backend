@@ -9,8 +9,6 @@ that you use to develop with. If you are using a localhost hosted frontend you h
 
 import os
 
-from identity.django import Auth
-
 from ..app.settings_shared import *
 
 SECRET_KEY = os.getenv("SECRET_KEY", "INSECURE_SECRET_KEY")
@@ -40,20 +38,6 @@ ALLOWED_HOSTS = ALLOWED_HOSTS + [
 ]
 
 X_FRAME_OPTIONS = "DENY"
-
-# Configure django to redirect users to the right URL for login
-# SCOPE = "User.Read"
-MICROSOFT_IDENTITY = Auth(
-    client_id=os.getenv("CLIENT_ID"),
-    client_credential=os.getenv("CLIENT_SECRET"),
-    # Source: https://identity-library.readthedocs.io/en/latest/django.html
-    # This will be used to mount your project's auth views accordingly.
-    # For example, if your input here is https://example.com/x/y/z/redirect,
-    # then your project's redirect page will be mounted at '/x/y/z/redirect',
-    # login page will be at '/x/y/z/login', and logout page will be at '/x/y/z/logout'.
-    redirect_uri=f"{BASE_URL}/oauth2/callback",
-    authority=f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv('LIU_TENANT_ID')}",
-)
 
 # Enable file logging for all loggers. Change level with this env variable.
 DJANGO_LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")
