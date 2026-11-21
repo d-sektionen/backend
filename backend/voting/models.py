@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -137,15 +139,16 @@ def update_current_vote(sender, instance, created, **kwargs):
         old_vote = meeting.current_vote
         if old_vote is not None and old_vote != instance:
             old_vote.open = False
-            old_vote.save()
+            old_vote.save(update_fields=["open"])
 
         meeting.current_vote = instance
-        meeting.save()
+        # Request validation may have loaded stale meeting metadata. Move only
+        # the ballot pointer, not attendance flags/name or the EventBase row.
+        meeting.save(update_fields=["current_vote"])
 
 
 class Alternative(models.Model):
     text = models.CharField(max_length=64)
-    num_votes = models.IntegerField(default=0)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
 
     @staticmethod
@@ -153,9 +156,29 @@ class Alternative(models.Model):
         return "Alternativ"
 
 
+class Ballot(models.Model):
+    """One accepted choice. Never stores who cast it; see MadeVote for that.
+
+    Each cast vote appends one row here instead of incrementing a shared
+    counter on the alternative. Concurrent voters therefore never wait for
+    each other's row lock (and, on slow storage, for each other's commit).
+    Tallies are COUNT queries over this table.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    alternative = models.ForeignKey(Alternative, null=False, on_delete=models.CASCADE)
+
+
 class MadeVote(models.Model):
-    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # The unique index below already supports user-prefix lookups/deletion.
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE, db_index=False)
     vote = models.ForeignKey(Vote, null=False, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "vote"], name="one_vote_per_user")
+        ]
 
 
 class SpeakerRequest(models.Model):

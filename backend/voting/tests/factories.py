@@ -1,5 +1,5 @@
 from factory import RelatedFactory, django, Faker, SubFactory
-from ..models import Alternative, Attendant, MadeVote, Meeting, Vote
+from ..models import Alternative, Attendant, Ballot, MadeVote, Meeting, Vote
 from ...account.tests.factories import UserFactory
 
 
@@ -16,8 +16,14 @@ class AlternativeFactory(django.DjangoModelFactory):
         model = Alternative
 
     text = Faker("sentence", nb_words=2)
-    num_votes = 0
     vote = SubFactory(VoteFactory)
+
+
+class BallotFactory(django.DjangoModelFactory):
+    class Meta:
+        model = Ballot
+
+    alternative = SubFactory(AlternativeFactory)
 
 
 class MeetingFactory(django.DjangoModelFactory):

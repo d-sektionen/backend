@@ -96,7 +96,11 @@ class CalendarFeed(ICalFeed):
         for pool in subscription.include_bookable_items.all():
             bookings = []
 
-            for booking in Booking.objects.filter(pool=pool):
+            for booking in (
+                Booking.objects.filter(pool=pool)
+                .select_related("pool", "user")
+                .prefetch_related("items")
+            ):
                 title = _booking_title(booking)
                 description = _booking_description(booking)
 
