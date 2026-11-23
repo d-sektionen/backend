@@ -33,7 +33,7 @@ dependencies = [
 dev = [
     "factory_boy==3.3.0",
     "ruff==0.16.8",
-    "django-stubs==5.2.7",
+    "django-stubs==6.1.2",
 ]
 # Only needed by the production image: `uv sync --no-dev --group production`.
 production = [
