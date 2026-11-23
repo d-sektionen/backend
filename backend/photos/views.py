@@ -4,8 +4,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from django.utils.dateparse import parse_datetime
 from django.http import FileResponse
-from django.conf import settings
-from django.http import HttpResponse
 
 from .models import Photo, PhotoAlbum, PhotoTag
 from .permissions import PhotoMetaPermissions, PhotoPermissions
