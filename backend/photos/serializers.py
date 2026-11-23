@@ -17,7 +17,6 @@ class PhotoTagSerializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
 
-
 class SimplePhotoAlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoAlbum
@@ -72,10 +71,13 @@ class PhotoSerializer(serializers.ModelSerializer):
             "user",
             "user_id",
         )
-        read_only_fields = ("id", "image_url",)
+        read_only_fields = (
+            "id",
+            "image_url",
+        )
 
     def get_image_url(self, obj):
-        return f"{settings.BASE_URL}/photos/photos/{obj.id}/download"
+        return f"{settings.BASE_URL}/photos/photos/{obj.id}/download/"
 
 
 class PhotoAlbumSerializer(serializers.ModelSerializer):
@@ -83,10 +85,8 @@ class PhotoAlbumSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PhotoAlbum
-        fields = (
+        fields = ("id", "title", "description", "photos")
+        read_only_fields = (
             "id",
-            "title",
-            "description",
-            "photos"
+            "photos",
         )
-        read_only_fields = ("id", "photos",)

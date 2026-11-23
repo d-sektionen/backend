@@ -1,3 +1,5 @@
+import mimetypes
+import rest_framework
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from django.utils.dateparse import parse_datetime
@@ -9,17 +11,20 @@ from .models import Photo, PhotoAlbum, PhotoTag
 from .permissions import PhotoMetaPermissions, PhotoPermissions
 from .serializers import PhotoAlbumSerializer, PhotoSerializer, PhotoTagSerializer
 
+
 class PhotoTagViewSet(viewsets.ModelViewSet):
     queryset = PhotoTag.objects.all()
 
     serializer_class = PhotoTagSerializer
     permission_classes = (PhotoMetaPermissions,)
 
+
 class PhotoAlbumViewSet(viewsets.ModelViewSet):
     queryset = PhotoAlbum.objects.all()
 
     serializer_class = PhotoAlbumSerializer
     permission_classes = (PhotoMetaPermissions,)
+
 
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all()
@@ -45,7 +50,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
             parsed_time_end = parse_datetime(date_end)
             if parsed_time_end:
                 queryset = queryset.filter(date__lte=date_end)
- 
+
         if tags:
             tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
             if tag_list:
@@ -56,24 +61,22 @@ class PhotoViewSet(viewsets.ModelViewSet):
             try:
                 album = int(album)
             except ValueError:
-                return HttpResponse(status=400)
+                raise rest_framework.exceptions.ValidationError(
+                    "Album ID must be an integer."
+                )
 
             queryset = queryset.filter(album__id=album)
 
         return queryset
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def download(self, request, pk=None):
         obj = self.get_object()
 
-        filename = obj.image.name.split('/')[-1]
-        ext = filename.split('.')[-1]
+        filename = obj.image.name.split("/")[-1]
+        content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
-        content_type = f'image/{ext}'
-
-        # read the full image and pass it through (this is slow)
+        # read the full image and pass it through
         return FileResponse(
-            obj.image.open('rb'),
-            content_type=content_type,
-            as_attachment=True
+            obj.image.open("rb"), content_type=content_type, as_attachment=True
         )

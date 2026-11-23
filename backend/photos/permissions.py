@@ -2,6 +2,7 @@ from rest_framework import permissions
 
 from ..membership.utils import check_membership
 
+
 class PhotoMetaPermissions(permissions.BasePermission):
     """
     Custom permissions for photo meta data (tags and albums).
@@ -11,9 +12,12 @@ class PhotoMetaPermissions(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
 
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS and (
+            request.user.has_perm("photos.view_photo")
+            or check_membership(request.user.username)
+        ):
             return True
-        
+
         return request.user.has_perm("photos.change_photo")
 
     def has_object_permission(self, request, view, obj):
