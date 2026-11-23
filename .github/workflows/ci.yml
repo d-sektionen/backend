@@ -19,9 +19,7 @@ permissions:
 
 jobs:
   lint:
-    # Keep the legacy 3.12 display names: they are required checks in the ruleset.
-    # Both jobs run Python 3.14.10 from .python-version.
-    name: Lint code (3.12)
+    name: Lint code
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -46,7 +44,7 @@ jobs:
         run: uv run ruff format --check .
 
   test:
-    name: Unit tests (3.12)
+    name: Unit tests
     runs-on: ubuntu-latest
     services:
       postgres:
