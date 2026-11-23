@@ -5,8 +5,13 @@ stored in the Django session; Graph tokens are used once to load the profile.
 Each request gets its own MSAL client and in-memory token cache.
 """
 
+import logging
+
 import msal
+import requests
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 SCOPES = ["User.Read"]
 # Reuse Identity's pending-flow keys so a login started before deployment can finish.
@@ -51,9 +56,14 @@ def complete_login(request):
     flow = request.session.pop(FLOW_KEY, None)
     if not flow:
         raise LoginError("Your login session has expired. Please sign in again.")
+    client = _client()
     try:
-        result = _client().acquire_token_by_auth_code_flow(flow, request.GET.dict())
-    except ValueError as exc:
+        result = client.acquire_token_by_auth_code_flow(flow, request.GET.dict())
+    except requests.RequestException:
+        # Leave provider/network failures to the view's 503 handling.
+        raise
+    except Exception as exc:
+        logger.warning("Microsoft login rejected: %s", exc, exc_info=True)
         raise LoginError("Invalid login response. Please sign in again.") from exc
     if (
         "error" in result
