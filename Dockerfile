@@ -1,8 +1,8 @@
 # Pinned uv release; Dependabot keeps it up to date.
-FROM ghcr.io/astral-sh/uv:0.13.8 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.9 AS uv
 
 # Use a slim python runtime to reduce image size
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # Set the working directory in the container
 WORKDIR /code
