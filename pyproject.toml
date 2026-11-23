@@ -12,7 +12,7 @@ dependencies = [
     "requests==2.32.3",
     "drf-writable-nested==0.7.2",
     "django-cors-headers==4.9.0",
-    "icalendar==4.0.7",
+    "icalendar==7.3.2",
     "django-model-utils==5.0.0",
     "django-imagekit==6.1.1",
     "yalexs==8.7.1",
