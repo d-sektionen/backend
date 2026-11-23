@@ -112,6 +112,28 @@ class EntraLoginTests(TestCase):
         self.assertEqual(self.callback().status_code, 400)
         self.msal.acquire_token_by_auth_code_flow.assert_called_once()
 
+    def test_callback_rejects_other_msal_failures_without_creating_users(self):
+        for error in (RuntimeError("nonce mismatch"), KeyError("nonce")):
+            with self.subTest(error=type(error).__name__):
+                self.begin()
+                self.msal.acquire_token_by_auth_code_flow.side_effect = error
+                response = self.callback()
+                self.assertEqual(response.status_code, 400)
+                self.assertNotIn(FLOW_KEY, self.client.session)
+                self.assertNotIn(SESSION_KEY, self.client.session)
+                self.assertNotIn("access_token", response.cookies)
+                self.assertEqual(User.objects.count(), self.user_count)
+
+    def test_callback_keeps_provider_failures_as_503(self):
+        self.begin()
+        self.msal.acquire_token_by_auth_code_flow.side_effect = (
+            requests.ConnectionError("offline")
+        )
+        response = self.callback()
+        self.assertEqual(response.status_code, 503)
+        self.assertNotIn(SESSION_KEY, self.client.session)
+        self.assertEqual(User.objects.count(), self.user_count)
+
     def test_msal_rejects_a_real_flow_from_another_session_before_token_exchange(self):
         http = Mock()
         discovery = requests.Response()
