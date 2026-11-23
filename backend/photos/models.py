@@ -36,3 +36,9 @@ class Photo(models.Model):
 
     def __str__(self):
         return self.title
+
+    def delete(self, using=None, keep_parents=False):
+        if self.image:
+            self.image.delete(save=False)
+
+        return super().delete(using, keep_parents)
