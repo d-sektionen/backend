@@ -1,6 +1,6 @@
 """Adapt the synchronous HTTP stack once, keeping native ASGI I/O.
 
-Django 4.2's async-capable middleware bridges each synchronous hook separately.
+Django's async-capable middleware bridges each synchronous hook separately.
 Our HTTP views are synchronous, so load the ordinary synchronous middleware/view
 chain and adapt that chain once. ASGIHandler still owns request thread contexts,
 body/response streaming, lifecycle signals and connection cleanup. Async-only

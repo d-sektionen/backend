@@ -2,7 +2,7 @@
 FROM ghcr.io/astral-sh/uv:0.13.8 AS uv
 
 # Use a slim python runtime to reduce image size
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Set the working directory in the container
 WORKDIR /code

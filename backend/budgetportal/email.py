@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.core.mail import get_connection
 from django.core.mail.message import EmailMessage
 
 from ..committee.models import Committee
@@ -13,16 +12,12 @@ def send(subject: str, body: str, *recipient_emails: str):
     """
     Sends an e-mail to some recipients from the budget app's noreply address.
     """
-    with get_connection(
-        host="smtp.gmail.com",
-        port=587,
-        username=NOREPLY_EMAIL,
-        password="budgetteringsportalen2022dsektionen",
-        use_tls=True,
-    ) as connection:
-        EmailMessage(
-            subject, body, NOREPLY_EMAIL, recipient_emails, connection=connection
-        ).send()
+    EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=NOREPLY_EMAIL,
+        to=recipient_emails,
+    ).send()
 
 
 def send_new_entry_mails(creator: User, entry: BudgetEntry):

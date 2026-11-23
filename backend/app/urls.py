@@ -76,5 +76,4 @@ urlpatterns = [
     re_path(r"^mail/", include(mail_urls)),
     # Login to backend
     re_path(r"^oauth2/", include(oauth2_urls)),
-    settings.MICROSOFT_IDENTITY.urlpattern,
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

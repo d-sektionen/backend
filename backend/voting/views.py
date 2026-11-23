@@ -280,7 +280,7 @@ class VoteAdminViewSet(viewsets.ModelViewSet):
                 if value is not None:
                     try:
                         meeting_id = int(value)
-                    except (ValueError, TypeError):
+                    except ValueError, TypeError:
                         raise exceptions.ParseError(f'Invalid "{parameter}"')
                     queryset = queryset.filter(meeting_id=meeting_id)
         if self.action in ("list", "retrieve"):
