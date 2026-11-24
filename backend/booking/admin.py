@@ -46,7 +46,7 @@ class ItemAdmin(admin.ModelAdmin):
         "name",
         "description",
         "enabled",
-        "requires_confirmation",
+        "always_requires_confirmation",
         "terms",
         "category",
     )
