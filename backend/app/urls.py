@@ -79,5 +79,5 @@ urlpatterns = [
     re_path(r"^oauth2/", include(oauth2_urls)),
     # Photo albums
     re_path(r"^photos/", include(photos_urls)),
-    settings.MICROSOFT_IDENTITY.urlpattern,
+    re_path(r"^oauth2/", include(oauth2_urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
