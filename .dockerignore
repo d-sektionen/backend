@@ -1,6 +1,4 @@
 Dockerfile
-deploy.sh
-push_image.sh
 __pycache__/
 static/
 media/
@@ -17,3 +15,6 @@ log/
 *.yml
 *.yaml
 *.toml
+
+# uv needs these to install the dependencies during the build.
+!pyproject.toml

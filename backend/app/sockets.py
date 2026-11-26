@@ -3,30 +3,45 @@ import asyncio
 import socketio
 import logging
 from asgiref.sync import async_to_sync
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
 def _create_server():
-    from django.conf import settings
-
     cors_origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
-    manager = socketio.AsyncRedisManager(settings.REDIS_URL)
+    kwargs = {}
+    redis_url = getattr(settings, "REDIS_URL", None)
+    if redis_url:
+        kwargs["client_manager"] = socketio.AsyncRedisManager(redis_url)
+    # Without client_manager python-socketio uses its in-memory AsyncManager.
     return socketio.AsyncServer(
         async_mode="asgi",
         cors_allowed_origins=cors_origins,
-        client_manager=manager,
         transports=["websocket"],
+        **kwargs,
     )
 
 
 sio = _create_server()
+# WebSocket authentication also uses the ORM, outside Django's HTTP lifecycle.
+# Bound it separately and release its connection before accepting the socket.
+_authentication_slots = asyncio.Semaphore(settings.ASGI_HTTP_CONCURRENCY)
+
+
+def _authenticate_socket(request):
+    from django.db import connections
+    from backend.oauth2.auth import CookieJWTAuthentication
+
+    try:
+        return CookieJWTAuthentication().authenticate(request)
+    finally:
+        connections.close_all()
 
 
 @sio.event
 async def connect(sid, environ):
     from django.http import HttpRequest
-    from backend.oauth2.auth import CookieJWTAuthentication
 
     request = HttpRequest()
     cookies = environ.get("HTTP_COOKIE", "")
@@ -36,7 +51,8 @@ async def connect(sid, environ):
             request.COOKIES["access_token"] = cookie.split("=", 1)[1]
             break
 
-    result = await asyncio.to_thread(CookieJWTAuthentication().authenticate, request)
+    async with _authentication_slots:
+        result = await asyncio.to_thread(_authenticate_socket, request)
 
     if result is None:
         logger.warning(f"Connection rejected, authentication failed: {sid}")
@@ -71,14 +87,18 @@ async def ping(sid, data):
 
 
 def emit_event(
-    event: str, data: dict, room: str | None = None, namespace: str | None = None
+    event: str,
+    data: dict,
+    room: str | None = None,
+    namespace: str | None = None,
+    timeout: float | None = None,
 ):
     """
     Sync-safe Socket.IO emit wrapper for Django signals / ORM hooks.
     """
-    async_to_sync(sio.emit)(
-        event,
-        data,
-        room=room,
-        namespace=namespace,
-    )
+
+    async def emit():
+        async with asyncio.timeout(timeout):
+            await sio.emit(event, data, room=room, namespace=namespace)
+
+    async_to_sync(emit)()

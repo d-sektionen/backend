@@ -52,11 +52,14 @@ INSTALLED_APPS = [
     "corsheaders",
     "imagekit",
     "post_office",
-    "identity",
     "channels",
 ]
 
 ASGI_APPLICATION = "backend.app.asgi.application"
+
+# Per process: leave database capacity for other workers, sockets and commands.
+# Admission happens before Django opens a per-request database connection.
+ASGI_HTTP_CONCURRENCY = int(os.getenv("ASGI_HTTP_CONCURRENCY", "8"))
 
 REDIS_URL = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
 
@@ -81,6 +84,11 @@ MIDDLEWARE = [
 MICROSOFT_LOGIN_HOST = "login.microsoftonline.com"
 BASE_URL = os.getenv("BASE_URL")
 APP_HOSTNAME = urlparse(BASE_URL).hostname
+
+MICROSOFT_CLIENT_ID = os.getenv("CLIENT_ID")
+MICROSOFT_CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+MICROSOFT_AUTHORITY = f"https://{MICROSOFT_LOGIN_HOST}/{os.getenv('LIU_TENANT_ID')}"
+MICROSOFT_REDIRECT_URI = f"{BASE_URL}/oauth2/callback"
 
 ALLOWED_HOSTS = [
     APP_HOSTNAME,
@@ -141,12 +149,19 @@ PROTECTED_MEDIA_ROOT = os.path.join(BASE_DIR, "protected_media")
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "app", "static"),)
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    },
+}
 
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 # Django REST Framework
 REST_FRAMEWORK = {
+    # Preserve the API's list-shaped validation errors across the DRF upgrade.
+    "LIST_SERIALIZER_ERRORS_AS_DICT": False,
     # Sets default permission requirements (403 errors) for every endpoint. Override in viewset, as shown in cms.api
     "DEFAULT_PERMISSION_CLASSES": (
         "backend.app.permissions.AllowOptionsAuthentication",
@@ -202,12 +217,21 @@ CAL_URL = os.getenv(
 )
 
 
-EMAIL_BACKEND = "post_office.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
-EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
-EMAIL_HOST_USER = os.getenv("EMAIL_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
-EMAIL_USE_TLS = True
+MAILERS = {
+    "default": {"BACKEND": "post_office.EmailBackend"},
+    "smtp": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": os.getenv("EMAIL_HOST") or "localhost",
+            "port": int(os.getenv("EMAIL_PORT") or "587"),
+            "username": os.getenv("EMAIL_USER"),
+            "password": os.getenv("EMAIL_PASSWORD"),
+            "use_tls": True,
+        },
+    },
+}
+# The default mailer queues; delivery must use a transport to avoid requeuing.
+POST_OFFICE = {"DEFAULT_MAILER": "smtp"}
 
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@d-sektionen.se")
@@ -239,6 +263,9 @@ INFO_DSEKTIONEN_FACEBOOK_URL = os.getenv(
 INFO_DSEKTIONEN_FACEBOOK_GROUP_URL = os.getenv(
     "INFO_DSEKTIONEN_FACEBOOK_GROUP_URL",
     "https://www.facebook.com/groups/112745532123135",
+)
+INFO_DSEKTIONEN_FACEBOOK_SELL_GROUP_URL = os.getenv(
+    "INFO_DSEKTIONEN_FACEBOOK_SELL_GROUP_URL", ""
 )
 INFO_DSEKTIONEN_MORE_SOCIAL_MEDIA_URL = os.getenv(
     "INFO_DSEKTIONEN_MORE_SOCIAL_MEDIA_URL", "https://d-sektionen.se/socialamedier/"

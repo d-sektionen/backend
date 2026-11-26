@@ -1,5 +1,5 @@
 from ...account.tests.utils import AuthenticatedTestCase
-from ..models import Alternative
+from ..models import Ballot
 from .factories import (
     AlternativeFactory,
     AttendantFactory,
@@ -41,8 +41,7 @@ class VotingTest(AuthenticatedTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        db_alternative = Alternative.objects.filter(id=alternative.id).first()
-        self.assertEqual(db_alternative.num_votes, 1)
+        self.assertEqual(Ballot.objects.filter(alternative=alternative).count(), 1)
 
     def test_voting_as_unattending_member(self):
         meeting = MeetingFactory.create(open_attendance=True)
@@ -79,8 +78,7 @@ class VotingTest(AuthenticatedTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        db_alternative = Alternative.objects.filter(id=alternative.id).first()
-        self.assertEqual(db_alternative.num_votes, 1)
+        self.assertEqual(Ballot.objects.filter(alternative=alternative).count(), 1)
 
     def test_voting_on_closed_meeting_as_unattending_member(self):
         meeting = MeetingFactory.create(open_attendance=False)
