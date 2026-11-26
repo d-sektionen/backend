@@ -25,7 +25,9 @@ class PhotoAlbumViewSet(viewsets.ModelViewSet):
 
 
 class PhotoViewSet(viewsets.ModelViewSet):
-    queryset = Photo.objects.all()
+    queryset = (
+        Photo.objects.all().select_related("album", "user").prefetch_related("tags")
+    )
 
     serializer_class = PhotoSerializer
     permission_classes = (PhotoPermissions,)

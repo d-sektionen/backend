@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 from backend.account.serializers import SimpleUserSerializer
 
@@ -17,17 +18,6 @@ class PhotoTagSerializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
 
-class SimplePhotoAlbumSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PhotoAlbum
-        fields = (
-            "id",
-            "title",
-            "description",
-        )
-        read_only_fields = ("id",)
-
-
 class PhotoSerializer(serializers.ModelSerializer):
     tags = PhotoTagSerializer(many=True, read_only=True)
     tag_ids = serializers.PrimaryKeyRelatedField(
@@ -37,9 +27,7 @@ class PhotoSerializer(serializers.ModelSerializer):
         source="tags",
         required=False,
     )
-    album = SimplePhotoAlbumSerializer(read_only=True)
     album_id = serializers.PrimaryKeyRelatedField(
-        write_only=True,
         queryset=PhotoAlbum.objects.all(),
         source="album",
         required=False,
@@ -64,7 +52,6 @@ class PhotoSerializer(serializers.ModelSerializer):
             "date",
             "tags",
             "tag_ids",
-            "album",
             "album_id",
             "image",
             "image_url",
@@ -77,16 +64,15 @@ class PhotoSerializer(serializers.ModelSerializer):
         )
 
     def get_image_url(self, obj):
-        return f"{settings.BASE_URL}/photos/photos/{obj.id}/download/"
+        return settings.BASE_URL + reverse("photo-download", kwargs={"pk": obj.id})
 
 
 class PhotoAlbumSerializer(serializers.ModelSerializer):
-    photos = PhotoSerializer(many=True, read_only=True)
-
     class Meta:
         model = PhotoAlbum
-        fields = ("id", "title", "description", "photos")
-        read_only_fields = (
+        fields = (
             "id",
-            "photos",
+            "title",
+            "description",
         )
+        read_only_fields = ("id",)
