@@ -13,6 +13,7 @@ sys
 *.pid
 uwsgi_params
 media/
+protected_media/
 log/
 env
 .YALE_ACCESS_TOKEN_CACHE

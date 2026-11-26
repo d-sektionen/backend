@@ -35,6 +35,7 @@ from ..budgetportal import urls as budgetportal_urls
 from ..committee import urls as committee_urls
 from ..locks import urls as locks_urls
 from ..mail import urls as mail_urls
+from ..photos import urls as photos_urls
 
 from .views import index
 
@@ -75,5 +76,8 @@ urlpatterns = [
     # Mail
     re_path(r"^mail/", include(mail_urls)),
     # Login to backend
+    re_path(r"^oauth2/", include(oauth2_urls)),
+    # Photo albums
+    re_path(r"^photos/", include(photos_urls)),
     re_path(r"^oauth2/", include(oauth2_urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

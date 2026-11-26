@@ -1,0 +1,70 @@
+from rest_framework import permissions
+
+from ..membership.utils import check_membership
+
+
+class PhotoMetaPermissions(permissions.BasePermission):
+    """
+    Custom permissions for photo meta data (tags and albums).
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.method in permissions.SAFE_METHODS and (
+            request.user.has_perm("photos.view_photo")
+            or check_membership(request.user.username)
+        ):
+            return True
+
+        return request.user.has_perm("photos.change_photo")
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user:
+            return False
+
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return request.user.has_perm("photos.change_photo")
+
+
+class PhotoPermissions(permissions.BasePermission):
+    """
+    Custom permission for a photo.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.method == "POST" and not request.user.has_perm("photos.add_photo"):
+            return False
+
+        # Allow viewing if member or has perms to view photo
+        if request.method == "GET" and not (
+            request.user.has_perm("photos.view_photo")
+            or check_membership(request.user.username)
+        ):
+            return False
+
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user:
+            return False
+
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Allow delete if appropriate perm
+        if request.method == "DELETE" and request.user.has_perm("photos.delete_photo"):
+            return True
+
+        # Write permissions are only allowed to the owner of the photo.
+        return obj.user == request.user
